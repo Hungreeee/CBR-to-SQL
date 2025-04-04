@@ -1,0 +1,22 @@
+ipykernel
+langchain
+langchain-core
+langchain-huggingface
+langchain-community
+langchain-experimental
+langchain-openai
+langchain-ollama
+langchain-qdrant
+qdrant-client
+unstructured[pdf]
+python-dotenv
+flask
+mysql-connector-python 
+PyMySQL
+sqlalchemy
+# markdownify
+# faiss-cpu
+# tika
+# streamlit
+# torch
+# FlagEmbedding

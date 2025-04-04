@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+    # qdrant:
+    #     image: qdrant/qdrant 
+    #     container_name: qdrant 
+    #     ports:
+    #         - "6333:6333" 
+    #     volumes:
+    #         - ./docker_data/qdrant:/qdrant/storage
+
+    ollama:
+        image: ollama/ollama
+        container_name: ollama
+        ports:
+            - "11434:11434"
+        volumes:
+            - ./docker_data/ollama:/root/.ollama
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: 1
+                          capabilities: [gpu]
+        restart: always
+
+    mysql:
+        image: mysql
+        container_name: mysql
+        environment:
+            MYSQL_DATABASE: "mysql"
+            MYSQL_ROOT_PASSWORD: "12345678"
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./docker_data/mysql/data/conf.d:/etc/mysql/conf.d
+            - ./docker_data/mysql/data/logs:/logs
+            - ./docker_data/mysql/usr/local/var/mysql:/var/lib/mysql
+
+    # flask_app:
+    #     build:
+    #         context: ./ 
+    #         dockerfile: Dockerfile
+    #     environment:
+    #         - QDRANT_CLIENT=http://qdrant:6333
+    #         - OLLAMA=http://ollama:11434
+    #     container_name: flask_app
+    #     volumes:
+    #         - ./docker_data/huggingface:/root/.cache/huggingface/
+    #     ports:
+    #         - "8000:8000"
+    #     depends_on:
+    #         - qdrant 
+    #         - ollama 
