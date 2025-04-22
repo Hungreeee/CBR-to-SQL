@@ -14,9 +14,3 @@ flask
 mysql-connector-python 
 PyMySQL
 sqlalchemy
-# markdownify
-# faiss-cpu
-# tika
-# streamlit
-# torch
-# FlagEmbedding
