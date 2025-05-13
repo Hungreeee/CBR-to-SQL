@@ -5,10 +5,9 @@ from typing import List, Tuple
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_ollama.chat_models import ChatOllama
 
-from src.configs import LLMConfig
+from configs import LLMConfig
 
 from dotenv import load_dotenv
-
 load_dotenv()
 
 
@@ -31,10 +30,9 @@ class BaseGenerator:
         self.config = config
         self.client = None
     
-    def generate(self, messages: List[Tuple[str]], is_stream: bool = False):
-        response = self.client.stream(messages) if is_stream \
-            else self.client.invoke(messages)
-        return response
+    def generate(self, messages: List[Tuple[str]], return_content: bool = True):
+        response = self.client.invoke(messages)
+        return response.content if return_content else response
 
 
 class OpenAIAgent(BaseGenerator):

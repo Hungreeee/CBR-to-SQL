@@ -3,15 +3,12 @@ from typing import List, Dict
 from qdrant_client import QdrantClient, models
 
 from langchain.schema.document import Document
-from langchain_qdrant import QdrantVectorStore
+from langchain_qdrant import QdrantVectorStore, RetrievalMode
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.utilities.sql_database import SQLDatabase
 
-from src.configs import RetrieverConfig
+from configs import RetrieverConfig
 
 from dotenv import load_dotenv
-
 load_dotenv()
 
 
@@ -55,6 +52,8 @@ class QdrantRetriever(BaseRetriever):
             client=self.client, 
             collection_name=self.collection_name,
             embedding=self.embedder,
+            # sparse_embedding=,
+            # retrieval_mode=RetrievalMode.HYBRID,
         )
 
     def _ensure_collection_exists(self):
@@ -67,12 +66,12 @@ class QdrantRetriever(BaseRetriever):
                 ),
             )
 
-    def ingest(self, documents: List[Dict]):
+    def ingest(self, documents: List[Dict], index_field: str):
         documents_langchain = []
         for doc in documents:
-            metadata = {key: value for key, value in doc.items() if key != "case"}
+            metadata = {key: value for key, value in doc.items() if key != index_field}
             documents_langchain.append(Document(
-                page_content=doc["case"], 
+                page_content=doc[index_field], 
                 metadata=metadata,
             ))
         self.vectorstore.add_documents(documents_langchain)
