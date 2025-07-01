@@ -1,6 +1,11 @@
 # %%
 from src.retriever import QdrantRetriever
 from data.TREQS.evaluation.utils import *
+from langchain_community.utilities.sql_database import SQLDatabase
+
+# %%
+DATABASE_URI = "sqlite:///./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
+sql_db = SQLDatabase.from_uri(DATABASE_URI)
 
 # %%
 db_file = 'data/TREQS/evaluation/mimic_db/mimic.db'
@@ -8,7 +13,7 @@ model = query(db_file)
 (db_meta, db_tabs, db_head) = model._load_db(db_file)
 
 # %%
-lookup_table = QdrantRetriever(collection_name="lookup_table")
+lookup_table = QdrantRetriever(collection_name="lookup_ehrsql")
 
 # %%
 datapoints = []
@@ -36,6 +41,6 @@ datapoints
 lookup_table.ingest(datapoints, "entity")
 
 # %%
-lookup_table.retrieve("jerry de berry", 5)
+lookup_table.retrieve("diphenhydramine", 50)
 
 # %%

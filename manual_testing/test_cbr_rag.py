@@ -5,15 +5,17 @@ load_dotenv()
 import json, pickle
 from typing import List, Dict
 
+from tqdm import tqdm
+
 from src.generator import AzureAIAgent, OpenAIAgent
-from src.rag_pipeline import RAG2SQL
+from src.rag_pipeline import RAG2SQL, CBR2SQL
 from src.retriever import QdrantRetriever
 from langchain_community.utilities.sql_database import SQLDatabase
 from src.metrics import logic_form_accuracy, execution_accuracy
 
-#%%
+# %%
 def train(rag_pipeline: RAG2SQL, dataset: List[Dict]):
-    for data in dataset:
+    for data in tqdm(dataset, total=len(dataset)):
         query = data["question_refine"]
         sql_query = data["sql"]
         rag_pipeline.retain(query, sql_query)
@@ -21,7 +23,7 @@ def train(rag_pipeline: RAG2SQL, dataset: List[Dict]):
 def generate_results(rag_pipeline: RAG2SQL, dataset: List[Dict]):
     result_dataset = []
 
-    for data in dataset:
+    for data in tqdm(dataset, total=len(dataset)):
         query = data["question_refine"]
         sql_query = data["sql"]
 
@@ -58,7 +60,6 @@ with open("./data/TREQS/mimicsql_data/mimicsql_natural_v2/test.json", "r") as f:
         json_object = json.loads(line)
         testset.append(json_object)
 
-
 with open("./data/TREQS/evaluation/mimic_db/lookup.json", "r") as f:
     lookup = json.load(f)
 
@@ -66,8 +67,9 @@ with open("./data/TREQS/evaluation/mimic_db/lookup.json", "r") as f:
 DATABASE_URI = "sqlite:///./data/TREQS/evaluation/mimic_db/mimic_all.db"
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 
-generator = OpenAIAgent()
-retriever = QdrantRetriever()
+# generator = OpenAIAgent()
+generator = AzureAIAgent()
+retriever = QdrantRetriever(collection_name="rag_empty")
 
 rag_pipeline = RAG2SQL(
     retriever=retriever,
@@ -75,26 +77,88 @@ rag_pipeline = RAG2SQL(
     sql_db=sql_db,
 )
 
+lookup_table = QdrantRetriever(collection_name="lookup_table")
+cbr_retriever = QdrantRetriever(collection_name="cbr")
+
+cbr_pipeline = CBR2SQL(
+    retriever=cbr_retriever,
+    generator=generator,
+    sql_db=sql_db,
+    lookup_table=lookup_table,
+)
+
 # %%
+# # Train model
 # train(rag_pipeline, trainset)
 
 # %%
-# result_dataset = generate_results(rag_pipeline, testset)
-# result_dataset
+# Generate results for evaluation
+# result_dataset_cbr = generate_results(cbr_pipeline, testset)
+# result_dataset_cbr
 
-# with open("./data/results/result_dataset_rag2sql.pkl", "wb") as f:
-#     pickle.dump(result_dataset, f)
+# with open("./data/results/result_dataset_cbr2sql_gpt-4o_incomplete.pkl", "wb") as f:
+#     pickle.dump(result_dataset_cbr, f)
 
-with open("./data/results/result_dataset_rag2sql.pkl", "rb") as f:
-    result_dataset = pickle.load(f)
-
-# %%
-ex_score = execution_accuracy(sql_db, result_dataset)
-ex_score
+with open("./data/results/result_dataset_cbr2sql_gpt-4o.pkl", "rb") as f:
+    result_dataset_cbr = pickle.load(f)
 
 # %%
-lf_scores = logic_form_accuracy(lookup, result_dataset)
-lf_scores
+# # Generate results for evaluation
+result_dataset_rag = generate_results(rag_pipeline, testset)
+result_dataset_rag
+
+with open("./data/results/result_dataset_gpt-4o_empty.pkl", "wb") as f:
+    pickle.dump(result_dataset_rag, f)
+
+# with open("./data/results/result_dataset_rag2sql_gpt-4o_incomplete.pkl", "rb") as f:
+#     result_dataset_rag = pickle.load(f)
+
+# %%
+# Compute metrics
+ex_score = execution_accuracy(sql_db, result_dataset_rag)
+print(ex_score)
+
+# %%
+lf_scores = logic_form_accuracy(lookup, result_dataset_cbr)
+print(lf_scores)
+
+# %%
+result_dataset_rag
+
+# %%
+test_idx = 239
+testset[test_idx]["question_refine"]
+
+# %%
+question = """
+specify the number of patients who were admitted in the year less that 2187 and had  (aorto)coronary bypass of one coronary artery
+"""
+
+# %%
+rag_pipeline.query(question)
+
+# %%
+masked_query, extracted_entities = cbr_pipeline.get_masked_question(question)
+masked_query, extracted_entities
+
+# %%
+cbr_retriever.retrieve("what is the number of patients primarily diagnosed with condition?")
+
+# %%
+sql_template, retrieved_cases = cbr_pipeline.formulate_sql_template(question, masked_query, extracted_entities)
+print(sql_template)
+
+# %%
+sql_query, relevant_entity_match = cbr_pipeline.discover_sources(question, sql_template, extracted_entities)
+print(sql_query)
+
+# %%
+cbr_pipeline.lookup("mesothelial cells")
+
+# %%
+sql_db.run("""
+what number of patients under the gae of 67 speak the language cape?
+""")
 
 # %%
 logic_form_accuracy(lookup, [{
@@ -103,20 +167,11 @@ logic_form_accuracy(lookup, [{
 }])
 
 # %%
-with open("./data/TREQS/evaluation/generated_sql/output.json", 'w', encoding='utf-8') as f:
-    for item in result_dataset:
-        entry = {
-            "sql_pred": item["sql_query"],
-            "sql_gold": item["golden_sql_query"]
-        }
-        f.write(json.dumps(entry) + '\n')
-
-# %%
-test_idx = 879
+test_idx = 901
 testset[test_idx]
 
 # %%
-response = rag_pipeline.query(testset[test_idx]["question_refine"])
+response = cbr_pipeline.query(testset[test_idx]["question_refine"])
 response
 
 # %%

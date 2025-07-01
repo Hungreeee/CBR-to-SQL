@@ -1,11 +1,16 @@
 import json
+import re
 from typing import Tuple, List, Dict
 
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
 import prompt_factory 
-from schema import EntityExtractionResult
+from schema import MaskingResults, RetainVerdict
+
+import nltk
+
+from uuid import uuid4
 
 from langchain_community.utilities.sql_database import SQLDatabase
 
@@ -50,7 +55,7 @@ class RAG2SQL:
         # Retrieve
         retrieved_cases = self.retriever.retrieve(query, top_k=self.config.top_k) 
         formatted_string = "\n\n".join(
-            f"Query: {doc.metadata['case']}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
+            f"Query: {doc.page_content}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
         )
 
         # Revise
@@ -62,7 +67,7 @@ class RAG2SQL:
             ("human", f"Revised SQL Query:"),
         ]
         sql_query = self.generator.generate(messages) 
-        return sql_query, retrieved_cases
+        return remove_sql_wrapper(sql_query), retrieved_cases
     
     def retain(self, query: str, correct_sql: str):
         documents = [{
@@ -85,7 +90,18 @@ class CBR2SQL(RAG2SQL):
         self.lookup_table = lookup_table
 
     def query(self, query: str) -> Dict:
-        sql_query, retrieved_cases = self.formulate_sql_query(query)
+        masked_query, extracted_entities = self.get_masked_question(query)
+        
+        if self.config.template_construction:
+            sql_query, retrieved_cases = self.formulate_sql_template(query, masked_query, extracted_entities)
+        else:
+            sql_query, retrieved_cases = self.formulate_sql_query(query)
+
+        if self.config.source_discovery:
+            sql_query, relevant_entity_match = self.discover_sources(query, sql_query, extracted_entities)
+        else:
+            relevant_entity_match = []
+
         try:
             sql_response = self.sql_db.run(sql_query)
         except: 
@@ -98,102 +114,157 @@ class CBR2SQL(RAG2SQL):
             ("human", f"Answer:"),
         ]
         response = self.generator.generate(messages) if self.config.return_response else None
-
+        
         return {
             "response": response,
             "sql_query": sql_query,
             "sql_response": sql_response,
             "retrieved_cases": retrieved_cases,
+            "relevant_entities": relevant_entity_match,
         }
     
-    def formulate_sql_query(self, query: str):
-        # Retrieve solution template
-        masked_query, extracted_entities = self.get_masked_question(query)
-        retrieved_cases = self.retriever.retrieve(masked_query, top_k=self.config.top_k) 
-        formatted_string = "\n\n".join(
-            f"Query: {doc.metadata['case']}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
-        )
-
-        # Revise solution based on examples
-        messages = [
-            ("system", prompt_factory.template_formulation),
-            ("system", f"Schema Information:{self.sql_db.get_table_info()}"),
-            ("human", f"Question: {query}"),
-            ("human", f"Past SQL Examples: {formatted_string}"),
-            ("human", f"Revised SQL Query:"),
-        ]
-        sql_template = self.generator.generate(messages) 
-
-        # Extract relevant entities
-        relevant_entity_match = []
-        for entity in extracted_entities:
-            matches = self.lookup_table.retrieve(entity, self.config.top_k)
-            relevant_entity_match.append({
-                "entity": entity,
-                "matches": [relevant_entity.model_dump() for relevant_entity in matches]
-            })
-
-        formatted_string = "\n\n".join(
-            f"Entity: {doc['entity']}" + "\nRelevant matches:\n".join([
-                f"\nRelevant Entity: {match['entity']}, Table: {match['table']}, Column: {match['column']}" \
-                    for match in doc["matches"]
-            ]) for doc in relevant_entity_match
-        )
-
-        # Revise solution based on examples
-        messages = [
-            ("system", prompt_factory.source_discovery),
-            ("human", f"SQL Template: {sql_template}"),
-            ("human", f"Relevant entity matches: {formatted_string}"),
-            ("system", f"Schema Information:{self.sql_db.get_table_info()}"),
-            ("human", f"Revised SQL Query:"),
-        ]
-        sql_query = self.generator.generate(messages) 
-        return sql_query, retrieved_cases
-
-    def retain(self, query: str, correct_sql: str):
+    def retain(self, query: str, correct_sql: str) -> bool:
         """
-        Construct an abstract problem-solving case, and retain it.
+        Construct a masked case, and retain it.
         """
+        masked_case, extracted_entities = self.get_masked_question(query)
         documents = [{
-            "masked_case": self.get_masked_question(query)[0],
+            "masked_case": masked_case,
+            "related_entities": extracted_entities,
             "case": query,
             "sql_query": correct_sql,
-            "explanation": self.get_explanation(query, correct_sql)
         }]
         self.retriever.ingest(documents, "masked_case")
-
-    def get_explanation(self, query: str, correct_sql: str) -> str:
-        """
-        Generate an explanation of the formulation of the SQL query from the NL query.
-        """
-        messages = [
-            ("system", prompt_factory.case_explanation),
-            ("human", f"Natural Language Query: {query}"),
-            ("human", f"SQL: {correct_sql}"),
-            ("human", f"Explanation:"),
-        ]
-        explanation = self.generator.generate(messages)
-        return explanation
 
     def get_masked_question(self, query: str) -> Tuple[str, List[Dict]]:
         """
         Mask entities out of the query, and return the extracted entities.
         """
         # Bind function calling to LLM
-        llm_extraction = self.generator.client.bind_tools([EntityExtractionResult], strict=True)
+        llm_extraction = self.generator.client.bind_tools([MaskingResults], strict=True)
 
         # Extract entities from the query
         messages = [
             ("system", prompt_factory.entity_extraction),
-            ("human", f"Input text: {query}"),
+            ("human", query),
         ]
-        response = llm_extraction.generate(messages)
-        extracted_entities = json.loads(response.additional_kwargs['tool_calls'][0]["function"]["arguments"])["entities"]
+        response = llm_extraction.invoke(messages)  
 
-        # Mask the entities from the query
-        masked_text = query
-        for entity in extracted_entities:
-            masked_text = masked_text.replace(entity.name, f"{entity.type.upper()}")
+        if "tool_calls" in response.additional_kwargs:
+            tool_call_results = json.loads(response.additional_kwargs['tool_calls'][0]["function"]["arguments"])
+            extracted_entities = tool_call_results["redacted_entities"]
+            masked_text = tool_call_results["masked_sentence"]
+
+        else:
+            masked_text = query
+            extracted_entities = []
 
         return masked_text, extracted_entities
+
+    def formulate_sql_template(
+        self, 
+        query: str, 
+        masked_query: str,
+        extracted_entities: List[Dict],
+    ) -> Tuple[str, List[Dict]]:
+        """
+        Write a SQL template based on similar past cases.
+        """
+        # Retrieve solution template
+        retrieved_cases = self.retriever.retrieve(masked_query, top_k=self.config.top_k) 
+        formatted_string = "\n\n-----\n\n".join(
+            f"Query: {doc.metadata['case']}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
+        )
+        
+        masking_entities = [entity for entity in extracted_entities if entity["label"] in [
+            "CONDITION", "PROCEDURE", "ETHNICITY",
+            "DRUG", "NAME", "RELIGION", "EQUIPMENT",
+        ]]
+
+        # Construct solution template based on examples
+        messages = [
+            ("system", prompt_factory.template_formulation),
+            ("system", f"Schema Information:{self.sql_db.get_table_info()}"),
+            ("human", f"Entities to highlight: {masking_entities}"),
+            ("human", f"User Question: {query}"),
+            ("human", f"Past SQL Examples: {formatted_string}"),
+            ("human", f"Revised SQL Query:"),
+        ]
+        sql_template = self.generator.generate(messages) 
+        return remove_sql_wrapper(sql_template), retrieved_cases
+
+    def discover_sources(
+        self, 
+        query: str, 
+        sql_template: str, 
+        extracted_entities: List[Dict]
+    ) -> Tuple[str, List[Dict]]:
+        """
+        Modify templates to adapt to true sources of the entities.
+        """
+        # Extract relevant entities
+        # To-do: Re-rank matches using Levenshtein distance
+        relevant_entity_match = []
+        
+        for entity in extracted_entities:
+            if entity["label"] in [
+                "CONDITION", "PROCEDURE", "ETHNICITY",
+                "DRUG", "NAME", "RELIGION", "EQUIPMENT",
+            ]:
+                relevant_matches = self.lookup(entity["value"])
+                relevant_entity_match.append({
+                    "entity": entity["value"],
+                    "matches": relevant_matches,
+                })
+
+        formatted_string = "\n-----\n".join(
+            f"Relevant matches for entity: `{doc['entity']}`\n" + "\n".join([
+                f"Relevant match #{idx}: `{match['page_content']}`, Table: `{match['metadata']['table']}`, Column: `{match['metadata']['column']}`" \
+                    for idx, match in enumerate(doc["matches"])
+            ]) for doc in relevant_entity_match
+        )
+
+        # Revise solution based on examples
+        if relevant_entity_match:
+            messages = [
+                ("system", prompt_factory.source_discovery),
+                ("human", f"User Question: {query}"),
+                ("human", f"Initial SQL Template: {sql_template}"),
+                ("human", f"Relevant entity matches: {formatted_string}"),
+                ("human", f"Revised SQL Query:"),
+            ]
+            sql_query = self.generator.generate(messages) 
+            
+        else:
+            sql_query = sql_template
+
+        return remove_sql_wrapper(sql_query), relevant_entity_match
+    
+    def lookup(self, query: str, retrieval_range: int = 100, top_k: int = 5) -> List[Dict]:
+        """
+        Retrieve similar (real) entities given a seed value
+        Retrieve with cosine similarity, re-rank using Levenshtein distance
+        """
+        matches = self.lookup_table.retrieve(query, top_k=retrieval_range)
+        reranked_results = []
+
+        for match in matches:
+            match_dict = match.model_dump()
+            reranked_results.append({
+                **match_dict,
+                "score": nltk.edit_distance(
+                    " ".join(sorted(tokenize(query))), 
+                    " ".join(sorted(tokenize(match_dict["page_content"])))
+                )
+            })
+
+        reranked_results = sorted(reranked_results, key=lambda x: x["score"])[:top_k]
+        return reranked_results
+        
+
+def tokenize(text: str) -> List:
+    return re.findall(r'\b\w+\b', text.lower())
+
+def remove_sql_wrapper(text):
+    pattern = r"```sql\s*(.*?)\s*```"
+    return re.sub(pattern, r"\1", text, flags=re.DOTALL | re.IGNORECASE)

@@ -14,3 +14,4 @@ flask
 mysql-connector-python 
 PyMySQL
 sqlalchemy
+scikit-learn

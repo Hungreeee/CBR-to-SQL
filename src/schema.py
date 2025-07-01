@@ -1,18 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from enum import Enum
 
-
-class EntityType(str, Enum):
-    CONDITION = "CONDITION"
-    MEASUREMENT = "MEASUREMENT"
-    DRUG = "DRUG"
-    PATIENT = "PATIENT"
-    CODE = "CODE"
-
 class Entity(BaseModel):
-    name: str
-    type: EntityType 
+    value: str = Field(...)
+    label: str = Field(...)
 
-class EntityExtractionResult(BaseModel):
-    entities: List[Entity]
+class MaskingResults(BaseModel):
+    masked_sentence: str = Field(...)
+    redacted_entities: List[Entity] = Field(..., description="List of redacted values. Leave blank if nothing match.")
+
+class Verdict(str, Enum):
+    CREATE = "CREATE"
+    IGNORE = "IGNORE"
+
+class RetainVerdict(BaseModel):
+    action: Verdict = Field(...)

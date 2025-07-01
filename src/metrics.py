@@ -16,11 +16,24 @@ def execution_accuracy(sql_db: SQLDatabase, results_dataset: List[Dict]):
         if outPred == outTtt:
             count += 1
         else:
-            print(f"PRED: {outPred}\nGOLD: {outTtt}\n")
+            print(f"PRED: {item['sql_query']}\nGOLD: {item['golden_sql_query']}\n")
             print()
 
     accuracy = count / len(results_dataset)
     return accuracy
+
+
+def normalize_select_from_clauses(sql: str) -> str:
+    sql = sql.lower()
+    sql = re.sub(r'\b(count|avg|min|max|sum)\s+\(', r'\1(', sql)
+    sql = re.sub(r'\(\s+', '(', sql)
+    sql = re.sub(r'\s+\)', ')', sql)
+    sql = re.sub(r'\s+', ' ', sql)
+    sql = re.sub(r'select\s+', 'select ', sql)
+    sql = re.sub(r'from\s+', 'from ', sql)
+    sql = re.sub(r"(?<!\w)'((?:[^']|(?<=\\)')*?)'(?!\w)", r'"\1"', sql)
+
+    return sql.strip()
 
 
 def logic_form_accuracy(lookup: Dict, result_dataset: List[Dict]):
@@ -32,8 +45,8 @@ def logic_form_accuracy(lookup: Dict, result_dataset: List[Dict]):
     sql_rec = []
 
     for line in result_dataset:
-        pred = re.split('<stop>', line["sql_query"])[0].lower()
-        ttt = line["golden_sql_query"].lower()
+        pred = normalize_select_from_clauses(re.split('<stop>', line["sql_query"])[0])
+        ttt = normalize_select_from_clauses(line["golden_sql_query"].lower())
 
         predArr = re.split("where", pred)
         predAgg = re.split("\s", predArr[0])
@@ -51,7 +64,7 @@ def logic_form_accuracy(lookup: Dict, result_dataset: List[Dict]):
         predConNew = []
         k = 0
         while k < len(predCon):
-            if "=" in predCon[k] or "<" in predCon[k] or ">" in predCon[k] or "is" in predCon[k]:
+            if "=" in predCon[k] or "<" in predCon[k] or ">" in predCon[k] or "is" in predCon[k] or "like" in predCon[k] or "in" in predCon[k]:
                 predConNew.append(predCon[k])
             else:
                 predConNew[-1] += " and " + predCon[k]

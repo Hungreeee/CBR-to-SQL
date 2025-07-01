@@ -20,6 +20,7 @@ class RetrieverConfig:
 
 @dataclass
 class LLMConfig:
+    # model: str = "gpt-4.1-mini"
     model: str = "gpt-4o"
     temperature: int = 0.
     top_p: int = None
@@ -33,6 +34,8 @@ class LLMConfig:
 class RAGConfig:
     top_k: int = 5
     return_response: bool = False
+    template_construction: bool = True
+    source_discovery: bool = True
 
     @classmethod
     def default(cls):
