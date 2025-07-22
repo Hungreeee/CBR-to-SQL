@@ -1,5 +1,6 @@
 from typing import List, Dict
 from langchain_community.utilities.sql_database import SQLDatabase
+from src.utils import *
 import re
 
 def execution_accuracy(sql_db: SQLDatabase, results_dataset: List[Dict]):
@@ -23,99 +24,104 @@ def execution_accuracy(sql_db: SQLDatabase, results_dataset: List[Dict]):
     return accuracy
 
 
-def normalize_select_from_clauses(sql: str) -> str:
-    sql = sql.lower()
-    sql = re.sub(r'\b(count|avg|min|max|sum)\s+\(', r'\1(', sql)
-    sql = re.sub(r'\(\s+', '(', sql)
-    sql = re.sub(r'\s+\)', ')', sql)
-    sql = re.sub(r'\s+', ' ', sql)
-    sql = re.sub(r'select\s+', 'select ', sql)
-    sql = re.sub(r'from\s+', 'from ', sql)
-    sql = re.sub(r"(?<!\w)'((?:[^']|(?<=\\)')*?)'(?!\w)", r'"\1"', sql)
+def parse_sql(sql, headerDic, tableDic):
+    sqlForm = {}
+    
+    arr = re.split('where', sql.lower())
+    qlead = re.split('from', arr[0])
+    qagg = re.split('\s', qlead[0])
+    qagg = list(filter(None, qagg))
+    if qagg[1] == 'count' or qagg[1] == 'min' or qagg[1] == 'max' or qagg[1] == 'avg':
+        sqlForm['sel'] = qagg[1]
+    else:
+        sqlForm['sel'] = ''
+        
+    itm = []
+    for wd in qagg:
+        if wd in headerDic:
+            itm.append(wd)
+    sqlForm['agg'] = itm
+    
+    itm = []
+    qtab = re.split('\s', qlead[1])
+    qtab = list(filter(None, qtab))
+    for wd in qtab:
+        if wd in tableDic:
+            itm.append(wd)
+    sqlForm['tab'] = itm
+        
+    qtail = re.split('and', arr[-1])
+    itm = []
+    for cond in qtail:
+        cond = re.split('\s', cond)
+        cond = list(filter(None, cond))
+        if len(cond) > 2:
+            condVal = ' '.join(cond[2:])
+            condVal = re.split('\"|\s|\'', condVal)
+            condVal = ' '.join(list(filter(None, condVal)))
+            itm.append(cond[:2] + [condVal])
+    sqlForm['cond'] = sorted(itm)
+    
+    return sqlForm
 
-    return sql.strip()
 
+def logic_form_accuracy(result_dataset: List[Dict]):
+    db_file = './data/TREQS/mimic_db/mimic.db'
+    model = query(db_file)
+    (_, _, db_head) = model._load_db(db_file)
 
-def logic_form_accuracy(lookup: Dict, result_dataset: List[Dict]):
     headerDic = []
-    for tb in lookup:
-        for hd in lookup[tb]:
+    for tb in db_head:
+        for hd in db_head[tb]:
             headerDic.append('.'.join([tb, hd]).lower())
 
-    sql_rec = []
+    tableDic = []
+    for tb in db_head:
+        tableDic.append(tb.lower())
+
+    outGen = []
+    outTtt = []
 
     for line in result_dataset:
-        pred = normalize_select_from_clauses(re.split('<stop>', line["sql_query"])[0])
-        ttt = normalize_select_from_clauses(line["golden_sql_query"].lower())
-
-        predArr = re.split("where", pred)
-        predAgg = re.split("\s", predArr[0])
-        predAgg = list(filter(None, predAgg))
-        predAgg2 = []
-        for k in range(len(predAgg)-1):
-            if predAgg[k] in headerDic and predAgg[k+1] in headerDic:
-                predAgg2.append(predAgg[k] + ',')
-            else:
-                predAgg2.append(predAgg[k])
-        predAgg2.append(predAgg[-1])
-        predAgg = ' '.join(predAgg2)
+        gen = re.split('<stop>', line['sql_query'])[0]
+        sqlG = parse_sql(gen, headerDic, tableDic)
+        outGen.append(sqlG)
         
-        predCon = re.split("and", predArr[1])
-        predConNew = []
-        k = 0
-        while k < len(predCon):
-            if "=" in predCon[k] or "<" in predCon[k] or ">" in predCon[k] or "is" in predCon[k] or "like" in predCon[k] or "in" in predCon[k]:
-                predConNew.append(predCon[k])
-            else:
-                predConNew[-1] += " and " + predCon[k]
-                k += 1
-            k += 1
-        for k in range(len(predConNew)):
-            if "=" in predConNew[k]:
-                conOp = "="
-            if ">" in predConNew[k]:
-                conOp = ">"
-            if "<" in predConNew[k]:
-                conOp = "<"
-            if "<=" in predConNew[k]:
-                conOp = "<="
-            if ">=" in predConNew[k]:
-                conOp = ">="
-            conVal = re.split("=|<|>", predConNew[k])
-            conVal = list(filter(None, conVal))
-            conCol = conVal[0]
-            conColArr = re.split('\.|\s', conCol)
-            conColArr = list(filter(None, conColArr))
-            try:
-                pool_ = lookup[conColArr[0].upper()][conColArr[1].upper()]
-            except:
-                sql_rec.append(["Error", ttt])
-                continue
-            conVal = re.split('"|\s', conVal[-1])
-            conVal = list(filter(None, conVal))
-            conVal = ' '.join(conVal)
-            predConNew[k] = conCol + conOp + ' "' + conVal + '"'
+        ttt = line['golden_sql_query']
+        sqlT = parse_sql(ttt, headerDic, tableDic)
+        outTtt.append(sqlT)
 
-        pred = predAgg + ' where ' + ' and '.join(predConNew)
-        pred = re.split("\s", pred)
-        pred = list(filter(None, pred))
-        pred = " ".join(pred)
-        
-        sql_rec.append([pred, ttt])
+    lf_count = {
+        "total": 0,
+        "agg_op": 0,
+        "agg_col": 0,
+        "table": 0,
+        "condition_column_operation": 0,
+        "condition_value": 0,
+    }
 
-    correct = 0
-    for item in sql_rec:
-        arr_pred = re.split(',|\s', item[0].lower())
-        arr_pred = ' '.join(list(filter(None, arr_pred)))
+    for k in range(len(outGen)):
+        if outGen[k] == outTtt[k]:
+            lf_count["total"] += 1 
 
-        arr_gold = re.split(',|\s', item[1].lower())
-        arr_gold = ' '.join(list(filter(None, arr_gold)))
-        
-        if arr_pred == arr_gold:
-            correct += 1
-        else:
-            print(f"PRED: {arr_pred}\nGOLD: {arr_gold}\n")
-            print()
+        if outGen[k]['sel'] == outTtt[k]['sel']:
+            lf_count["agg_op"] += 1 
 
-    accuracy = correct / len(sql_rec)
-    return accuracy
+        if outGen[k]['agg'] == outTtt[k]['agg']:
+            lf_count["agg_col"] += 1
+
+        if outGen[k]['tab'] == outTtt[k]['tab']:
+            lf_count["table"] += 1 
+
+        arrG = [wd[:2] for wd in outGen[k]['cond']]
+        arrT = [wd[:2] for wd in outTtt[k]['cond']]
+        if arrG == arrT:
+            lf_count["condition_column_operation"] += 1
+
+        arrG = [wd[:3] for wd in outGen[k]['cond']]
+        arrT = [wd[:3] for wd in outTtt[k]['cond']]
+        if arrG == arrT:
+            lf_count["condition_value"] += 1 
+
+    return {cat: (cnt/len(outGen)) for (cat, cnt) in lf_count.items()}
+

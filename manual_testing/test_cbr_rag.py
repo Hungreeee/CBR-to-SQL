@@ -69,8 +69,8 @@ sql_db = SQLDatabase.from_uri(DATABASE_URI)
 
 # generator = OpenAIAgent()
 generator = AzureAIAgent()
-retriever = QdrantRetriever(collection_name="rag_empty")
 
+retriever = QdrantRetriever()
 rag_pipeline = RAG2SQL(
     retriever=retriever,
     generator=generator,
@@ -78,8 +78,7 @@ rag_pipeline = RAG2SQL(
 )
 
 lookup_table = QdrantRetriever(collection_name="lookup_table")
-cbr_retriever = QdrantRetriever(collection_name="cbr")
-
+cbr_retriever = QdrantRetriever(collection_name="cbr_full")
 cbr_pipeline = CBR2SQL(
     retriever=cbr_retriever,
     generator=generator,
@@ -96,34 +95,41 @@ cbr_pipeline = CBR2SQL(
 # result_dataset_cbr = generate_results(cbr_pipeline, testset)
 # result_dataset_cbr
 
-# with open("./data/results/result_dataset_cbr2sql_gpt-4o_incomplete.pkl", "wb") as f:
+# with open("./data/results/result_dataset_cbr2sql_gpt-4o_brittle.pkl", "wb") as f:
 #     pickle.dump(result_dataset_cbr, f)
 
-with open("./data/results/result_dataset_cbr2sql_gpt-4o.pkl", "rb") as f:
+with open("./data/results/result_dataset_cbr2sql_gpt-4o_brittle.pkl", "rb") as f:
     result_dataset_cbr = pickle.load(f)
 
 # %%
 # # Generate results for evaluation
-result_dataset_rag = generate_results(rag_pipeline, testset)
-result_dataset_rag
+# result_dataset_rag = generate_results(rag_pipeline, testset)
+# result_dataset_rag
 
-with open("./data/results/result_dataset_gpt-4o_empty.pkl", "wb") as f:
-    pickle.dump(result_dataset_rag, f)
+# with open("./data/results/result_dataset_rag2sql_gpt-4o_brittle.pkl", "wb") as f:
+#     pickle.dump(result_dataset_rag, f)
 
-# with open("./data/results/result_dataset_rag2sql_gpt-4o_incomplete.pkl", "rb") as f:
-#     result_dataset_rag = pickle.load(f)
+with open("./data/results/result_dataset_rag2sql_gpt-4o_topk3.pkl", "rb") as f:
+    result_dataset_rag = pickle.load(f)
 
+# %%
+logic_form_accuracy(result_dataset_rag)
+
+# %%
+logic_form_accuracy(result_dataset_cbr)
+
+# %%
+# Compute metrics
+ex_score = execution_accuracy(sql_db, result_dataset_cbr)
+print(ex_score)
 # %%
 # Compute metrics
 ex_score = execution_accuracy(sql_db, result_dataset_rag)
 print(ex_score)
 
 # %%
-lf_scores = logic_form_accuracy(lookup, result_dataset_cbr)
+lf_scores = logic_form_accuracy(result_dataset_cbr)
 print(lf_scores)
-
-# %%
-result_dataset_rag
 
 # %%
 test_idx = 239
@@ -159,45 +165,3 @@ cbr_pipeline.lookup("mesothelial cells")
 sql_db.run("""
 what number of patients under the gae of 67 speak the language cape?
 """)
-
-# %%
-logic_form_accuracy(lookup, [{
-    "sql_query": 'select lab."itemid", lab."flag" from lab where lab."subject_id" = "22377"',
-    "golden_sql_query": 'select lab."itemid", lab."flag" from lab where lab."subject_id" = "22377"',
-}])
-
-# %%
-test_idx = 901
-testset[test_idx]
-
-# %%
-response = cbr_pipeline.query(testset[test_idx]["question_refine"])
-response
-
-# %%
-second_results = sql_db.run(testset[test_idx]["sql"])
-second_results
-
-# %%
-response["sql_response"]
-
-# %%
-# Execution Accuracy
-response["sql_response"] == second_results
-
-# %%
-testset[test_idx]["sql"]
-
-# %%
-response["sql_query"]
-
-# %%
-retriever.retrieve("heparin imw")
-
-# %%
-import numpy as np
-
-for i in list(np.where(np.array(scores) == 0)[0]):
-    print(i)
-    print(result_dataset[i])
-    print()

@@ -132,26 +132,83 @@ for idx, label in enumerate(labels):
 
 # %%
 
-for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]), reverse=True):
+
+# %%
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import umap
+
+# Filter out noise
+labels = np.array(labels)
+mask = labels != -1
+encoded_filtered = np.array(encoded_sql)[mask]
+labels_filtered = labels[mask]
+
+# Group points by cluster and compute their means and sizes
+cluster_means = []
+cluster_sizes = []
+cluster_ids = []
+
+for label in sorted(set(labels_filtered)):
+    cluster_points = encoded_filtered[labels_filtered == label]
+    cluster_mean = np.mean(cluster_points, axis=0)
+    cluster_means.append(cluster_mean)
+    cluster_sizes.append(len(cluster_points))
+    cluster_ids.append(label)
+
+cluster_means = np.array(cluster_means)
+cluster_sizes = np.array(cluster_sizes)
+
+# Project cluster means into 2D with UMAP
+reducer = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="euclidean", random_state=42)
+cluster_embeddings = reducer.fit_transform(cluster_means)
+
+# Normalize sizes for plotting
+sizes = 1000 * (cluster_sizes / cluster_sizes.max())
+
+# Plot
+plt.figure(figsize=(8, 5))
+palette = sns.color_palette("husl", len(cluster_ids))
+
+for i, (x, y) in enumerate(cluster_embeddings):
+    label = cluster_ids[i]
+    plt.scatter(
+        x, y,
+        s=sizes[i],
+        color=palette[i],
+        alpha=0.3,
+        edgecolors='k',
+        label=f"Cluster {label} ({cluster_sizes[i]})"
+    )
+
+plt.title("HDBSCAN Masked SQL Cluster Summary")
+plt.xlabel("UMAP-1")
+plt.ylabel("UMAP-2")
+plt.tight_layout()
+plt.show()
+
+# %%
+for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]))[:10]:
     if label == -1:
         print(f"\n❌ Noise Cluster (-1), {len(items)} items:")
     else:
         print(f"\n✅ Cluster {label}, {len(items)} items:")
 
     for item in items[:10]: 
-        print("   ", item)
+        print("   ", item["question_refine"])
 
     if len(items) > 10:
-        print(f"   ... ({len(items) - 10} more)")
+        print(f"   ... ({len(items) - 5} more)")
 
 # %%
-for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]), reverse=True):
-    if label == -1:
-        print(f"\n❌ Noise Cluster (-1), {len(items)} items:")
-        for item in items: 
-            rag_pipeline.retain(item["question_refine"], item["sql"])
-    else:
-        print(f"\n✅ Cluster {label}, {len(items)} items:")
-        rag_pipeline.retain(items[0]["question_refine"], items[0]["sql"])
+# for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]), reverse=True):
+#     if label == -1:
+#         print(f"\n❌ Noise Cluster (-1), {len(items)} items:")
+#         for item in items: 
+#             rag_pipeline.retain(item["question_refine"], item["sql"])
+#     else:
+#         print(f"\n✅ Cluster {label}, {len(items)} items:")
+#         rag_pipeline.retain(items[0]["question_refine"], items[0]["sql"])
 
 # %%

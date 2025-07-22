@@ -1,17 +1,16 @@
+
+import nltk
 import json
-import re
 from typing import Tuple, List, Dict
 
+from utils import *
+import prompt_factory 
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-import prompt_factory 
-from schema import MaskingResults, RetainVerdict
+from schema import MaskingResults
 
-import nltk
-
-from uuid import uuid4
-
+from langchain.callbacks import get_openai_callback
 from langchain_community.utilities.sql_database import SQLDatabase
 
 
@@ -29,31 +28,42 @@ class RAG2SQL:
 
         self.config = config
 
-    def query(self, query: str):
-        sql_query, retrieved_cases = self.formulate_sql_query(query)
-        try:
-            sql_response = self.sql_db.run(sql_query)
-        except: 
-            sql_response = "DATA FAILED"
+    def query(self, query: str) -> Dict:
+        with get_openai_callback() as cb:
+            sql_query, retrieved_cases = self.formulate_sql_query(query)
+            try:
+                sql_response = self.sql_db.run(sql_query)
+            except: 
+                sql_response = "DATA FAILED"
 
-        messages = [
-            ("system", prompt_factory.question_answering),
-            ("human", f"Question: {query}"),
-            ("human", f"Retrieved Data: {sql_response}"),
-            ("human", f"Answer:"),
-        ]
-        response = self.generator.generate(messages) if self.config.return_response else None
+            messages = [
+                ("system", prompt_factory.question_answering),
+                ("human", f"Question: {query}"),
+                ("human", f"Retrieved Data: {sql_response}"),
+                ("human", f"Answer:"),
+            ]
+            response = self.generator.generate(messages) if self.config.return_response else None
 
         return {
             "response": response,
             "sql_query": sql_query,
             "sql_response": sql_response,
             "retrieved_cases": retrieved_cases,
+            "token_usage": {
+                "total_tokens": cb.total_tokens,
+                "prompt_tokens": cb.prompt_tokens,
+                "completion_tokens": cb.completion_tokens,
+                "successful_requests": cb.successful_requests,
+            }
         }
     
     def formulate_sql_query(self, query: str):
         # Retrieve
         retrieved_cases = self.retriever.retrieve(query, top_k=self.config.top_k) 
+
+        if self.config.brittle_retrieval:
+            retrieved_cases = drop_cases(retrieved_cases)
+
         formatted_string = "\n\n".join(
             f"Query: {doc.page_content}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
         )
@@ -90,30 +100,31 @@ class CBR2SQL(RAG2SQL):
         self.lookup_table = lookup_table
 
     def query(self, query: str) -> Dict:
-        masked_query, extracted_entities = self.get_masked_question(query)
-        
-        if self.config.template_construction:
-            sql_query, retrieved_cases = self.formulate_sql_template(query, masked_query, extracted_entities)
-        else:
-            sql_query, retrieved_cases = self.formulate_sql_query(query)
+        with get_openai_callback() as cb:
+            masked_query, extracted_entities = self.get_masked_question(query)
+            
+            if self.config.template_construction:
+                sql_query, retrieved_cases = self.formulate_sql_template(query, masked_query, extracted_entities)
+            else:
+                sql_query, retrieved_cases = self.formulate_sql_query(query)
 
-        if self.config.source_discovery:
-            sql_query, relevant_entity_match = self.discover_sources(query, sql_query, extracted_entities)
-        else:
-            relevant_entity_match = []
+            if self.config.source_discovery:
+                sql_query, relevant_entity_match = self.discover_sources(query, sql_query, extracted_entities)
+            else:
+                relevant_entity_match = []
 
-        try:
-            sql_response = self.sql_db.run(sql_query)
-        except: 
-            sql_response = "DATA FAILED"
+            try:
+                sql_response = self.sql_db.run(sql_query)
+            except: 
+                sql_response = "DATA FAILED"
 
-        messages = [
-            ("system", prompt_factory.question_answering),
-            ("human", f"Question: {query}"),
-            ("human", f"Retrieved Data: {sql_response}"),
-            ("human", f"Answer:"),
-        ]
-        response = self.generator.generate(messages) if self.config.return_response else None
+            messages = [
+                ("system", prompt_factory.question_answering),
+                ("human", f"Question: {query}"),
+                ("human", f"Retrieved Data: {sql_response}"),
+                ("human", f"Answer:"),
+            ]
+            response = self.generator.generate(messages) if self.config.return_response else None
         
         return {
             "response": response,
@@ -121,6 +132,12 @@ class CBR2SQL(RAG2SQL):
             "sql_response": sql_response,
             "retrieved_cases": retrieved_cases,
             "relevant_entities": relevant_entity_match,
+            "token_usage": {
+                "total_tokens": cb.total_tokens,
+                "prompt_tokens": cb.prompt_tokens,
+                "completion_tokens": cb.completion_tokens,
+                "successful_requests": cb.successful_requests,
+            }
         }
     
     def retain(self, query: str, correct_sql: str) -> bool:
@@ -172,6 +189,10 @@ class CBR2SQL(RAG2SQL):
         """
         # Retrieve solution template
         retrieved_cases = self.retriever.retrieve(masked_query, top_k=self.config.top_k) 
+
+        if self.config.brittle_retrieval:
+            retrieved_cases = drop_cases(retrieved_cases)
+
         formatted_string = "\n\n-----\n\n".join(
             f"Query: {doc.metadata['case']}\nSQL Query: {doc.metadata['sql_query']}" for doc in retrieved_cases
         )
@@ -190,7 +211,8 @@ class CBR2SQL(RAG2SQL):
             ("human", f"Past SQL Examples: {formatted_string}"),
             ("human", f"Revised SQL Query:"),
         ]
-        sql_template = self.generator.generate(messages) 
+        response = self.generator.generate(messages, return_content=False) 
+        sql_template = response.content
         return remove_sql_wrapper(sql_template), retrieved_cases
 
     def discover_sources(
@@ -260,11 +282,3 @@ class CBR2SQL(RAG2SQL):
 
         reranked_results = sorted(reranked_results, key=lambda x: x["score"])[:top_k]
         return reranked_results
-        
-
-def tokenize(text: str) -> List:
-    return re.findall(r'\b\w+\b', text.lower())
-
-def remove_sql_wrapper(text):
-    pattern = r"```sql\s*(.*?)\s*```"
-    return re.sub(pattern, r"\1", text, flags=re.DOTALL | re.IGNORECASE)
