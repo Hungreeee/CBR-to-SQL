@@ -8,16 +8,3 @@ services:
             - "6333:6333" 
         volumes:
             - ./docker_data/qdrant:/qdrant/storage
-
-    # mysql:
-    #     image: mysql
-    #     container_name: mysql
-    #     environment:
-    #         MYSQL_DATABASE: "mysql"
-    #         MYSQL_ROOT_PASSWORD: "12345678"
-    #     ports:
-    #         - "3306:3306"
-    #     volumes:
-    #         - ./docker_data/mysql/data/conf.d:/etc/mysql/conf.d
-    #         - ./docker_data/mysql/data/logs:/logs
-    #         - ./docker_data/mysql/usr/local/var/mysql:/var/lib/mysql
