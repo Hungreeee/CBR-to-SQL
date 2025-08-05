@@ -2,11 +2,14 @@ from typing import List, Dict
 from langchain_community.utilities.sql_database import SQLDatabase
 from src.utils import *
 import re
+import sqlite3
 
 def execution_accuracy(sql_db: SQLDatabase, results_dataset: List[Dict]):
     count = 0
+    error = [] 
+    success = []
 
-    for item in results_dataset:
+    for i, item in enumerate(results_dataset):
         ttt = item["golden_sql_query"]
         outPred = item["sql_response"]
 
@@ -15,13 +18,15 @@ def execution_accuracy(sql_db: SQLDatabase, results_dataset: List[Dict]):
         except:
             continue
         if outPred == outTtt:
+            success.append(i)
             count += 1
         else:
+            error.append(i)
             print(f"PRED: {item['sql_query']}\nGOLD: {item['golden_sql_query']}\n")
             print()
 
     accuracy = count / len(results_dataset)
-    return accuracy
+    return accuracy, error, success
 
 
 def parse_sql(sql, headerDic, tableDic):
@@ -29,13 +34,25 @@ def parse_sql(sql, headerDic, tableDic):
     
     arr = re.split('where', sql.lower())
     qlead = re.split('from', arr[0])
+    qlead[0] = ",".join([i.strip() for i in qlead[0].split(",")])
     qagg = re.split('\s', qlead[0])
     qagg = list(filter(None, qagg))
-    if qagg[1] == 'count' or qagg[1] == 'min' or qagg[1] == 'max' or qagg[1] == 'avg':
-        sqlForm['sel'] = qagg[1]
+
+    normalized = []
+    for token in qagg:
+        parts = re.findall(r'[^\(\),]+|[\(\),]', token)
+        normalized.extend(part for part in parts if part.strip())
+    qagg = normalized
+    # print(qagg)
+
+    if len(qagg) > 1: 
+        if qagg[1] == 'count' or qagg[1] == 'min' or qagg[1] == 'max' or qagg[1] == 'avg':
+            sqlForm['sel'] = qagg[1]
+        else:
+            sqlForm['sel'] = ''
     else:
         sqlForm['sel'] = ''
-        
+
     itm = []
     for wd in qagg:
         if wd in headerDic:
@@ -66,7 +83,7 @@ def parse_sql(sql, headerDic, tableDic):
 
 
 def logic_form_accuracy(result_dataset: List[Dict]):
-    db_file = './data/TREQS/mimic_db/mimic.db'
+    db_file = './data/TREQS/evaluation/mimic_db/mimic.db'
     model = query(db_file)
     (_, _, db_head) = model._load_db(db_file)
 
@@ -90,6 +107,7 @@ def logic_form_accuracy(result_dataset: List[Dict]):
         ttt = line['golden_sql_query']
         sqlT = parse_sql(ttt, headerDic, tableDic)
         outTtt.append(sqlT)
+        # print()
 
     lf_count = {
         "total": 0,
@@ -100,9 +118,22 @@ def logic_form_accuracy(result_dataset: List[Dict]):
         "condition_value": 0,
     }
 
+    # error_cases = []
+    # success_cases = []
+
     for k in range(len(outGen)):
         if outGen[k] == outTtt[k]:
             lf_count["total"] += 1 
+        #     success_cases.append(k)
+        # else:
+        #     error_cases.append(k)
+            # if result_dataset[k]["sql_query"] != result_dataset[k]["golden_sql_query"]:
+            #     print(outGen[k])
+            #     print(outTtt[k])
+            #     print(result_dataset[k]["query"])
+            #     print(result_dataset[k]["sql_query"])
+            #     print(result_dataset[k]["golden_sql_query"])
+            #     print()
 
         if outGen[k]['sel'] == outTtt[k]['sel']:
             lf_count["agg_op"] += 1 

@@ -95,10 +95,10 @@ cbr_pipeline = CBR2SQL(
 # result_dataset_cbr = generate_results(cbr_pipeline, testset)
 # result_dataset_cbr
 
-# with open("./data/results/result_dataset_cbr2sql_gpt-4o_brittle.pkl", "wb") as f:
+# with open("./data/results/result_dataset_cbr2sql_gpt-4o_incomplete_brittle.pkl", "wb") as f:
 #     pickle.dump(result_dataset_cbr, f)
 
-with open("./data/results/result_dataset_cbr2sql_gpt-4o_brittle.pkl", "rb") as f:
+with open("./data/results/result_dataset_cbr2sql_gpt-4o.pkl", "rb") as f:
     result_dataset_cbr = pickle.load(f)
 
 # %%
@@ -106,30 +106,76 @@ with open("./data/results/result_dataset_cbr2sql_gpt-4o_brittle.pkl", "rb") as f
 # result_dataset_rag = generate_results(rag_pipeline, testset)
 # result_dataset_rag
 
-# with open("./data/results/result_dataset_rag2sql_gpt-4o_brittle.pkl", "wb") as f:
+# with open("./data/results/result_dataset_rag2sql_gpt-4o_incomplete_brittle.pkl", "wb") as f:
 #     pickle.dump(result_dataset_rag, f)
 
-with open("./data/results/result_dataset_rag2sql_gpt-4o_topk3.pkl", "rb") as f:
+with open("./data/results/result_dataset_rag2sql_gpt-4o.pkl", "rb") as f:
     result_dataset_rag = pickle.load(f)
-
-# %%
-logic_form_accuracy(result_dataset_rag)
 
 # %%
 logic_form_accuracy(result_dataset_cbr)
 
 # %%
-# Compute metrics
-ex_score = execution_accuracy(sql_db, result_dataset_cbr)
-print(ex_score)
+logic_form_accuracy(result_dataset_rag)
+
 # %%
 # Compute metrics
-ex_score = execution_accuracy(sql_db, result_dataset_rag)
+ex_score, error_cbr, success_cbr = execution_accuracy(sql_db, result_dataset_cbr)
 print(ex_score)
 
 # %%
-lf_scores = logic_form_accuracy(result_dataset_cbr)
-print(lf_scores)
+# Compute metrics
+ex_score, error_rag, success_rag = execution_accuracy(sql_db, result_dataset_rag)
+print(ex_score)
+
+# %%
+selected_set = [i for i in success_rag if i in error_cbr]
+cbr_fail = [j for i, j in enumerate(result_dataset_cbr) if i in selected_set]
+
+# %%
+rag_success = [j for i, j in enumerate(result_dataset_rag) if i in selected_set]
+
+# %%
+for i, j in zip(cbr_fail, rag_success):
+    print("Question:", i["query"])
+    print("CBR SQL (Fail):", i["sql_query"])
+    print("RAG SQL (Success):", j["sql_query"])
+    print("\n-----\n")
+
+# %%
+import matplotlib.pyplot as plt
+
+# Data
+top_k = ['@top-1', '@top-3', '@top-5']
+rag_scores = [0.756, 0.787, 0.811]
+cbr_scores = [0.775, 0.806, 0.828]
+
+rag_scores_ = [0.789,0.831 , 0.855]
+cbr_scores_ = [0.836, 0.863, 0.882]
+
+fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+
+# Plot lines
+ax[1].plot(top_k, cbr_scores, marker='o', label='CBR-to-SQL')
+ax[1].plot(top_k, rag_scores, marker='o', label='RAG-to-SQL')
+ax[1].set_xlabel('k-shot')
+ax[1].set_ylabel('Logical Form Accuracy')
+ax[1].set_title('Logical form accuracy on varying level of top-k')
+ax[1].set_ylim((0.75, 0.89))
+ax[1].grid(True, linestyle='--', alpha=0.5)
+fig.legend(loc=(0.35, 0.), ncol=2, labelspacing=0.)
+
+# Plot lines
+ax[0].plot(top_k, cbr_scores_, marker='o', label='CBR-to-SQL')
+ax[0].plot(top_k, rag_scores_, marker='o', label='RAG-to-SQL')
+ax[0].set_xlabel('k-shot')
+ax[0].set_ylabel('Execution Accuracy')
+ax[0].set_title('Execution accuracy on varying level of top-k')
+ax[0].set_ylim((0.75, 0.89))
+ax[0].grid(True, linestyle='--', alpha=0.5)
+# ax[1].legend()
+
+plt.show()
 
 # %%
 test_idx = 239
@@ -137,11 +183,15 @@ testset[test_idx]["question_refine"]
 
 # %%
 question = """
-specify the number of patients who were admitted in the year less that 2187 and had  (aorto)coronary bypass of one coronary artery
+What is the average age of patients whose language is cape and primary disease is
+hyperglycemia?
 """
 
 # %%
-rag_pipeline.query(question)
+cbr_pipeline.query(question)
+
+# %%
+cbr_pipeline.lookup("csf", top_k=100)
 
 # %%
 masked_query, extracted_entities = cbr_pipeline.get_masked_question(question)

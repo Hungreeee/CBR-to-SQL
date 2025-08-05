@@ -33,7 +33,7 @@ class LLMConfig:
 @dataclass
 class RAGConfig:
     top_k: int = 5
-    brittle_retrieval: bool = True
+    brittle_retrieval: bool = False
     return_response: bool = False
     template_construction: bool = True
     source_discovery: bool = True
