@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+    qdrant:
+        image: qdrant/qdrant 
+        container_name: qdrant-cbr-to-sql 
+        ports:
+            - "6333:6333" 
+        volumes:
+            - ./docker_data/qdrant:/qdrant/storage
