@@ -9,7 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
-# 
+# User-listed dirs
+results/
 data/
 docker_data/
 .env

@@ -170,10 +170,6 @@ def retain_cases_cbr(
 # ========== ENVIRONMENT 1: CDB (COMPLETE DATABASE) ==========
 
 # %%
-print("\n" + "="*60)
-print("ENVIRONMENT 1: COMPLETE DATABASE (CDB)")
-print("="*60)
-
 # Initialize RAG-CDB pipeline
 print("\n--- RAG-to-SQL CDB ---")
 rag_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
@@ -207,10 +203,6 @@ print("✓ CBR-CDB case retention complete!")
 # ========== ENVIRONMENT 2: IDB (INCOMPLETE DATABASE) ==========
 
 # %%
-print("\n" + "="*60)
-print("ENVIRONMENT 2: INCOMPLETE DATABASE (IDB)")
-print("="*60)
-
 # Create IDB environment via clustering
 label_dict = create_idb_environment(
     trainset,
@@ -245,7 +237,8 @@ for label, items in label_dict.items():
         print(f"  Added {len(items)} noise/outlier cases")
     else:
         # Cluster: retain only the first case as representative
-        idb_dataset.append(items[0])
+        random_idx = np.random.randint(0, len(items))
+        idb_dataset.append(items[random_idx])
 
 print(f"\n✓ IDB dataset created: {len(idb_dataset)} cases")
 print(f"  Original dataset: {len(trainset)} cases")
@@ -253,7 +246,6 @@ print(f"  Reduction: {len(trainset) - len(idb_dataset)} cases ({(1 - len(idb_dat
 
 # %%
 # Initialize RAG-IDB pipeline
-print("\n--- RAG-to-SQL IDB ---")
 rag_idb_retriever = QdrantRetriever(collection_name=RAG_IDB_COLLECTION)
 rag_idb_pipeline = RAGtoSQL(
     retriever=rag_idb_retriever,
@@ -268,7 +260,6 @@ print("✓ RAG-IDB case retention complete!")
 
 # %%
 # Initialize CBR-IDB pipeline
-print("\n--- CBR-to-SQL IDB ---")
 cbr_idb_retriever = QdrantRetriever(collection_name=CBR_IDB_COLLECTION)
 cbr_idb_pipeline = CBRtoSQL(
     retriever=cbr_idb_retriever,
@@ -279,7 +270,6 @@ cbr_idb_pipeline = CBRtoSQL(
 
 # Retain IDB cases (with entity tagging)
 print(f"Retaining {len(idb_dataset)} cases for CBR-IDB...")
-print("⚠️  Warning: This will take longer due to entity tagging")
 retain_cases_cbr(cbr_idb_pipeline, idb_dataset, desc="CBR-IDB retention")
 print("✓ CBR-IDB case retention complete!")
 

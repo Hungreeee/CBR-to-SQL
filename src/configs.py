@@ -1,4 +1,4 @@
-from typing import List
+from typing import Literal
 from dataclasses import dataclass
 
 
@@ -17,8 +17,8 @@ class RetrieverConfig:
 
 @dataclass
 class LLMConfig:
-    model: str = "gpt-4.1-mini"
-    # model: str = "gpt-4o"
+    # model: str = "gpt-4.1-mini"
+    model: str = "gpt-4o"
     temperature: int = 0.
     top_p: int = None
 
@@ -34,6 +34,7 @@ class RAGConfig:
     return_response: bool = False
     template_construction: bool = True
     source_discovery: bool = True
+    dataset: Literal["mimicsql", "ehrsql"] = "mimicsql"
 
     @classmethod
     def default(cls):

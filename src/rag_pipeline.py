@@ -1,13 +1,12 @@
 import nltk
-import json
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional
 
-import prompt_factory 
-from utils import drop_cases, remove_sql_wrapper, tokenize
+import prompt_factory
+from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_error
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-from schema import EntityExtraction, TagAssignment, EntityValidation
+from schema import EntityExtraction, TagAssignment
 
 from langchain_community.callbacks import get_openai_callback
 from langchain_community.utilities.sql_database import SQLDatabase
@@ -55,11 +54,11 @@ class RAGtoSQL:
         )
         
         messages = [
-            ("system", prompt_factory.case_revising),
+            ("system", self._get_prompt("case_revising")),
             ("system", f"Schema:\n{self.sql_db.get_table_info()}"),
-            ("human", f"Question: {question}"),
-            ("human", f"Examples:\n{formatted_examples}"),
-            ("human", "SQL Query:"),
+            ("user", f"Question: {question}"),
+            ("user", f"Examples:\n{formatted_examples}"),
+            ("user", "SQL Query:"),
         ]
         
         sql_query = self.generator.generate(messages) 
@@ -77,6 +76,13 @@ class RAGtoSQL:
             indexed_field="case"
         )
 
+    def _get_prompt(self, prompt_type: str) -> str:
+        """Get dataset-specific prompt"""
+        return getattr(
+            getattr(prompt_factory, f"{self.config.dataset}_prompts"),
+            prompt_type
+        )
+
 
 class CBRtoSQL(RAGtoSQL):
     def __init__(
@@ -86,14 +92,17 @@ class CBRtoSQL(RAGtoSQL):
         sql_db: SQLDatabase,
         lookup_table: BaseRetriever,
         config: RAGConfig = RAGConfig.default(),
+        fallback_generator: Optional[BaseGenerator] = None,
     ):
         super().__init__(retriever, generator, sql_db, config)
         self.lookup_table = lookup_table
+        self.fallback_generator = fallback_generator
 
     def handle_request(self, question: str) -> Dict:
         with get_openai_callback() as callback:
             sql_query, retrieved_cases, entities = self.generate_sql(question)
-            execution_results = self._execute_sql(sql_query)
+            # execution_results = self._execute_sql(sql_query)
+            execution_results = None
         
         return {
             "sql_query": sql_query,
@@ -111,13 +120,16 @@ class CBRtoSQL(RAGtoSQL):
     def generate_sql(self, question: str) -> Tuple[str, List, List]:
         """Pipeline: Source Discovery -> Template Construction -> Slot Filling"""
         masked_question, entities = self.source_discovery(question)
-        sql_template, retrieved_cases = self._construct_template(masked_question)
-        final_sql = self._fill_slots(question, sql_template, entities)
+        final_sql, retrieved_cases = self._construct_and_fill_sql(masked_question, question, entities)
         return remove_sql_wrapper(final_sql), retrieved_cases, entities
     
     def retain_case(self, question: str, sql_query: str) -> None:
         """Store case with offline entity tagging"""
-        masked_question, entities = self.source_discovery(question)
+        try:
+            masked_question, entities = self.source_discovery(question)
+        except Exception as e:
+            print(f"Error occurred for question '{question}': {str(e)}\n\n")
+            masked_question, entities = question, []
         
         self.retriever.ingest(
             documents=[{
@@ -129,195 +141,207 @@ class CBRtoSQL(RAGtoSQL):
             indexed_field="masked_case"
         )
     
-    # ========== SOURCE DISCOVERY: 3-ROUND ITERATIVE REFINEMENT ==========
-    
-    def source_discovery(self, question: str, max_rounds: int = 2) -> Tuple[str, List[Dict]]:
+    def source_discovery(self, question: str) -> Tuple[str, List[Dict]]:
         """
-        Iterative entity discovery with feedback-based refinement.
-        
-        Each round:
-        1. Extract noun phrases
-        2. Schema linking (k-NN search)
-        3. Tag assignment + validation
-        
-        If validation fails, feedback is provided for the next round.
+        Two-phase entity discovery:
+        Phase 1: Extract all entities and assign temporary context-based tags
+        Phase 2: For semantic entities, perform lookup and refined tagging
+        Phase 3: Perform masking using tagged entities
         """
-        tagged_entities = []
-        feedback_history = []
+        # PHASE 1: Extract entities and assign 'temporary' tags
+        extracted_entities = self._extract_all_entities(question)
         
-        for round_num in range(max_rounds):
-            # Round context: include feedback from previous rounds
-            round_context = {
-                "round": round_num + 1,
-                "feedback": feedback_history
-            }
-            
-            # Step 1: Extract noun phrases (with feedback context)
-            noun_phrases = self._extract_noun_phrases(question, round_context)
-            print(noun_phrases)
-            
-            if not noun_phrases:
-                break
-            
-            # Track entities that need refinement in next round
-            entities_needing_refinement = []
-            
-            # Step 2 & 3: For each noun phrase, link to schema and assign tags
-            for noun_phrase in noun_phrases:
-                # Skip if already successfully tagged in previous rounds
-                if any(e["original"] == noun_phrase for e in tagged_entities):
-                    continue
-                
-                # Step 2: Schema linking via k-NN search
-                linked_entities = self._lookup(noun_phrase)
-                
-                if not linked_entities:
-                    # No matches found - needs refinement
-                    entities_needing_refinement.append({
-                        "noun_phrase": noun_phrase,
-                        "issue": "no_matches_found",
-                        "feedback": "No database entities found. Try extracting more specific or alternative phrasings."
-                    })
-                    continue
-                
-                # Step 3: Tag assignment
-                tag_result = self._assign_tag(question, noun_phrase, linked_entities)
-                print(tag_result)
-                print(linked_entities)
-                print("------")
-                
-                # Validate the assigned tag and match
-                validation = self._validate_entity(question, noun_phrase, tag_result, linked_entities)
-                print(validation)
-                print(tag_result)
-                print("======")
-                
-                if validation["is_acceptable"]:
-                    # Entity successfully tagged and validated
-                    tagged_entities.append({
-                        "original": noun_phrase,
-                        "label": tag_result["label"],
-                        "best_match": tag_result["best_match"],
-                        "table": tag_result.get("table"),
-                        "column": tag_result.get("column"),
-                        "round": round_num + 1
-                    })
-                else:
-                    # Validation failed - needs refinement
-                    entities_needing_refinement.append({
-                        "noun_phrase": noun_phrase,
-                        "issue": "validation_failed",
-                        "feedback": validation.get("feedback", ""),
-                        "attempted_match": tag_result.get("best_match")
-                    })
-            
-            # If all entities validated successfully, we're done
-            if not entities_needing_refinement:
-                break
-            
-            # Store feedback for next round
-            feedback_history.append({
-                "round": round_num + 1,
-                "entities_needing_refinement": entities_needing_refinement
-            })
+        if not extracted_entities:
+            return question, []
         
-        # Generate masked question from successfully tagged entities
+        # Separate entities by whether they need source discovery
+        entities_needing_discovery = []
+        entities_no_discovery = []
+        
+        for entity_info in extracted_entities:
+            if entity_info["requires_source_discovery"]:
+                entities_needing_discovery.append(entity_info)
+            else:
+                # Structural entities: keep temporary tag, use original text
+                entities_no_discovery.append({
+                    "original": entity_info["text"],
+                    "label": entity_info["temp_label"],
+                    "best_match": entity_info["text"],
+                    "table": None,
+                    "column": None,
+                    "source_discovery": False
+                })
+        
+        # PHASE 2: Lookup and refined tagging for semantic entities
+        tagged_entities = entities_no_discovery.copy()
+        
+        for entity_info in entities_needing_discovery:
+            entity_text = entity_info["text"]
+            
+            # STEP 1: Schema linking via k-NN search
+            linked_entities = self._lookup(entity_text)
+            
+            if not linked_entities:
+                # No matches found - use original text with temporary tag
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": entity_info["temp_label"],
+                    "best_match": entity_text,
+                    "table": None,
+                    "column": None,
+                    "source_discovery": True,
+                    "match_found": False
+                })
+                continue
+            
+            # STEP 2: Refined tag assignment (select best match)
+            tag_result = self._assign_tag(question, entity_text, linked_entities)
+            
+            # Check if match was rejected (best_match_index = -1)
+            if tag_result is None or tag_result.get("label") == "NO_MATCH":
+                # Rejected - use original text with temporary tag
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": entity_info["temp_label"],  # Keep original temp tag
+                    "best_match": entity_text,
+                    "table": None,
+                    "column": None,
+                    "source_discovery": True,
+                    "match_found": False
+                })
+            else:
+                # Accepted - use matched result
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": tag_result["label"],  # Use refined tag
+                    "best_match": tag_result["best_match"],
+                    "table": tag_result.get("table"),
+                    "column": tag_result.get("column"),
+                    "source_discovery": True,
+                    "match_found": True
+                })
+        
+        # PHASE 3: Generate masked question from all tagged entities
         masked_question = self._mask_question(question, tagged_entities)
         
         return masked_question, tagged_entities
     
-    # ========== STEP 1: NOUN PHRASE EXTRACTION ==========
-    
-    def _extract_noun_phrases(self, question: str, round_context: Dict) -> List[str]:
+    def _extract_all_entities(self, question: str) -> List[Dict]:
         """
-        Extract noun phrases with feedback from previous rounds.
+        Extract ALL entities (semantic + structural) and assign temporary context-based tags in ONE call
         """
         llm = self.generator.client.bind_tools([EntityExtraction], strict=True)
-
-        messages = [("system", prompt_factory.entity_extraction)]
-
-        # Previous round feedback
-        if round_context.get("feedback"):
-            feedback_text = self._format_feedback(round_context["feedback"])
-            messages.append(("system", f"Feedback from previous rounds:\n{feedback_text}"))
-            messages.append(("system", "Please refine your extraction based on the feedback above."))
-
-        messages.append(("human", f"Question: {question}"))
-
-        response = llm.invoke(messages)
+        messages = [
+            ("system", self._get_prompt("entity_extraction")),
+            ("user", f"Question: {question}")
+        ]
+        
+        try: 
+            response = llm.invoke(messages)
+        except Exception as e:
+            if is_content_filter_error(e) and self.fallback_generator:
+                llm = self.fallback_generator.client.bind_tools([EntityExtraction], strict=True)
+                response = llm.invoke(messages)
+            else:
+                raise
 
         tool_calls = getattr(response, "tool_calls", None)
-
+        
         if not tool_calls:
             return []
-
+        
         args = tool_calls[0].get("args", {})
-        return args.get("entities", [])
-
+        tagged_entities = args.get("entities", [])
+        
+        if not tagged_entities:
+            return []
+        
+        # Convert to internal format
+        entity_info_list = []
+        for entity in tagged_entities:
+            entity_info_list.append({
+                "text": entity["value"],
+                "temp_label": entity["label"],
+                "requires_source_discovery": entity["is_semantic"],
+            })
+        
+        return entity_info_list
     
-    def _format_feedback(self, feedback_history: List[Dict]) -> str:
-        """Format feedback history for LLM context"""
-        formatted = []
-        for entry in feedback_history:
-            formatted.append(f"Round {entry['round']}:")
-            for entity in entry["entities_needing_refinement"]:
-                formatted.append(f"  - '{entity['noun_phrase']}': {entity['feedback']}")
-        return "\n".join(formatted)
-    
-    # ========== STEP 2: SCHEMA LINKING ==========
-    
-    def _lookup(self, noun_phrase: str, top_k: int = 5) -> List[Dict]:
+    def _lookup(self, entity: str, top_k: int = 5) -> List[Dict]:
         """
         k-NN search against database entities (schema linking)
+        Uses minimum of order-sensitive and order-insensitive scores
         """
-        matches = self.lookup_table.retrieve(noun_phrase, top_k=100)
-
-        print(matches)
+        matches = self.lookup_table.retrieve(entity, top_k=1000)
         
         scored_matches = []
         for match in matches:
             match_dict = match.model_dump()
-            score = nltk.edit_distance(
-                " ".join(sorted(tokenize(noun_phrase))),
-                " ".join(sorted(tokenize(match_dict["page_content"])))
+            match_value = match_dict["page_content"]
+            
+            # Score 1: Order-sensitive (preserves word order)
+            score_ordered = nltk.edit_distance(
+                entity.lower(),
+                match_value.lower()
             )
+            
+            # Score 2: Order-insensitive (bag of words)
+            score_unordered = nltk.edit_distance(
+                " ".join(sorted(tokenize(entity))),
+                " ".join(sorted(tokenize(match_value)))
+            )
+            
+            # Take the best (lowest) score from either approach
+            final_score = min(score_ordered, score_unordered)
+            
             scored_matches.append({
-                "value": match_dict["page_content"],
+                "value": match_value,
                 "table": match_dict["metadata"].get("table"),
                 "column": match_dict["metadata"].get("column"),
-                "score": score
+                "score": final_score,
             })
         
         return sorted(scored_matches, key=lambda x: x["score"])[:top_k]
     
-    # ========== STEP 3: TAG ASSIGNMENT ==========
-    
-    def _assign_tag(self, question: str, noun_phrase: str, linked_entities: List[Dict]) -> Dict:
+    def _assign_tag(self, question: str, entity: str, linked_entities: List[Dict]) -> Optional[Dict]:
         """
-        Assign semantic tag based on schema context
+        Assign refined semantic tag based on schema context
+        Returns None if best_match_index = -1 (rejected)
         """
         formatted_entities = "\n".join([
-            f"{i+1}. Value: '{e['value']}', Table: {e['table']}, Column: {e['column']}, Score: {e['score']}"
+            f"Index {i}:, Value: '{e['value']}', Table: {e['table']}, Column: {e['column']}"
             for i, e in enumerate(linked_entities)
         ])
         
         llm = self.generator.client.bind_tools([TagAssignment], strict=True)
         
         messages = [
-            ("system", prompt_factory.tag_assignment),
-            ("human", f"Question: {question}"),
-            ("human", f"Noun phrase: '{noun_phrase}'"),
-            ("human", f"Linked database entities:\n{formatted_entities}"),
+            ("system", self._get_prompt("tag_assignment")),
+            ("user", f"# Question: {question}"),
+            ("user", f"# Entity: '{entity}'"),
+            ("user", f"# Proposed related entities:\n{formatted_entities}"),
         ]
-        
-        response = llm.invoke(messages)
+
+        try: 
+            response = llm.invoke(messages)
+        except Exception as e:
+            if is_content_filter_error(e) and self.fallback_generator:
+                llm = self.fallback_generator.client.bind_tools([TagAssignment], strict=True)
+                response = llm.invoke(messages)
+            else:
+                raise
         
         tool_calls = getattr(response, "tool_calls", None)
         if tool_calls:
             try:
                 args = tool_calls[0].get("args", {})
-                best_match_idx = args.get("best_match_index", 0)
+                best_match_idx = args.get("best_match_index", -1)
 
+                # Check if rejected
+                if best_match_idx == -1 or args.get("label") == "NO_MATCH":
+                    return None 
+                
+                # Valid match
                 if 0 <= best_match_idx < len(linked_entities):
                     best = linked_entities[best_match_idx]
                     return {
@@ -326,106 +350,57 @@ class CBRtoSQL(RAGtoSQL):
                         "table": best["table"],
                         "column": best["column"],
                     }
-
             except (KeyError, IndexError, TypeError):
                 pass
-
         
-        # Fallback
-        return {
-            "label": "MASKED",
-            "best_match": linked_entities[0]["value"] if linked_entities else noun_phrase,
-            "table": linked_entities[0].get("table") if linked_entities else None,
-            "column": linked_entities[0].get("column") if linked_entities else None
-        }
-    
-    # ========== VALIDATION WITH FEEDBACK ==========
-    
-    def _validate_entity(
+        # Fallback: rejection (parsing failed or invalid response)
+        return None
+
+    def _construct_and_fill_sql(
         self, 
-        question: str, 
-        noun_phrase: str, 
-        tag_result: Dict,
-        linked_entities: List[Dict]
-    ) -> Dict:
-        """
-        Validate if the tag assignment is acceptable, provide feedback if not
-        """
-        llm = self.generator.client.bind_tools([EntityValidation], strict=True)
-        
-        formatted_entities = "\n".join([
-            f"{i+1}. '{e['value']}' (Table: {e['table']}, Column: {e['column']})"
-            for i, e in enumerate(linked_entities)
-        ])
-        
-        messages = [
-            ("system", prompt_factory.entity_validation),
-            ("human", f"Question: {question}"),
-            ("human", f"Noun phrase: '{noun_phrase}'"),
-            ("human", f"Assigned tag: {tag_result['label']}"),
-            ("human", f"Selected match: '{tag_result['best_match']}' (Table: {tag_result.get('table')}, Column: {tag_result.get('column')})"),
-            ("human", f"All available matches:\n{formatted_entities}"),
-        ]
-        
-        response = llm.invoke(messages)
-        
-        tool_calls = getattr(response, "tool_calls", None)
-
-        if tool_calls:
-            try:
-                args = tool_calls[0].get("args", {})
-                return args
-            except (KeyError, TypeError):
-                pass
-
-        # Default: accept the match
-        return {"is_acceptable": True}
-    
-    # ========== TEMPLATE CONSTRUCTION & SLOT FILLING ==========
-    
-    def _construct_template(self, masked_question: str) -> Tuple[str, List]:
-        """Generate SQL template from masked question"""
+        masked_question: str, 
+        original_question: str, 
+        entities: List[Dict]
+    ) -> Tuple[str | None, List]:
+        """Generate SQL directly from masked question with entity mappings in ONE call"""
         retrieved_cases = self.retriever.retrieve(masked_question, top_k=self.config.top_k)
         
         if self.config.brittle_retrieval:
             retrieved_cases = drop_cases(retrieved_cases)
-        
-        formatted_examples = "\n\n".join(
-            f"Query: {doc.metadata['case']}\nSQL: {doc.metadata['sql_query']}" 
-            for doc in retrieved_cases
+
+        formatted_examples = "\n---\n".join(
+            f"* Example question: {doc.metadata['case']}\n* Masked question form: {doc.page_content}\n*Example SQL query: {doc.metadata['sql_query']}" 
+            for doc in retrieved_cases 
+            if doc.metadata.get('case') or doc.metadata.get('sql_query')
         )
         
-        messages = [
-            ("system", prompt_factory.template_formulation),
-            ("system", f"Schema:\n{self.sql_db.get_table_info()}"),
-            ("human", f"Masked Question: {masked_question}"),
-            ("human", f"Examples:\n{formatted_examples}"),
-            ("human", "SQL Template:"),
-        ]
-        
-        sql_template = self.generator.generate(messages)
-        return remove_sql_wrapper(sql_template), retrieved_cases
-    
-    def _fill_slots(self, question: str, sql_template: str, entities: List[Dict]) -> str:
-        """Replace entity tags with actual values"""
-        if not entities:
-            return sql_template
-        
-        entity_info = "\n".join([
-            f"[{e['label']}] -> '{e['best_match']}' (Table: {e.get('table')}, Column: {e.get('column')})"
+        # Format entity mappings
+        entity_info = "\n---\n".join([
+            f"[{e['label']}] -> '{e['best_match']}'" + 
+            (f" (Table: {e.get('table')}, Column: {e.get('column')})" if e.get('table') else "")
             for e in entities
-        ])
-        
+            if e.get('table') and e.get('column')
+        ]) if entities else "No entities to replace"
+
         messages = [
-            ("system", prompt_factory.slot_filling),
-            ("human", f"Question: {question}"),
-            ("human", f"Template:\n{sql_template}"),
-            ("human", f"Entities:\n{entity_info}"),
-            ("human", f"Schema:\n{self.sql_db.get_table_info()}"),
-            ("human", "Final SQL:"),
+            ("system", self._get_prompt("sql_generation")),
+            ("user", f"# Original Question: {original_question}"),
+            ("user", f"# Masked Question (with entity spans extracted): {original_question}"),
+            ("user", f"# Retrieved Examples:\n\n{formatted_examples}"),
+            ("user", f"# Entity Mappings:\n\n{entity_info}"),
+            ("user", f"# Schema:\n\n{self.sql_db.get_table_info()}"),
+            ("user", "# Adapted SQL query:"),
         ]
         
-        return self.generator.generate(messages)
+        try: 
+            final_sql = self.generator.generate(messages)
+        except Exception as e:
+            if is_content_filter_error(e) and self.fallback_generator:
+                final_sql = self.fallback_generator.generate(messages)
+            else:
+                raise
+
+        return remove_sql_wrapper(final_sql), retrieved_cases
     
     def _mask_question(self, question: str, entities: List[Dict]) -> str:
         """Replace entity values with tags"""
