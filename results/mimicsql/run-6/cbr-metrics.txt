@@ -1,0 +1,2699 @@
+
+============================================================
+COMPUTING METRICS
+============================================================
+
+--- CBR-CDB ---
+give me the number of patients who had single internal mammary-coronary artery bypass.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE PROCEDURES."LONG_TITLE" = 'Single internal mammary-coronary artery bypass'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['procedures."long_title"', '=', 'single internal mammary-coronary artery bypass']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE PROCEDURES."SHORT_TITLE" = "1 int mam-cor art bypass"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['procedures."short_title"', '=', '1 int mam-cor art bypass']]}
+----------
+
+get the number of married patients who had insertion of drug-eluting coronary artery stent(s).
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'MARRIED' 
+AND PROCEDURES."LONG_TITLE" = 'Insertion of drug-eluting coronary artery stent(s)'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'married'], ['procedures."long_title"', '=', 'insertion of drug-eluting coronary artery stent(s)']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND PROCEDURES."SHORT_TITLE" = "Ins drug-elut coronry st"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'married'], ['procedures."short_title"', '=', 'ins drug-elut coronry st']]}
+----------
+
+what is the number of patients with admission type elective and diagnosed with drug induced neutropenia?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'ELECTIVE' 
+AND DIAGNOSES."SHORT_TITLE" = 'Drug induced neutropenia'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admission_type"', '=', 'elective'], ['diagnoses."short_title"', '=', 'drug induced neutropenia']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "ELECTIVE" AND DIAGNOSES."LONG_TITLE" = "Drug induced neutropenia"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admission_type"', '=', 'elective'], ['diagnoses."long_title"', '=', 'drug induced neutropenia']]}
+----------
+
+Look for the number of elective hospital admission patients who had a unilateral radical neck dissection procedure.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'ELECTIVE' 
+AND PROCEDURES."LONG_TITLE" = 'Radical neck dissection, unilateral'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admission_type"', '=', 'elective'], ['procedures."long_title"', '=', 'radical neck dissection, unilateral']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "ELECTIVE" AND PROCEDURES."SHORT_TITLE" = "Unilat rad neck dissect"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admission_type"', '=', 'elective'], ['procedures."short_title"', '=', 'unilat rad neck dissect']]}
+----------
+
+how many patients with epistaxis have unspecified death status?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DEMOGRAPHIC."DIAGNOSIS" = "EPISTAXIS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'epistaxis'], ['demographic."expire_flag"', '=', '0']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DIAGNOSES."SHORT_TITLE" = "Epistaxis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '0'], ['diagnoses."short_title"', '=', 'epistaxis']]}
+----------
+
+provide the number of patients with a diagnoses of personal history of other malignant neoplasm of rectum, rectosigmoid junction and anus and are still alive.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" 
+AND DIAGNOSES."LONG_TITLE" = "Personal history of malignant neoplasm of rectum, rectosigmoid junction, and anus"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '0'], ['diagnoses."long_title"', '=', 'personal history of malignant neoplasm of rectum, rectosigmoid junction,']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DIAGNOSES."SHORT_TITLE" = "Hx-rectal & anal malign"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '0'], ['diagnoses."short_title"', '=', 'hx-rectal & anal malign']]}
+----------
+
+How many patients were admitted through the emergency department and were discharged to discharge-transitioning to psychiatric hospital?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' AND DEMOGRAPHIC."DISCHARGE_LOCATION" = 'DISCH-TRAN TO PSYCH HOSP'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."discharge_location"', '=', 'disch-tran to psych hosp']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = "EMERGENCY ROOM ADMIT" AND DEMOGRAPHIC."DISCHARGE_LOCATION" = "DISCH-TRAN TO PSYCH HOSP"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_location"', '=', 'emergency room admit'], ['demographic."discharge_location"', '=', 'disch-tran to psych hosp']]}
+----------
+
+What is the number of inpatient hospital admission patients who are less than 59 years old?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "INPATIENT" AND DEMOGRAPHIC."AGE" < "59"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'inpatient'], ['demographic."age"', '<', '59']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = "TRANSFER FROM HOSP/EXTRAM" AND DEMOGRAPHIC."AGE" < "59"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_location"', '=', 'transfer from hosp/extram'], ['demographic."age"', '<', '59']]}
+----------
+
+How many patients born before the year 2109 were primarily diagnosed for guillain barre syndrome?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN-BARRE SYNDROME" AND DEMOGRAPHIC."DOB_YEAR" < "2109"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'guillain-barre syndrome'], ['demographic."dob_year"', '<', '2109']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN BARRE SYNDROME" AND DEMOGRAPHIC."DOB_YEAR" < "2109"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'guillain barre syndrome'], ['demographic."dob_year"', '<', '2109']]}
+----------
+
+count the number of patients with knee joint replacement diagnoses who were hospitalized for more than 26 days.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "26" 
+AND DIAGNOSES."LONG_TITLE" = "Knee joint replacement"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '26'], ['diagnoses."long_title"', '=', 'knee joint replacement']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "26" AND DIAGNOSES."SHORT_TITLE" = "Joint replaced knee"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '26'], ['diagnoses."short_title"', '=', 'joint replaced knee']]}
+----------
+
+what number of patients diagnosed for acidosis stayed in the hospital for more than 7 days?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "7" 
+AND DIAGNOSES."LONG_TITLE" = "Acidosis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '7'], ['diagnoses."long_title"', '=', 'acidosis']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "7" AND DIAGNOSES."SHORT_TITLE" = "Acidosis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '7'], ['diagnoses."short_title"', '=', 'acidosis']]}
+----------
+
+give me the number of patients diagnosed with alzheimer's disease who were admitted for more than 7 days.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "7" 
+AND DIAGNOSES."LONG_TITLE" = "Alzheimer's disease"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '7'], ['diagnoses."long_title"', '=', 'alzheimer s disease']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "7" AND DIAGNOSES."SHORT_TITLE" = "Alzheimer's disease"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '7'], ['diagnoses."short_title"', '=', 'alzheimer s disease']]}
+----------
+
+give me the number of patients admitted before 2148 who are diagnosed with unspecified obesity.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2148" 
+AND DIAGNOSES."LONG_TITLE" = "Obesity, unspecified"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2148'], ['diagnoses."long_title"', '=', 'obesity, unspecified']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2148" AND DIAGNOSES."SHORT_TITLE" = "Obesity NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2148'], ['diagnoses."short_title"', '=', 'obesity nos']]}
+----------
+
+Out of total number of patients admitted before 2157, how many of them had long-term use of steroids?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2157" 
+AND DIAGNOSES."LONG_TITLE" = 'Long-term (current) use of steroids'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2157'], ['diagnoses."long_title"', '=', 'long-term (current) use of steroids']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2175" AND DIAGNOSES."SHORT_TITLE" = "Long-term use steroids"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2175'], ['diagnoses."short_title"', '=', 'long-term use steroids']]}
+----------
+
+Look for the patients admitted before 2174 that were diagnosed with sepsis.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2174" 
+AND DIAGNOSES."SHORT_TITLE" = "Sepsis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2174'], ['diagnoses."short_title"', '=', 'sepsis']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2174" AND DIAGNOSES."LONG_TITLE" = "Sepsis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2174'], ['diagnoses."long_title"', '=', 'sepsis']]}
+----------
+
+Out of total number of patients admitted before the year 2150, how many of them had hemodialysis?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2150" 
+AND PROCEDURES."SHORT_TITLE" = "Hemodialysis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admityear"', '<', '2150'], ['procedures."short_title"', '=', 'hemodialysis']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2150" AND PROCEDURES."LONG_TITLE" = "Hemodialysis"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admityear"', '<', '2150'], ['procedures."long_title"', '=', 'hemodialysis']]}
+----------
+
+How many patients had a lab test for sodium urine and were treated with a base drug?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE PRESCRIPTIONS."DRUG_TYPE" = 'BASE' 
+AND LAB."LABEL" = 'Sodium, Urine'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions', 'lab'], 'cond': [['lab."label"', '=', 'sodium, urine'], ['prescriptions."drug_type"', '=', 'base']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE PRESCRIPTIONS."DRUG_TYPE" = "MAIN" AND LAB."LABEL" = "Sodium, Urine"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions', 'lab'], 'cond': [['lab."label"', '=', 'sodium, urine'], ['prescriptions."drug_type"', '=', 'main']]}
+----------
+
+provide the admission time and marital status of subject id 6983.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "6983"
+{'sel': '', 'agg': ['demographic."admittime"', 'demographic."marital_status"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '6983']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "6983"
+{'sel': '', 'agg': ['demographic."marital_status"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '6983']]}
+----------
+
+when did patient id 62296 die? specify date of death and insurance
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DOD", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "62296"
+{'sel': '', 'agg': ['demographic."dod"', 'demographic."insurance"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '62296']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DOD" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "62296"
+{'sel': '', 'agg': ['demographic."insurance"', 'demographic."dod"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '62296']]}
+----------
+
+specify the discharge location and insurance details of patients id 15898
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DISCHARGE_LOCATION", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "15898"
+{'sel': '', 'agg': ['demographic."discharge_location"', 'demographic."insurance"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '15898']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DISCHARGE_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "15898"
+{'sel': '', 'agg': ['demographic."insurance"', 'demographic."discharge_location"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '15898']]}
+----------
+
+tell me the primary disease and health insurance of patient with patient id 8990.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "8990"
+{'sel': '', 'agg': ['demographic."diagnosis"', 'demographic."insurance"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '8990']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "8990"
+{'sel': '', 'agg': ['demographic."insurance"', 'demographic."diagnosis"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '8990']]}
+----------
+
+for patient id 74032, specify the icd9 code and type of drug he was treated with.
+----------
+PREDS:
+SELECT DIAGNOSES."ICD9_CODE", PRESCRIPTIONS."DRUG_TYPE" FROM DIAGNOSES INNER JOIN PRESCRIPTIONS on DIAGNOSES.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "74032"
+{'sel': '', 'agg': ['diagnoses."icd9_code"', 'prescriptions."drug_type"'], 'tab': ['diagnoses', 'prescriptions'], 'cond': [['diagnoses."subject_id"', '=', '74032']]}
+----------
+TRUTH:
+SELECT DIAGNOSES."SHORT_TITLE",PRESCRIPTIONS."DRUG_TYPE" FROM DIAGNOSES INNER JOIN PRESCRIPTIONS on DIAGNOSES.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "74032"
+{'sel': '', 'agg': ['diagnoses."short_title"', 'prescriptions."drug_type"'], 'tab': ['diagnoses', 'prescriptions'], 'cond': [['diagnoses."subject_id"', '=', '74032']]}
+----------
+
+tell me the ethnic background and marital status of patient with patient id 21796.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ETHNICITY", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "21796"
+{'sel': '', 'agg': ['demographic."ethnicity"', 'demographic."marital_status"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '21796']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ETHNICITY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "21796"
+{'sel': '', 'agg': ['demographic."marital_status"', 'demographic."ethnicity"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '21796']]}
+----------
+
+find me the death status and primary language that patient with patient id 3623 prefers.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."EXPIRE_FLAG", DEMOGRAPHIC."LANGUAGE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+{'sel': '', 'agg': ['demographic."expire_flag"', 'demographic."language"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '3623']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."LANGUAGE",DEMOGRAPHIC."EXPIRE_FLAG" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+{'sel': '', 'agg': ['demographic."language"', 'demographic."expire_flag"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '3623']]}
+----------
+
+what is the death status and procedure for the patient id 3623?
+----------
+PREDS:
+SELECT DEMOGRAPHIC."EXPIRE_FLAG", PROCEDURES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES ON DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+{'sel': '', 'agg': ['demographic."expire_flag"', 'procedures."long_title"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."subject_id"', '=', '3623']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."EXPIRE_FLAG",PROCEDURES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+{'sel': '', 'agg': ['demographic."expire_flag"', 'procedures."short_title"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."subject_id"', '=', '3623']]}
+----------
+
+Find the time of admission and date of death for the patient with patient id 94762.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."DOD" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "94762"
+{'sel': '', 'agg': ['demographic."admittime"', 'demographic."dod"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '94762']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DOD",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "94762"
+{'sel': '', 'agg': ['demographic."dod"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '94762']]}
+----------
+
+specify the icd9 code for patient id 18480
+----------
+PREDS:
+SELECT PROCEDURES."ICD9_CODE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['procedures."icd9_code"'], 'tab': ['procedures'], 'cond': [['procedures."subject_id"', '=', '18480']]}
+----------
+TRUTH:
+SELECT PROCEDURES."SHORT_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['procedures."short_title"'], 'tab': ['procedures'], 'cond': [['procedures."subject_id"', '=', '18480']]}
+----------
+
+find out the type of admission and lab test ordered for patient with patient id 18480.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE", LAB."CATEGORY" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['demographic."admission_type"', 'lab."category"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."subject_id"', '=', '18480']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE",LAB."LABEL" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['demographic."admission_type"', 'lab."label"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."subject_id"', '=', '18480']]}
+----------
+
+specify primary disease and icd9 code of patient id 18480
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DIAGNOSIS", DIAGNOSES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['demographic."diagnosis"', 'diagnoses."icd9_code"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '18480']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DIAGNOSIS",PROCEDURES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+{'sel': '', 'agg': ['demographic."diagnosis"', 'procedures."icd9_code"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."subject_id"', '=', '18480']]}
+----------
+
+get the short title as well as the icd9 code of diagnoses for patient with patient id 55094.
+----------
+PREDS:
+SELECT DIAGNOSES."SHORT_TITLE", DIAGNOSES."ICD9_CODE" FROM DIAGNOSES WHERE DIAGNOSES."SUBJECT_ID" = "55094"
+{'sel': '', 'agg': ['diagnoses."short_title"', 'diagnoses."icd9_code"'], 'tab': ['diagnoses'], 'cond': [['diagnoses."subject_id"', '=', '55094']]}
+----------
+TRUTH:
+SELECT DIAGNOSES."ICD9_CODE",DIAGNOSES."SHORT_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."SUBJECT_ID" = "55094"
+{'sel': '', 'agg': ['diagnoses."icd9_code"', 'diagnoses."short_title"'], 'tab': ['diagnoses'], 'cond': [['diagnoses."subject_id"', '=', '55094']]}
+----------
+
+for patient id 29767, specify the time of admission and marital status. 
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "29767"
+{'sel': '', 'agg': ['demographic."admittime"', 'demographic."marital_status"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '29767']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "29767"
+{'sel': '', 'agg': ['demographic."marital_status"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '29767']]}
+----------
+
+specify the icd9 code and marital status of patient id 42067
+----------
+PREDS:
+SELECT DIAGNOSES."ICD9_CODE", DEMOGRAPHIC."MARITAL_STATUS" 
+FROM DIAGNOSES 
+INNER JOIN DEMOGRAPHIC ON DIAGNOSES.SUBJECT_ID = DEMOGRAPHIC.SUBJECT_ID 
+WHERE DIAGNOSES."SUBJECT_ID" = "42067"
+{'sel': '', 'agg': ['diagnoses."icd9_code"', 'demographic."marital_status"'], 'tab': ['diagnoses', 'demographic'], 'cond': [['diagnoses."subject_id"', '=', '42067']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."MARITAL_STATUS",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "42067"
+{'sel': '', 'agg': ['demographic."marital_status"', 'diagnoses."short_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '42067']]}
+----------
+
+for patient id 30011, specify the icd9 code and procedural long title.
+----------
+PREDS:
+SELECT PROCEDURES."ICD9_CODE", PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "30011"
+{'sel': '', 'agg': ['procedures."icd9_code"', 'procedures."long_title"'], 'tab': ['procedures'], 'cond': [['procedures."subject_id"', '=', '30011']]}
+----------
+TRUTH:
+SELECT DIAGNOSES."LONG_TITLE",PROCEDURES."LONG_TITLE" FROM DIAGNOSES INNER JOIN PROCEDURES on DIAGNOSES.HADM_ID = PROCEDURES.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "30011"
+{'sel': '', 'agg': ['diagnoses."long_title"', 'procedures."long_title"'], 'tab': ['diagnoses', 'procedures'], 'cond': [['diagnoses."subject_id"', '=', '30011']]}
+----------
+
+specify the admission type and icd9 code of patient id 91588
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE", DIAGNOSES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "91588"
+{'sel': '', 'agg': ['demographic."admission_type"', 'diagnoses."icd9_code"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '91588']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "91588"
+{'sel': '', 'agg': ['demographic."admission_type"', 'diagnoses."short_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '91588']]}
+----------
+
+specify icd9 code for patient id 14755
+----------
+PREDS:
+SELECT PROCEDURES."ICD9_CODE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "14755"
+{'sel': '', 'agg': ['procedures."icd9_code"'], 'tab': ['procedures'], 'cond': [['procedures."subject_id"', '=', '14755']]}
+----------
+TRUTH:
+SELECT PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "14755"
+{'sel': '', 'agg': ['procedures."long_title"'], 'tab': ['procedures'], 'cond': [['procedures."subject_id"', '=', '14755']]}
+----------
+
+when was subject id 85673 admitted and what is his admission location?
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "85673"
+{'sel': '', 'agg': ['demographic."admittime"', 'demographic."admission_location"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '85673']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_LOCATION",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "85673"
+{'sel': '', 'agg': ['demographic."admission_location"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '85673']]}
+----------
+
+find out the location and type of admission for patient with patient id 25543.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMISSION_LOCATION", DEMOGRAPHIC."ADMISSION_TYPE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "25543"
+{'sel': '', 'agg': ['demographic."admission_location"', 'demographic."admission_type"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '25543']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE",DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "25543"
+{'sel': '', 'agg': ['demographic."admission_type"', 'demographic."admission_location"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '25543']]}
+----------
+
+find out the type and time of admission for the patient with patient id 17595.
+----------
+PREDS:
+
+{'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_TYPE",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "17595"
+{'sel': '', 'agg': ['demographic."admission_type"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '17595']]}
+----------
+
+for patient id 1875, specify the icd9 code and discharge time
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DISCHTIME", DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES ON DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "1875"
+{'sel': '', 'agg': ['demographic."dischtime"', 'diagnoses."long_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '1875']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DISCHTIME",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "1875"
+{'sel': '', 'agg': ['demographic."dischtime"', 'diagnoses."short_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '1875']]}
+----------
+
+what is the primary disease and diagnosis of the patient id 8440?
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DIAGNOSIS", DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "8440"
+{'sel': '', 'agg': ['demographic."diagnosis"', 'diagnoses."long_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '8440']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DIAGNOSIS",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "8440"
+{'sel': '', 'agg': ['demographic."diagnosis"', 'diagnoses."short_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."subject_id"', '=', '8440']]}
+----------
+
+what is the diagnosis of Tracy Farmer?
+----------
+PREDS:
+SELECT DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Tracy Farmer"
+{'sel': '', 'agg': ['diagnoses."long_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."name"', '=', 'tracy farmer']]}
+----------
+TRUTH:
+SELECT DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Tracy Farmer"
+{'sel': '', 'agg': ['diagnoses."short_title"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."name"', '=', 'tracy farmer']]}
+----------
+
+Tell me which primary disease the patient Walter Locher is suffering from and whether he is still alive or not.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."EXPIRE_FLAG" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'Walter Locher'
+{'sel': '', 'agg': ['demographic."diagnosis"', 'demographic."expire_flag"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'walter locher']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."EXPIRE_FLAG",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Walter Locher"
+{'sel': '', 'agg': ['demographic."expire_flag"', 'demographic."diagnosis"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'walter locher']]}
+----------
+
+let me know the procedure icd9 code and days for which patient jeff jarvis was hospitalized.
+----------
+PREDS:
+SELECT PROCEDURES."ICD9_CODE", DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = 'Jeff Jarvis'
+{'sel': '', 'agg': ['procedures."icd9_code"', 'demographic."days_stay"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."name"', '=', 'jeff jarvis']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DAYS_STAY",PROCEDURES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Jeff Jarvis"
+{'sel': '', 'agg': ['demographic."days_stay"', 'procedures."icd9_code"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."name"', '=', 'jeff jarvis']]}
+----------
+
+what is the diagnosis of the diagnosis icd9 code 55221?
+----------
+PREDS:
+SELECT DIAGNOSES."SHORT_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "55221"
+{'sel': '', 'agg': ['diagnoses."short_title"'], 'tab': ['diagnoses'], 'cond': [['diagnoses."icd9_code"', '=', '55221']]}
+----------
+TRUTH:
+SELECT DIAGNOSES."LONG_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "55221"
+{'sel': '', 'agg': ['diagnoses."long_title"'], 'tab': ['diagnoses'], 'cond': [['diagnoses."icd9_code"', '=', '55221']]}
+----------
+
+count the number of patients who have stayed in the hospital for more than 23 days with a drug phenylephrine hcl.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "23" 
+AND PRESCRIPTIONS."DRUG" = "phenylephrine HCl"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."days_stay"', '>', '23'], ['prescriptions."drug"', '=', 'phenylephrine hcl']]}
+----------
+TRUTH:
+SELECT PRESCRIPTIONS."DRUG_DOSE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Phenytoin"
+{'sel': '', 'agg': ['prescriptions."drug_dose"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."drug"', '=', 'phenytoin']]}
+----------
+
+how many patients are married and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'MARRIED' 
+AND (DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE' 
+OR DEMOGRAPHIC."DIAGNOSIS" = 'CAD\CORONARY ARTERY BYPASS GRAFT WITH MVR;MAZE')
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['(demographic."diagnosis"', '=', 'coronary artery disease or demographic. diagnosis = cad\\coronary artery bypass graft with mvr;maze )'], ['demographic."marital_status"', '=', 'married']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT WITH MVR; ? MAZE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'coronary artery disease\\coronary artery bypass graft with mvr; ? maze'], ['demographic."marital_status"', '=', 'married']]}
+----------
+
+how many male patients had guillain barre syndrome as their primary disease?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN-BARRE SYNDROME"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'guillain-barre syndrome'], ['demographic."gender"', '=', 'm']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN BARRE SYNDROME"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'guillain barre syndrome'], ['demographic."gender"', '=', 'm']]}
+----------
+
+how many female patients have been diagnosed with unspecified constipation?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "F" 
+AND DIAGNOSES."LONG_TITLE" = 'Constipation, unspecified'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'f'], ['diagnoses."long_title"', '=', 'constipation, unspecified']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."GENDER" = "F" AND DIAGNOSES."SHORT_TITLE" = "Constipation NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'f'], ['diagnoses."short_title"', '=', 'constipation nos']]}
+----------
+
+show me the number of white ethnic background patients who have the diagnoses of portal hypertension.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE' 
+AND DIAGNOSES."LONG_TITLE" = 'Portal hypertension'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."ethnicity"', '=', 'white'], ['diagnoses."long_title"', '=', 'portal hypertension']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE" AND DIAGNOSES."SHORT_TITLE" = "Portal hypertension"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."ethnicity"', '=', 'white'], ['diagnoses."short_title"', '=', 'portal hypertension']]}
+----------
+
+how many patients with white ethnic background are diagnosed with unspecified pleural effusion?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE' 
+AND DIAGNOSES."LONG_TITLE" = 'Unspecified pleural effusion'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."ethnicity"', '=', 'white'], ['diagnoses."long_title"', '=', 'unspecified pleural effusion']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE" AND DIAGNOSES."SHORT_TITLE" = "Pleural effusion NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."ethnicity"', '=', 'white'], ['diagnoses."short_title"', '=', 'pleural effusion nos']]}
+----------
+
+Calculate the total number of patients with guillain barre syndrome as their primary disease who stayed at the hospital for more than 10 days.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'GUILLAIN-BARRE SYNDROME' AND DEMOGRAPHIC."DAYS_STAY" > 10
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."days_stay"', '>', '10'], ['demographic."diagnosis"', '=', 'guillain-barre syndrome']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN BARRE SYNDROME" AND DEMOGRAPHIC."DAYS_STAY" > "10"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."days_stay"', '>', '10'], ['demographic."diagnosis"', '=', 'guillain barre syndrome']]}
+----------
+
+among patients treated with base drug, how many of them had ventricular tachycardia as primary disease?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'VENTRICULAR TACHYCARDIA' 
+AND PRESCRIPTIONS."DRUG" = 'BASE'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."diagnosis"', '=', 'ventricular tachycardia'], ['prescriptions."drug"', '=', 'base']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "VENTRICULAR TACHYCARDIA" AND PRESCRIPTIONS."DRUG_TYPE" = "BASE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."diagnosis"', '=', 'ventricular tachycardia'], ['prescriptions."drug_type"', '=', 'base']]}
+----------
+
+get me the number of patients on iv route of drug administration who are diagnosed with closed fracture of surgical neck of humerus.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = 'Closed fracture of surgical neck of humerus' 
+AND PRESCRIPTIONS."ROUTE" = 'IV'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."long_title"', '=', 'closed fracture of surgical neck of humerus'], ['prescriptions."route"', '=', 'iv']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Fx surg nck humerus-clos" AND PRESCRIPTIONS."ROUTE" = "IV"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."short_title"', '=', 'fx surg nck humerus-clos'], ['prescriptions."route"', '=', 'iv']]}
+----------
+
+Give me the list of patients who were diagnosed with acute kidney failure (unspecified) that were administered the drug via the tp route.
+----------
+PREDS:
+SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = 'Acute kidney failure, unspecified' 
+AND PRESCRIPTIONS."ROUTE" = 'TP'
+{'sel': '', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."long_title"', '=', 'acute kidney failure, unspecified'], ['prescriptions."route"', '=', 'tp']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Acute kidney failure NOS" AND PRESCRIPTIONS."ROUTE" = "TP"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."short_title"', '=', 'acute kidney failure nos'], ['prescriptions."route"', '=', 'tp']]}
+----------
+
+how many patients are diagnosed with staphylococcus pneumonia have blood gas lab test category?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DIAGNOSES."SHORT_TITLE" = 'Staphylococcal pneu NOS' 
+AND LAB."CATEGORY" = 'Blood Gas'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'lab'], 'cond': [['diagnoses."short_title"', '=', 'staphylococcal pneu nos'], ['lab."category"', '=', 'blood gas']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DIAGNOSES."LONG_TITLE" = "Other Staphylococcus pneumonia" AND LAB."CATEGORY" = "Blood Gas"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'lab'], 'cond': [['diagnoses."long_title"', '=', 'other staphylococcus pneumonia'], ['lab."category"', '=', 'blood gas']]}
+----------
+
+which lab test has been ordered for patient with patient id 19187?
+----------
+PREDS:
+SELECT LAB."LABEL" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "19187"
+{'sel': '', 'agg': ['lab."label"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."subject_id"', '=', '19187']]}
+----------
+TRUTH:
+SELECT LAB."LABEL" FROM LAB WHERE LAB."SUBJECT_ID" = "19187"
+{'sel': '', 'agg': ['lab."label"'], 'tab': ['lab'], 'cond': [['lab."subject_id"', '=', '19187']]}
+----------
+
+specify the primary disease of james cepeda and where he was admitted
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'James Cepeda'
+{'sel': '', 'agg': ['demographic."diagnosis"', 'demographic."admission_location"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'james cepeda']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."ADMISSION_LOCATION",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "James Cepeda"
+{'sel': '', 'agg': ['demographic."admission_location"', 'demographic."diagnosis"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'james cepeda']]}
+----------
+
+tell me the time of admission and days for which patient michael witt was hospitalized.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'Michael Witt'
+{'sel': '', 'agg': ['demographic."admittime"', 'demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'michael witt']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DAYS_STAY",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Michael Witt"
+{'sel': '', 'agg': ['demographic."days_stay"', 'demographic."admittime"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'michael witt']]}
+----------
+
+specify complete details of icd9 code 4591
+----------
+PREDS:
+SELECT PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."ICD9_CODE" = "4591"
+{'sel': '', 'agg': ['procedures."long_title"'], 'tab': ['procedures'], 'cond': [['procedures."icd9_code"', '=', '4591']]}
+----------
+TRUTH:
+SELECT PROCEDURES."SHORT_TITLE",PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."ICD9_CODE" = "4591"
+{'sel': '', 'agg': ['procedures."short_title"', 'procedures."long_title"'], 'tab': ['procedures'], 'cond': [['procedures."icd9_code"', '=', '4591']]}
+----------
+
+tell me the drug code and route of administration of mult drug.
+----------
+PREDS:
+SELECT PRESCRIPTIONS."FORMULARY_DRUG_CD", PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mult Drug"
+{'sel': '', 'agg': ['prescriptions."formulary_drug_cd"', 'prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."drug"', '=', 'mult drug']]}
+----------
+TRUTH:
+SELECT PRESCRIPTIONS."FORMULARY_DRUG_CD",PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mult"
+{'sel': '', 'agg': ['prescriptions."formulary_drug_cd"', 'prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."drug"', '=', 'mult']]}
+----------
+
+find out mor10l medications type and route of administration.
+----------
+PREDS:
+SELECT PRESCRIPTIONS."DRUG_TYPE", PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mor10l"
+{'sel': '', 'agg': ['prescriptions."drug_type"', 'prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."drug"', '=', 'mor10l']]}
+----------
+TRUTH:
+SELECT PRESCRIPTIONS."DRUG_TYPE",PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."FORMULARY_DRUG_CD" = "MOR10L"
+{'sel': '', 'agg': ['prescriptions."drug_type"', 'prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."formulary_drug_cd"', '=', 'mor10l']]}
+----------
+
+Find the route of administration for medication with a GELCLAIR drug code.
+----------
+PREDS:
+SELECT PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = 'GELCLAIR'
+{'sel': '', 'agg': ['prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."drug"', '=', 'gelclair']]}
+----------
+TRUTH:
+SELECT PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."FORMULARY_DRUG_CD" = "GELCLAIR"
+{'sel': '', 'agg': ['prescriptions."route"'], 'tab': ['prescriptions'], 'cond': [['prescriptions."formulary_drug_cd"', '=', 'gelclair']]}
+----------
+
+what is the number of patients suffering from right upper quadrant pain primary disease?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'RIGHT UPPER QUADRANT PAIN'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'right upper quadrant pain']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "RUQ PAIN"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'ruq pain']]}
+----------
+
+how many patients had pituitary bleed?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."SHORT_TITLE" = "Pituitary bleed"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."short_title"', '=', 'pituitary bleed']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "PITUITARY BLEED"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'pituitary bleed']]}
+----------
+
+tell me the number of patients who were born in or before 2132.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" <= "2132"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<=', '2132']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOD_YEAR" <= "2132.0"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dod_year"', '<=', '2132.0']]}
+----------
+
+how many patients have been diagnosed with unspecified pseudomonas infection?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = "Unspecified pseudomonas infection"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."long_title"', '=', 'unspecified pseudomonas infection']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Pseudomonas infect NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."short_title"', '=', 'pseudomonas infect nos']]}
+----------
+
+how many patients were diagnosed with urinary incontinence nos?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = "Urinary incontinence NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."long_title"', '=', 'urinary incontinence nos']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Urinary incontinence NOS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."short_title"', '=', 'urinary incontinence nos']]}
+----------
+
+tell me the number of patients who were diagnosed with unspecified cerebral artery occlusion with cerebral infarction.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = 'Cerebral artery occlusion, unspecified with cerebral infarction'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."long_title"', '=', 'cerebral artery occlusion, unspecified with cerebral infarction']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Crbl art ocl NOS w infrc"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."short_title"', '=', 'crbl art ocl nos w infrc']]}
+----------
+
+how many patients are diagnosed with secundum atrial septum defect?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."LONG_TITLE" = 'Ostium secundum type atrial septal defect'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."long_title"', '=', 'ostium secundum type atrial septal defect']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Secundum atrial sept def"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['diagnoses."short_title"', '=', 'secundum atrial sept def']]}
+----------
+
+what is the number of patients who underwent radical cystectomy?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE PROCEDURES."LONG_TITLE" = 'Radical cystectomy'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['procedures."long_title"', '=', 'radical cystectomy']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE PROCEDURES."SHORT_TITLE" = "Radical cystectomy"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['procedures."short_title"', '=', 'radical cystectomy']]}
+----------
+
+which patients had open and other left hemicolectomy?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE PROCEDURES."LONG_TITLE" = 'Open and other left hemicolectomy'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['other', 'left', 'hemicolectomy'], ['procedures."long_title"', '=', 'open']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE PROCEDURES."SHORT_TITLE" = "Opn lft hemicolectmy NEC"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['procedures."short_title"', '=', 'opn lft hemicolectmy nec']]}
+----------
+
+what is the number of patients with replaced route of drug administration?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE PRESCRIPTIONS."ROUTE" = "REPLACED"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['prescriptions."route"', '=', 'replaced']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE PRESCRIPTIONS."ROUTE" = "REPLACE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['prescriptions."route"', '=', 'replace']]}
+----------
+
+count the number of patients for whom csf lab test was ordered.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE LAB."LABEL" = "CSF"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['lab."label"', '=', 'csf']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE LAB."FLUID" = "Cerebrospinal Fluid (CSF)"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['lab."fluid"', '=', 'cerebrospinal fluid (csf)']]}
+----------
+
+provide the number of divorced patients who were diagnosed with occlusion and stenosis of carotid artery without mention of cerebral infarction.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'DIVORCED' 
+AND DIAGNOSES."LONG_TITLE" = 'Occlusion and stenosis of carotid artery without mention of cerebral infarction'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."marital_status"', '=', 'divorced'], ['diagnoses."long_title"', '=', 'occlusion'], ['stenosis', 'of', 'carotid artery without mention of cerebral infarction']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "DIVORCED" AND DIAGNOSES."SHORT_TITLE" = "Ocl crtd art wo infrct"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."marital_status"', '=', 'divorced'], ['diagnoses."short_title"', '=', 'ocl crtd art wo infrct']]}
+----------
+
+count the number of married patients who have acute myocardial infarction of inferolateral wall, initial episode of care diagnoses.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" 
+AND DIAGNOSES."LONG_TITLE" = "Acute myocardial infarction of inferolateral wall, initial episode of care"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."marital_status"', '=', 'married'], ['diagnoses."long_title"', '=', 'acute myocardial infarction of inferolateral wall, initial episode of care']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DIAGNOSES."SHORT_TITLE" = "AMI inferolateral, init"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."marital_status"', '=', 'married'], ['diagnoses."short_title"', '=', 'ami inferolateral, init']]}
+----------
+
+Get me the number of unmarried patients who had tonsil and adenoid biopsy.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" 
+AND PROCEDURES."LONG_TITLE" = "Biopsy of tonsils and adenoids"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'single'], ['procedures."long_title"', '=', 'biopsy of tonsils']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND PROCEDURES."SHORT_TITLE" = "Tonsil&adenoid biopsy"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'single'], ['procedures."short_title"', '=', 'tonsil&adenoid biopsy']]}
+----------
+
+Tell me the number of married patients who underwent a procedure called open heart valvuloplasty of mitral valve without replacement.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND PROCEDURES."LONG_TITLE" = "Open heart valvuloplasty of mitral valve without replacement"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'married'], ['procedures."long_title"', '=', 'open heart valvuloplasty of mitral valve without replacement']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND PROCEDURES."SHORT_TITLE" = "Opn mitral valvuloplasty"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."marital_status"', '=', 'married'], ['procedures."short_title"', '=', 'opn mitral valvuloplasty']]}
+----------
+
+Provide the number of unmarried patients who have a hematology lab test category.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = "UNMARRIED" 
+AND LAB."CATEGORY" = "Hematology"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."marital_status"', '=', 'unmarried'], ['lab."category"', '=', 'hematology']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND LAB."CATEGORY" = "Hematology"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."marital_status"', '=', 'single'], ['lab."category"', '=', 'hematology']]}
+----------
+
+provide the number of patients whose diagnoses is lap surg convert to open and they are female.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "F" 
+AND DIAGNOSES."SHORT_TITLE" = "Lap surg convert to open"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'f'], ['diagnoses."short_title"', '=', 'lap surg convert to open']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "F" AND DEMOGRAPHIC."DIAGNOSIS" = "VENTRICULAR TACHYCARDIA"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'ventricular tachycardia'], ['demographic."gender"', '=', 'f']]}
+----------
+
+show me the number of female patients who have been diagnosed with unspecified pneumonia due to staphylococcus.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "F" 
+AND DIAGNOSES."LONG_TITLE" = 'Pneumonia due to Staphylococcus, unspecified'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'f'], ['diagnoses."long_title"', '=', 'pneumonia due to staphylococcus, unspecified']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."GENDER" = "F" AND DIAGNOSES."SHORT_TITLE" = "Staph pneumonia NEC"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'f'], ['diagnoses."short_title"', '=', 'staph pneumonia nec']]}
+----------
+
+How many male patients had icd9 code 8842?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "M" 
+AND DIAGNOSES."ICD9_CODE" = "8842"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."gender"', '=', 'm'], ['diagnoses."icd9_code"', '=', '8842']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."GENDER" = "M" AND PROCEDURES."ICD9_CODE" = "8842"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."gender"', '=', 'm'], ['procedures."icd9_code"', '=', '8842']]}
+----------
+
+how many portuguese speaking patients stayed in hospital for more than 3 days?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'PORTUGUESE' AND DEMOGRAPHIC."DAYS_STAY" > 3
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."days_stay"', '>', '3'], ['demographic."ethnicity"', '=', 'portuguese']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = "PORT" AND DEMOGRAPHIC."DAYS_STAY" > "3"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."days_stay"', '>', '3'], ['demographic."language"', '=', 'port']]}
+----------
+
+Give me the list of patients born before 2071 who prefer spanish.
+----------
+PREDS:
+SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = 'SPAN' AND DEMOGRAPHIC."DOB_YEAR" < 2071
+{'sel': '', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<', '2071'], ['demographic."language"', '=', 'span']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = "SPAN" AND DEMOGRAPHIC."DOB_YEAR" < "2071"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<', '2071'], ['demographic."language"', '=', 'span']]}
+----------
+
+how many patients are admitted under emergency and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' 
+AND (DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE' 
+OR DEMOGRAPHIC."DIAGNOSIS" = 'CAD\CORONARY ARTERY BYPASS GRAFT WITH MVR;MAZE')
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['(demographic."diagnosis"', '=', 'coronary artery disease or demographic. diagnosis = cad\\coronary artery bypass graft with mvr;maze )'], ['demographic."admission_type"', '=', 'emergency']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT WITH MVR; ? MAZE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."diagnosis"', '=', 'coronary artery disease\\coronary artery bypass graft with mvr; ? maze']]}
+----------
+
+what is the number of emergency room admitted patients who have diagnosis icd9 code e8798?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = 'EMERGENCY ROOM ADMIT' 
+AND DIAGNOSES."ICD9_CODE" = 'E8798'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admission_location"', '=', 'emergency room admit'], ['diagnoses."icd9_code"', '=', 'e8798']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DIAGNOSES."ICD9_CODE" = "E8798"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['diagnoses."icd9_code"', '=', 'e8798']]}
+----------
+
+how many patients on urgent admission were diagnosed with ostium secundum type atrial septal defect?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'URGENT' 
+AND DEMOGRAPHIC."DIAGNOSIS" = 'OSTIUM SECUNDUM TYPE ATRIAL SEPTAL DEFECT'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'urgent'], ['demographic."diagnosis"', '=', 'ostium secundum type atrial septal defect']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" AND DIAGNOSES."LONG_TITLE" = "Ostium secundum type atrial septal defect"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admission_type"', '=', 'urgent'], ['diagnoses."long_title"', '=', 'ostium secundum type atrial septal defect']]}
+----------
+
+give me the number of emergency hospital admission patients who had insertion of 2 vascular stents.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' 
+AND PROCEDURES."LONG_TITLE" = 'Insertion of two vascular stents'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['procedures."long_title"', '=', 'insertion of two vascular stents']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND PROCEDURES."SHORT_TITLE" = "Insert 2 vascular stents"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['procedures."short_title"', '=', 'insert 2 vascular stents']]}
+----------
+
+give me the number of urgent hospital admission patients who have replaced route of drug administration.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" 
+AND PRESCRIPTIONS."ROUTE" = "REPLACED"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."admission_type"', '=', 'urgent'], ['prescriptions."route"', '=', 'replaced']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" AND PRESCRIPTIONS."ROUTE" = "REPLACE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."admission_type"', '=', 'urgent'], ['prescriptions."route"', '=', 'replace']]}
+----------
+
+how many of the patients on self pay had coronary athrscl natve vessel?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."INSURANCE" = 'Self Pay' AND DEMOGRAPHIC."DIAGNOSIS" = '3 VESSEL CORONARY ARTERY DISEASE'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', '3 vessel coronary artery disease'], ['demographic."insurance"', '=', 'self pay']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Self Pay" AND DIAGNOSES."SHORT_TITLE" = "Crnry athrscl natve vssl"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'self pay'], ['diagnoses."short_title"', '=', 'crnry athrscl natve vssl']]}
+----------
+
+how many patients with tietze's disease are insured by the government?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = "Government" 
+AND DIAGNOSES."SHORT_TITLE" = "Tietze's disease"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'government'], ['diagnoses."short_title"', '=', 'tietze s disease']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Government" AND DIAGNOSES."LONG_TITLE" = "Tietze's disease"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'government'], ['diagnoses."long_title"', '=', 'tietze s disease']]}
+----------
+
+how many patients posses self pay insurance and were diagnosed with blood in stool?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = 'Self Pay' 
+AND DIAGNOSES."SHORT_TITLE" = 'Blood in stool'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'self pay'], ['diagnoses."short_title"', '=', 'blood in stool']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Self Pay" AND DIAGNOSES."LONG_TITLE" = "Blood in stool"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'self pay'], ['diagnoses."long_title"', '=', 'blood in stool']]}
+----------
+
+how many of the patients on government insurance had icd9 code 2219?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = "Government" 
+AND DIAGNOSES."ICD9_CODE" = "2219"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'government'], ['diagnoses."icd9_code"', '=', '2219']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Government" AND PROCEDURES."ICD9_CODE" = "2219"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."insurance"', '=', 'government'], ['procedures."icd9_code"', '=', '2219']]}
+----------
+
+how many of the patients on medicaid insurance had icd9 code 331?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = 'Medicaid' 
+AND DIAGNOSES."ICD9_CODE" = '331'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."insurance"', '=', 'medicaid'], ['diagnoses."icd9_code"', '=', '331']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Medicaid" AND PROCEDURES."ICD9_CODE" = "331"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."insurance"', '=', 'medicaid'], ['procedures."icd9_code"', '=', '331']]}
+----------
+
+Find me the number of medicare patients for whome amylase a body fluid lab test was ordered.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = "Medicare" 
+AND LAB."LABEL" = "Amylase"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."insurance"', '=', 'medicare'], ['lab."label"', '=', 'amylase']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Medicare" AND LAB."LABEL" = "Amylase, Body Fluid"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."insurance"', '=', 'medicare'], ['lab."label"', '=', 'amylase, body fluid']]}
+----------
+
+how many patients are diagnosed with icd9 code 9600 have an additive drug type?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = "9600" 
+AND PRESCRIPTIONS."DRUG_TYPE" = "ADDITIVE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."icd9_code"', '=', '9600'], ['prescriptions."drug_type"', '=', 'additive']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "ASIAN" AND DEMOGRAPHIC."AGE" < "50"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."age"', '<', '50'], ['demographic."ethnicity"', '=', 'asian']]}
+----------
+
+how many american indian/alaska native ethnic background patients were born before 2148?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'AMERICAN INDIAN/ALASKA NATIVE' AND DEMOGRAPHIC."DOB_YEAR" < 2148
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<', '2148'], ['demographic."ethnicity"', '=', 'american indian/alaska native']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "AMERICAN INDIAN/ALASKA NATIVE" AND DEMOGRAPHIC."ADMITYEAR" < "2148"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<', '2148'], ['demographic."ethnicity"', '=', 'american indian/alaska native']]}
+----------
+
+Get the list of white-russian patients with a neb route of drug administration.
+----------
+PREDS:
+SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE - RUSSIAN' AND PRESCRIPTIONS."ROUTE" = 'NEB'
+{'sel': '', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."ethnicity"', '=', 'white - russian'], ['prescriptions."route"', '=', 'neb']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE - RUSSIAN" AND PRESCRIPTIONS."ROUTE" = "NEB"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."ethnicity"', '=', 'white - russian'], ['prescriptions."route"', '=', 'neb']]}
+----------
+
+Provide the number of patients that died and had a primary disease of ST elevated myocardial infarction/cardiac cath.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DEMOGRAPHIC."DIAGNOSIS" = 'CARDIAC CATH;ST ELEVATED MYOCARDIAL INFARCTION'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'cardiac cath;st elevated myocardial infarction'], ['demographic."expire_flag"', '=', '1']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DEMOGRAPHIC."DIAGNOSIS" = "ST ELEVATED MYOCARDIAL INFARCTION\CARDIAC CATH"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'st elevated myocardial infarction\\cardiac cath'], ['demographic."expire_flag"', '=', '1']]}
+----------
+
+calculate the number of patients diagnosed with icd9 code 29570 whose death status is unspecified
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" IS NULL AND DIAGNOSES."ICD9_CODE" = "29570"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', 'is', 'null'], ['diagnoses."icd9_code"', '=', '29570']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DIAGNOSES."ICD9_CODE" = "29570"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '0'], ['diagnoses."icd9_code"', '=', '29570']]}
+----------
+
+how many patients survived and were diagnosed with icd9 code 5680?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" 
+AND DIAGNOSES."ICD9_CODE" = "5680"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '0'], ['diagnoses."icd9_code"', '=', '5680']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DIAGNOSES."ICD9_CODE" = "5680"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."expire_flag"', '=', '1'], ['diagnoses."icd9_code"', '=', '5680']]}
+----------
+
+give  the number of patients whose primary disease is coronary artery disease/coronary artery bypass graft/sda and who were aged below 89 years.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE/SDA\CORONARY ARTERY BYPASS GRAFT' AND DEMOGRAPHIC."AGE" < 89
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."age"', '<', '89'], ['demographic."diagnosis"', '=', 'coronary artery disease/sda\\coronary artery bypass graft']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT /SDA" AND DEMOGRAPHIC."AGE" < "89"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."age"', '<', '89'], ['demographic."diagnosis"', '=', 'coronary artery disease\\coronary artery bypass graft /sda']]}
+----------
+
+How many of the newborn patients died in or before the year 2122?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOD_YEAR" <= "2122.0" AND DEMOGRAPHIC."DOB_YEAR" = "2122"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '=', '2122'], ['demographic."dod_year"', '<=', '2122.0']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "NEWBORN" AND DEMOGRAPHIC."DOD_YEAR" <= "2122.0"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'newborn'], ['demographic."dod_year"', '<=', '2122.0']]}
+----------
+
+Provide me the number of patients born in or before 2179 who have left internal jugular vein thrombosis; left arm edema primary disease.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'LEFT INTERNAL JUGULAR VEIN THROMBOSIS;LEFT ARM EDEMA' 
+AND DEMOGRAPHIC."DOB_YEAR" <= 2179
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'left internal jugular vein thrombosis;left arm edema'], ['demographic."dob_year"', '<=', '2179']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "LEFT INTERNAL JUGULAR VEIN THROMBOSIS;LEFT ARM EDEMA" AND DEMOGRAPHIC."DOD_YEAR" <= "2179.0"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'left internal jugular vein thrombosis;left arm edema'], ['demographic."dod_year"', '<=', '2179.0']]}
+----------
+
+Among patients with cerebral aneurysm/sda as their primary disease, calculate the total number of those born before the year 2173.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'CEREBRAL ANEURYSM/SDA' AND DEMOGRAPHIC."DOB_YEAR" < 2173
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'cerebral aneurysm/sda'], ['demographic."dob_year"', '<', '2173']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "CEREBRAL ANEURYSM/SDA" AND DEMOGRAPHIC."ADMITYEAR" < "2173"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<', '2173'], ['demographic."diagnosis"', '=', 'cerebral aneurysm/sda']]}
+----------
+
+how many patients admitted after year 2146 had ruq pain?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'RUQ PAIN' AND DEMOGRAPHIC."ADMITYEAR" > 2146
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '>', '2146'], ['demographic."diagnosis"', '=', 'ruq pain']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "RUQ PAIN" AND DEMOGRAPHIC."ADMITYEAR" < "2146"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<', '2146'], ['demographic."diagnosis"', '=', 'ruq pain']]}
+----------
+
+how many of the patients with gangrene as primary disease received po/ng therapy?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'GANGRENE' 
+AND PRESCRIPTIONS."ROUTE" IN ('PO', 'NG')
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."diagnosis"', '=', 'gangrene'], ['prescriptions."route"', 'in', '( po , ng )']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "GANGRENE" AND PRESCRIPTIONS."ROUTE" = "PO/NG"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."diagnosis"', '=', 'gangrene'], ['prescriptions."route"', '=', 'po/ng']]}
+----------
+
+Count the number of newborn patients whose lab test fluid is blood
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" = 0 AND LAB."FLUID" = 'Blood'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."age"', '=', '0'], ['lab."fluid"', '=', 'blood']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "NEWBORN" AND LAB."FLUID" = "Blood"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."diagnosis"', '=', 'newborn'], ['lab."fluid"', '=', 'blood']]}
+----------
+
+How many patients with s/p fall as their primary disease had ascitic fluid lab test?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'S/P FALL' 
+AND LAB."FLUID" = 'Ascitic Fluid'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."diagnosis"', '=', 's/p fall'], ['lab."fluid"', '=', 'ascitic fluid']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "S/P FALL" AND LAB."FLUID" = "Ascites"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."diagnosis"', '=', 's/p fall'], ['lab."fluid"', '=', 'ascites']]}
+----------
+
+how many patients are below 49 years of age and admitted under the year 2198?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" < "49" AND DEMOGRAPHIC."ADMITYEAR" = "2198"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '=', '2198'], ['demographic."age"', '<', '49']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" < "49" AND DEMOGRAPHIC."ADMITYEAR" < "2198"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<', '2198'], ['demographic."age"', '<', '49']]}
+----------
+
+Find the number of patients less than 70 years of age who had a percutaneous liver aspiration procedure.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."AGE" < "70" AND PROCEDURES."LONG_TITLE" = 'Percutaneous aspiration of liver'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."age"', '<', '70'], ['procedures."long_title"', '=', 'percutaneous aspiration of liver']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."AGE" < "70" AND PROCEDURES."SHORT_TITLE" = "Percutan liver aspirat"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."age"', '<', '70'], ['procedures."short_title"', '=', 'percutan liver aspirat']]}
+----------
+
+Show the number of patients who are less than 60 years of age and have the drug code morp2i.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 60 
+AND PRESCRIPTIONS."FORMULARY_DRUG_CD" = 'MORP2I'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."age"', '<', '60'], ['prescriptions."formulary_drug_cd"', '=', 'morp2i']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < "62" AND PRESCRIPTIONS."FORMULARY_DRUG_CD" = "MORP2I"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."age"', '<', '62'], ['prescriptions."formulary_drug_cd"', '=', 'morp2i']]}
+----------
+
+how many patients aged below 43 year had the drug route dialysis?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 43 
+AND PRESCRIPTIONS."ROUTE" = 'DIALYSIS'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."age"', '<', '43'], ['prescriptions."route"', '=', 'dialysis']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < "43" AND PRESCRIPTIONS."ROUTE" = "DIALYS"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."age"', '<', '43'], ['prescriptions."route"', '=', 'dialys']]}
+----------
+
+Bring the list of patients younger than 41 years of age who had a blood lab test done.
+----------
+PREDS:
+SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "41" AND LAB."FLUID" = "Blood"
+{'sel': '', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."age"', '<', '41'], ['lab."fluid"', '=', 'blood']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "41" AND LAB."FLUID" = "Blood"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."age"', '<', '41'], ['lab."fluid"', '=', 'blood']]}
+----------
+
+how many patients below 43 years of age tested in lab for pleural fluid?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 43 
+AND LAB."LABEL" = 'Albumin, Pleural'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."age"', '<', '43'], ['lab."label"', '=', 'albumin, pleural']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "43" AND LAB."FLUID" = "Pleural"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."age"', '<', '43'], ['lab."fluid"', '=', 'pleural']]}
+----------
+
+how many patients stayed in hospital for more than 6 days and were diagnosed with orthostatic hypertension?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "6" 
+AND DIAGNOSES."LONG_TITLE" = "Orthostatic Hypertension"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '6'], ['diagnoses."long_title"', '=', 'orthostatic hypertension']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "6" AND DIAGNOSES."SHORT_TITLE" = "Orthostatic hypotension"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '6'], ['diagnoses."short_title"', '=', 'orthostatic hypotension']]}
+----------
+
+how many patients diagnosed with chronic diastolic heart failure were hospitalized for more than 30 days?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "30" 
+AND DIAGNOSES."LONG_TITLE" = "Chronic diastolic heart failure"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '30'], ['diagnoses."long_title"', '=', 'chronic diastolic heart failure']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "30" AND DIAGNOSES."SHORT_TITLE" = "Chr diastolic hrt fail"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."days_stay"', '>', '30'], ['diagnoses."short_title"', '=', 'chr diastolic hrt fail']]}
+----------
+
+provide the number of patients born before 2024 diagnosed with other chronic nonalcoholic liver disease.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DOB_YEAR" < "2024" 
+AND DEMOGRAPHIC."DIAGNOSIS" = "OTHER CHRONIC NONALCOHOLIC LIVER DISEASE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'other chronic nonalcoholic liver disease'], ['demographic."dob_year"', '<', '2024']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DOB_YEAR" < "2024" AND DIAGNOSES."SHORT_TITLE" = "Chronic liver dis NEC"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."dob_year"', '<', '2024'], ['diagnoses."short_title"', '=', 'chronic liver dis nec']]}
+----------
+
+Out of total number of patients who had a lab test for pleural fluid, how many of them were born before 2089?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."DOB_YEAR" < "2089" 
+AND LAB."LABEL" = "Albumin, Pleural"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."dob_year"', '<', '2089'], ['lab."label"', '=', 'albumin, pleural']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DOB_YEAR" < "2089" AND LAB."FLUID" = "Pleural"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'lab'], 'cond': [['demographic."dob_year"', '<', '2089'], ['lab."fluid"', '=', 'pleural']]}
+----------
+
+tell me the number of patients with a diagnoses of full incontinence of feces who were admitted before the year 2154.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2154" 
+AND DIAGNOSES."LONG_TITLE" = "Full incontinence of feces"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2154'], ['diagnoses."long_title"', '=', 'full incontinence of feces']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2154" AND DIAGNOSES."SHORT_TITLE" = "Full incontinence-feces"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2154'], ['diagnoses."short_title"', '=', 'full incontinence-feces']]}
+----------
+
+how many patients are admitted before the year 2145 and diagnosed with syncope and collapse?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2145" 
+AND DIAGNOSES."LONG_TITLE" = "Syncope and collapse"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2145'], ['diagnoses."long_title"', '=', 'syncope']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2145" AND DIAGNOSES."SHORT_TITLE" = "Syncope and collapse"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2145'], ['diagnoses."short_title"', '=', 'syncope']]}
+----------
+
+Find the number of patients admitted before 2138 who had unspecified schizophrenia and unspecified diagnoses.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2138" 
+AND DIAGNOSES."LONG_TITLE" = 'Unspecified schizophrenia, chronic'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2138'], ['diagnoses."long_title"', '=', 'unspecified schizophrenia, chronic']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2138" AND DIAGNOSES."LONG_TITLE" = "Unspecified schizophrenia, unspecified"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses'], 'cond': [['demographic."admityear"', '<', '2138'], ['diagnoses."long_title"', '=', 'unspecified schizophrenia, unspecified']]}
+----------
+
+how many of the patients diagnosed with icd9 code 4464 were treated with base drug?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = "4464" 
+AND PRESCRIPTIONS."DRUG" = "BASE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."icd9_code"', '=', '4464'], ['prescriptions."drug"', '=', 'base']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."ICD9_CODE" = "4464" AND PRESCRIPTIONS."DRUG_TYPE" = "BASE"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."icd9_code"', '=', '4464'], ['prescriptions."drug_type"', '=', 'base']]}
+----------
+
+how many patients with diagnoses icd9 code 53190 have had delta abnormal lab test status?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES ON DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN LAB ON DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = '53190' 
+AND LAB."FLAG" = 'abnormal'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'lab'], 'cond': [['diagnoses."icd9_code"', '=', '53190'], ['lab."flag"', '=', 'abnormal']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DIAGNOSES."ICD9_CODE" = "53190" AND LAB."FLAG" = "delta"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'lab'], 'cond': [['diagnoses."icd9_code"', '=', '53190'], ['lab."flag"', '=', 'delta']]}
+----------
+
+how many patients with polycythemia were treated with main drug?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'POLYCYTHEMIA' 
+AND PRESCRIPTIONS."DRUG_TYPE" = 'MAIN'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'prescriptions'], 'cond': [['demographic."diagnosis"', '=', 'polycythemia'], ['prescriptions."drug_type"', '=', 'main']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Polycythemia vera" AND PRESCRIPTIONS."DRUG_TYPE" = "MAIN"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."short_title"', '=', 'polycythemia vera'], ['prescriptions."drug_type"', '=', 'main']]}
+----------
+
+report the number of patients on pr route of drug administration who were diagnosed with antineoplastic and immunosuppressive drugs causing adverse effects in therapeutic use.
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = 'Antineoplastic and immunosuppressive drugs causing adverse effects in therapeutic use' 
+AND PRESCRIPTIONS."ROUTE" = 'PR'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."long_title"', '=', 'antineoplastic'], ['immunosuppressive', 'drugs', 'causing adverse effects in therapeutic use'], ['prescriptions."route"', '=', 'pr']]}
+----------
+TRUTH:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Adv eff antineoplastic" AND PRESCRIPTIONS."ROUTE" = "PR"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic', 'diagnoses', 'prescriptions'], 'cond': [['diagnoses."short_title"', '=', 'adv eff antineoplastic'], ['prescriptions."route"', '=', 'pr']]}
+----------
+
+let me know the age and name of patient with patient id 2560.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."AGE", DEMOGRAPHIC."NAME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+{'sel': '', 'agg': ['demographic."age"', 'demographic."name"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '2560']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."NAME",DEMOGRAPHIC."AGE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+{'sel': '', 'agg': ['demographic."name"', 'demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '2560']]}
+----------
+
+tell me the gender and name of patient with patient id 2560.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."GENDER", DEMOGRAPHIC."NAME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+{'sel': '', 'agg': ['demographic."gender"', 'demographic."name"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '2560']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."NAME",DEMOGRAPHIC."GENDER" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+{'sel': '', 'agg': ['demographic."name"', 'demographic."gender"'], 'tab': ['demographic'], 'cond': [['demographic."subject_id"', '=', '2560']]}
+----------
+
+give the birthdate and procedure title of jerry deberry.
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DOB", PROCEDURES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES ON DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = 'Jerry Deberry'
+{'sel': '', 'agg': ['demographic."dob"', 'procedures."short_title"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."name"', '=', 'jerry deberry']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DOB",PROCEDURES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Jerry Deberry"
+{'sel': '', 'agg': ['demographic."dob"', 'procedures."long_title"'], 'tab': ['demographic', 'procedures'], 'cond': [['demographic."name"', '=', 'jerry deberry']]}
+----------
+
+For how many days Stephanie Sechan stayed in the hospital?
+----------
+PREDS:
+SELECT DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Stephanie Sechan"
+{'sel': '', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'stephanie sechan']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Stephanie Suchan"
+{'sel': '', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'stephanie suchan']]}
+----------
+
+What is the religion of Kelley Gallardo?
+----------
+PREDS:
+SELECT DEMOGRAPHIC."RELIGION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Kelley Gallardo"
+{'sel': '', 'agg': ['demographic."religion"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'kelley gallardo']]}
+----------
+TRUTH:
+SELECT DEMOGRAPHIC."RELIGION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Kelly Gallardo"
+{'sel': '', 'agg': ['demographic."religion"'], 'tab': ['demographic'], 'cond': [['demographic."name"', '=', 'kelly gallardo']]}
+----------
+
+what is the minimum days for which patients with brain mass; intracranial hemorrhage were hospitalized?
+----------
+PREDS:
+SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS; INTRACRANIAL HEMORRHAGE"
+{'sel': 'min', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'brain mass; intracranial hemorrhage']]}
+----------
+TRUTH:
+SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS;INTRACRANIAL HEMORRHAGE"
+{'sel': 'min', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'brain mass;intracranial hemorrhage']]}
+----------
+
+what is the maximum number of days of hospital stay for patients with hypertension but not coronary artery disease/cardiac cath?
+----------
+PREDS:
+SELECT MAX ( DEMOGRAPHIC."DAYS_STAY" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'HYPERTENSION' 
+AND DEMOGRAPHIC."DIAGNOSIS" != 'CORONARY ARTERY DISEASE/CARDIAC CATH'
+{'sel': 'max', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '!=', 'coronary artery disease/cardiac cath'], ['demographic."diagnosis"', '=', 'hypertension']]}
+----------
+TRUTH:
+SELECT MAX ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "HYPERTENSION;RULE OUT CORONARY ARTERY DISEASE\CARDIAC CATH"
+{'sel': 'max', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'hypertension;rule out coronary artery disease\\cardiac cath']]}
+----------
+
+find the minimum number of days of hospital stay for patients born before the year 2200.
+----------
+PREDS:
+SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" < "2200"
+{'sel': 'min', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<', '2200']]}
+----------
+TRUTH:
+SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" > "2200"
+{'sel': 'min', 'agg': ['demographic."days_stay"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '>', '2200']]}
+----------
+
+what is the maximum age of married patients admitted on self pay status
+----------
+PREDS:
+SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."ADMISSION_TYPE" = "SELF PAY"
+{'sel': 'max', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'self pay'], ['demographic."marital_status"', '=', 'married']]}
+----------
+TRUTH:
+SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."INSURANCE" = "Self Pay"
+{'sel': 'max', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."insurance"', '=', 'self pay'], ['demographic."marital_status"', '=', 'married']]}
+----------
+
+what is the maximum age of patients whose marital status is single and who were born before the year 2073?
+----------
+PREDS:
+SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'SINGLE' AND DEMOGRAPHIC."DOB_YEAR" < 2073
+{'sel': 'max', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '<', '2073'], ['demographic."marital_status"', '=', 'single']]}
+----------
+TRUTH:
+SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND DEMOGRAPHIC."DOB_YEAR" > "2073"
+{'sel': 'max', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."dob_year"', '>', '2073'], ['demographic."marital_status"', '=', 'single']]}
+----------
+
+Specify the average age of unmarried patients admitted in or after the year 2156
+----------
+PREDS:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "UNMARRIED" AND DEMOGRAPHIC."ADMITYEAR" >= "2156"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '>=', '2156'], ['demographic."marital_status"', '=', 'unmarried']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND DEMOGRAPHIC."ADMITYEAR" >= "2156"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '>=', '2156'], ['demographic."marital_status"', '=', 'single']]}
+----------
+
+how many male patients are of hispanic or latino ethnicity?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."ETHNICITY" = "HISPANIC OR LATINO"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."ethnicity"', '=', 'hispanic or latino'], ['demographic."gender"', '=', 'm']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."ETHNICITY" = "HISPANIC OR LATINO"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."ethnicity"', '=', 'hispanic or latino'], ['demographic."gender"', '=', 'm']]}
+----------
+
+how many patients were admitted in emergency primarily for brain mass; intracranial hemorrhage ?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' 
+AND DEMOGRAPHIC."DIAGNOSIS" = 'BRAIN MASS;INTRACRANIAL HEMORRHAGE'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."diagnosis"', '=', 'brain mass;intracranial hemorrhage']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS;INTRACRANIAL HEMORRHAGE"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."diagnosis"', '=', 'brain mass;intracranial hemorrhage']]}
+----------
+
+how many patients were admitted in emergency primarily for t5 fracture?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' AND DEMOGRAPHIC."DIAGNOSIS" = 'T5 FRACTURE'
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."diagnosis"', '=', 't5 fracture']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "T5 FRACTURE"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admission_type"', '=', 'emergency'], ['demographic."diagnosis"', '=', 't5 fracture']]}
+----------
+
+how many patients belonging to white ethnic origin were admitted in the year less than or equal to 2120?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE' AND DEMOGRAPHIC."ADMITYEAR" <= 2120
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<=', '2120'], ['demographic."ethnicity"', '=', 'white']]}
+----------
+TRUTH:
+SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE" AND DEMOGRAPHIC."ADMITYEAR" >= "2120"
+{'sel': 'max', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '>=', '2120'], ['demographic."ethnicity"', '=', 'white']]}
+----------
+
+How many patients are discharged to home and diagnosed with primary disease sigmoid diverticulitis, colovesical fistula/sda?
+----------
+PREDS:
+SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DISCHARGE_LOCATION" = "HOME" 
+AND DEMOGRAPHIC."DIAGNOSIS" = "COLONIC FISTULA/SDA"
+{'sel': 'count', 'agg': ['demographic."subject_id"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'colonic fistula/sda'], ['demographic."discharge_location"', '=', 'home']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DISCHARGE_LOCATION" = "HOME" AND DEMOGRAPHIC."DIAGNOSIS" = "SIGMOID DIVERTICULITIS, COLOVESTICAL FISTULA/SDA"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'sigmoid diverticulitis, colovestical fistula/sda'], ['demographic."discharge_location"', '=', 'home']]}
+----------
+
+provide the minimum age of patients primarily diagnosed for hypoxia and expired before the year 2155.
+----------
+PREDS:
+SELECT MIN ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'HYPOXIA' AND DEMOGRAPHIC."EXPIRE_FLAG" = 1 AND DEMOGRAPHIC."DOD_YEAR" < 2155
+{'sel': 'min', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'hypoxia'], ['demographic."dod_year"', '<', '2155'], ['demographic."expire_flag"', '=', '1']]}
+----------
+TRUTH:
+SELECT MIN ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "HYPOXIA" AND DEMOGRAPHIC."DOD_YEAR" < "2155.0"
+{'sel': 'min', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."diagnosis"', '=', 'hypoxia'], ['demographic."dod_year"', '<', '2155.0']]}
+----------
+
+Provide the average age of patients aged 70 and under and admitted in or before the year 2157.
+----------
+PREDS:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" <= 70 AND DEMOGRAPHIC."ADMITYEAR" <= 2157
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '<=', '2157'], ['demographic."age"', '<=', '70']]}
+----------
+TRUTH:
+SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" >= "70" AND DEMOGRAPHIC."ADMITYEAR" >= "2157"
+{'sel': 'avg', 'agg': ['demographic."age"'], 'tab': ['demographic'], 'cond': [['demographic."admityear"', '>=', '2157'], ['demographic."age"', '>=', '70']]}
+----------
+
+Logical Form Accuracy: {'total': 0.857, 'agg_op': 0.99, 'agg_col': 0.961, 'table': 0.983, 'condition_column_operation': 0.916, 'condition_value': 0.893}
+
+==========
+
+
+
+provide the number of patients whose death status is 0 and primary disease is aortic insufficiency/re-do sternotomy; aortic valve replacement.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'AORTIC INSUFFICIENCY\RE-DO STERNOTOMY; AORTIC VALVE REPLACEMENT' 
+AND DEMOGRAPHIC."EXPIRE_FLAG" = 0
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DEMOGRAPHIC."DIAGNOSIS" = "AORTIC INSUFFICIENCY\RE-DO STERNOTOMY; AORTIC VALVE REPLACEMENT   "
+
+
+
+how many patients with epistaxis have unspecified death status?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DEMOGRAPHIC."DIAGNOSIS" = "EPISTAXIS"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DIAGNOSES."SHORT_TITLE" = "Epistaxis"
+
+
+
+How many patients were admitted through the emergency department and were discharged to discharge-transitioning to psychiatric hospital?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' AND DEMOGRAPHIC."DISCHARGE_LOCATION" = 'DISCH-TRAN TO PSYCH HOSP'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = "EMERGENCY ROOM ADMIT" AND DEMOGRAPHIC."DISCHARGE_LOCATION" = "DISCH-TRAN TO PSYCH HOSP"
+
+
+
+What is the number of inpatient hospital admission patients who are less than 59 years old?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "INPATIENT" AND DEMOGRAPHIC."AGE" < "59"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = "TRANSFER FROM HOSP/EXTRAM" AND DEMOGRAPHIC."AGE" < "59"
+
+
+
+Out of total number of patients admitted before 2157, how many of them had long-term use of steroids?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2157" 
+AND DIAGNOSES."LONG_TITLE" = 'Long-term (current) use of steroids'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2175" AND DIAGNOSES."SHORT_TITLE" = "Long-term use steroids"
+
+
+
+How many patients had a lab test for sodium urine and were treated with a base drug?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE PRESCRIPTIONS."DRUG_TYPE" = 'BASE' 
+AND LAB."LABEL" = 'Sodium, Urine'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE PRESCRIPTIONS."DRUG_TYPE" = "MAIN" AND LAB."LABEL" = "Sodium, Urine"
+
+
+
+provide the admission time and marital status of subject id 6983.
+PRED: SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "6983"
+GOLD: SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "6983"
+
+
+
+when did patient id 62296 die? specify date of death and insurance
+PRED: SELECT DEMOGRAPHIC."DOD", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "62296"
+GOLD: SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DOD" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "62296"
+
+
+
+specify the discharge location and insurance details of patients id 15898
+PRED: SELECT DEMOGRAPHIC."DISCHARGE_LOCATION", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "15898"
+GOLD: SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DISCHARGE_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "15898"
+
+
+
+tell me the primary disease and health insurance of patient with patient id 8990.
+PRED: SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."INSURANCE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "8990"
+GOLD: SELECT DEMOGRAPHIC."INSURANCE",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "8990"
+
+
+
+for patient id 74032, specify the icd9 code and type of drug he was treated with.
+PRED: SELECT DIAGNOSES."ICD9_CODE", PRESCRIPTIONS."DRUG_TYPE" FROM DIAGNOSES INNER JOIN PRESCRIPTIONS on DIAGNOSES.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "74032"
+GOLD: SELECT DIAGNOSES."SHORT_TITLE",PRESCRIPTIONS."DRUG_TYPE" FROM DIAGNOSES INNER JOIN PRESCRIPTIONS on DIAGNOSES.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "74032"
+
+
+
+tell me the ethnic background and marital status of patient with patient id 21796.
+PRED: SELECT DEMOGRAPHIC."ETHNICITY", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "21796"
+GOLD: SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ETHNICITY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "21796"
+
+
+
+find me the death status and primary language that patient with patient id 3623 prefers.
+PRED: SELECT DEMOGRAPHIC."EXPIRE_FLAG", DEMOGRAPHIC."LANGUAGE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+GOLD: SELECT DEMOGRAPHIC."LANGUAGE",DEMOGRAPHIC."EXPIRE_FLAG" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+
+
+
+what is the death status and procedure for the patient id 3623?
+PRED: SELECT DEMOGRAPHIC."EXPIRE_FLAG", PROCEDURES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES ON DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+GOLD: SELECT DEMOGRAPHIC."EXPIRE_FLAG",PROCEDURES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "3623"
+
+
+
+Find the time of admission and date of death for the patient with patient id 94762.
+PRED: SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."DOD" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "94762"
+GOLD: SELECT DEMOGRAPHIC."DOD",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "94762"
+
+
+
+specify the icd9 code for patient id 18480
+PRED: SELECT PROCEDURES."ICD9_CODE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "18480"
+GOLD: SELECT PROCEDURES."SHORT_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "18480"
+
+
+
+find out the type of admission and lab test ordered for patient with patient id 18480.
+PRED: SELECT DEMOGRAPHIC."ADMISSION_TYPE", LAB."CATEGORY" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_TYPE",LAB."LABEL" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+
+
+
+specify primary disease and icd9 code of patient id 18480
+PRED: SELECT DEMOGRAPHIC."DIAGNOSIS", DIAGNOSES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+GOLD: SELECT DEMOGRAPHIC."DIAGNOSIS",PROCEDURES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "18480"
+
+
+
+get the short title as well as the icd9 code of diagnoses for patient with patient id 55094.
+PRED: SELECT DIAGNOSES."SHORT_TITLE", DIAGNOSES."ICD9_CODE" FROM DIAGNOSES WHERE DIAGNOSES."SUBJECT_ID" = "55094"
+GOLD: SELECT DIAGNOSES."ICD9_CODE",DIAGNOSES."SHORT_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."SUBJECT_ID" = "55094"
+
+
+
+for patient id 29767, specify the time of admission and marital status. 
+PRED: SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."MARITAL_STATUS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "29767"
+GOLD: SELECT DEMOGRAPHIC."MARITAL_STATUS",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "29767"
+
+
+
+specify the icd9 code and marital status of patient id 42067
+PRED: SELECT DIAGNOSES."ICD9_CODE", DEMOGRAPHIC."MARITAL_STATUS" 
+FROM DIAGNOSES 
+INNER JOIN DEMOGRAPHIC ON DIAGNOSES.SUBJECT_ID = DEMOGRAPHIC.SUBJECT_ID 
+WHERE DIAGNOSES."SUBJECT_ID" = "42067"
+GOLD: SELECT DEMOGRAPHIC."MARITAL_STATUS",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "42067"
+
+
+
+for patient id 30011, specify the icd9 code and procedural long title.
+PRED: SELECT PROCEDURES."ICD9_CODE", PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "30011"
+GOLD: SELECT DIAGNOSES."LONG_TITLE",PROCEDURES."LONG_TITLE" FROM DIAGNOSES INNER JOIN PROCEDURES on DIAGNOSES.HADM_ID = PROCEDURES.HADM_ID WHERE DIAGNOSES."SUBJECT_ID" = "30011"
+
+
+
+specify the admission type and icd9 code of patient id 91588
+PRED: SELECT DEMOGRAPHIC."ADMISSION_TYPE", DIAGNOSES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "91588"
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_TYPE",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "91588"
+
+
+
+specify icd9 code for patient id 14755
+PRED: SELECT PROCEDURES."ICD9_CODE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "14755"
+GOLD: SELECT PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."SUBJECT_ID" = "14755"
+
+
+
+when was subject id 85673 admitted and what is his admission location?
+PRED: SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "85673"
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_LOCATION",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "85673"
+
+
+
+find out the location and type of admission for patient with patient id 25543.
+PRED: SELECT DEMOGRAPHIC."ADMISSION_LOCATION", DEMOGRAPHIC."ADMISSION_TYPE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "25543"
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_TYPE",DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "25543"
+
+
+
+find out the type and time of admission for the patient with patient id 17595.
+PRED: 
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_TYPE",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "17595"
+
+
+
+for patient id 1875, specify the icd9 code and discharge time
+PRED: SELECT DEMOGRAPHIC."DISCHTIME", DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES ON DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "1875"
+GOLD: SELECT DEMOGRAPHIC."DISCHTIME",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "1875"
+
+
+
+what is the primary disease and diagnosis of the patient id 8440?
+PRED: SELECT DEMOGRAPHIC."DIAGNOSIS", DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "8440"
+GOLD: SELECT DEMOGRAPHIC."DIAGNOSIS",DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "8440"
+
+
+
+what is the diagnosis of Tracy Farmer?
+PRED: SELECT DIAGNOSES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Tracy Farmer"
+GOLD: SELECT DIAGNOSES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Tracy Farmer"
+
+
+
+Tell me which primary disease the patient Walter Locher is suffering from and whether he is still alive or not.
+PRED: SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."EXPIRE_FLAG" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'Walter Locher'
+GOLD: SELECT DEMOGRAPHIC."EXPIRE_FLAG",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Walter Locher"
+
+
+
+let me know the procedure icd9 code and days for which patient jeff jarvis was hospitalized.
+PRED: SELECT PROCEDURES."ICD9_CODE", DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = 'Jeff Jarvis'
+GOLD: SELECT DEMOGRAPHIC."DAYS_STAY",PROCEDURES."ICD9_CODE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Jeff Jarvis"
+
+
+
+what is the diagnosis of the diagnosis icd9 code 55221?
+PRED: SELECT DIAGNOSES."SHORT_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "55221"
+GOLD: SELECT DIAGNOSES."LONG_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "55221"
+
+
+
+find the diagnostic decription of diagnoses icd9 code v202.
+PRED: SELECT DIAGNOSES."LONG_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "v202"
+GOLD: SELECT DIAGNOSES."LONG_TITLE" FROM DIAGNOSES WHERE DIAGNOSES."ICD9_CODE" = "V202"
+
+
+
+what is the drug type and drug code of the drug buspirone?
+PRED: SELECT PRESCRIPTIONS."DRUG_TYPE", PRESCRIPTIONS."FORMULARY_DRUG_CD" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = 'Buspirone'
+GOLD: SELECT PRESCRIPTIONS."DRUG_TYPE",PRESCRIPTIONS."FORMULARY_DRUG_CD" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "BusPIRone"
+
+
+
+count the number of patients who have stayed in the hospital for more than 23 days with a drug phenylephrine hcl.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "23" 
+AND PRESCRIPTIONS."DRUG" = "phenylephrine HCl"
+GOLD: SELECT PRESCRIPTIONS."DRUG_DOSE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Phenytoin"
+
+
+
+how many patients are married and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'MARRIED' 
+AND (DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE' 
+OR DEMOGRAPHIC."DIAGNOSIS" = 'CAD\CORONARY ARTERY BYPASS GRAFT WITH MVR;MAZE')
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT WITH MVR; ? MAZE"
+
+
+
+how many male patients had guillain barre syndrome as their primary disease?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN-BARRE SYNDROME"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN BARRE SYNDROME"
+
+
+
+Calculate the total number of patients with guillain barre syndrome as their primary disease who stayed at the hospital for more than 10 days.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'GUILLAIN-BARRE SYNDROME' AND DEMOGRAPHIC."DAYS_STAY" > 10
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "GUILLAIN BARRE SYNDROME" AND DEMOGRAPHIC."DAYS_STAY" > "10"
+
+
+
+among patients treated with base drug, how many of them had ventricular tachycardia as primary disease?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'VENTRICULAR TACHYCARDIA' 
+AND PRESCRIPTIONS."DRUG" = 'BASE'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "VENTRICULAR TACHYCARDIA" AND PRESCRIPTIONS."DRUG_TYPE" = "BASE"
+
+
+
+Give me the list of patients who were diagnosed with acute kidney failure (unspecified) that were administered the drug via the tp route.
+PRED: SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = 'Acute kidney failure, unspecified' 
+AND PRESCRIPTIONS."ROUTE" = 'TP'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Acute kidney failure NOS" AND PRESCRIPTIONS."ROUTE" = "TP"
+
+
+
+how many patients are diagnosed with staphylococcus pneumonia have blood gas lab test category?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DIAGNOSES."SHORT_TITLE" = 'Staphylococcal pneu NOS' 
+AND LAB."CATEGORY" = 'Blood Gas'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DIAGNOSES."LONG_TITLE" = "Other Staphylococcus pneumonia" AND LAB."CATEGORY" = "Blood Gas"
+
+
+
+which lab test has been ordered for patient with patient id 19187?
+PRED: SELECT LAB."LABEL" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."SUBJECT_ID" = "19187"
+GOLD: SELECT LAB."LABEL" FROM LAB WHERE LAB."SUBJECT_ID" = "19187"
+
+
+
+Specify the discharge location of patient Dona Cole along with the ICU stay ID
+PRED: SELECT DEMOGRAPHIC."DISCHARGE_LOCATION", PRESCRIPTIONS."ICUSTAY_ID" FROM DEMOGRAPHIC JOIN PRESCRIPTIONS ON DEMOGRAPHIC."SUBJECT_ID" = PRESCRIPTIONS."SUBJECT_ID" WHERE DEMOGRAPHIC."NAME" = 'Dona Cole'
+GOLD: SELECT DEMOGRAPHIC."DISCHARGE_LOCATION",PRESCRIPTIONS."ICUSTAY_ID" FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Dona Cole"
+
+
+
+specify the primary disease of james cepeda and where he was admitted
+PRED: SELECT DEMOGRAPHIC."DIAGNOSIS", DEMOGRAPHIC."ADMISSION_LOCATION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'James Cepeda'
+GOLD: SELECT DEMOGRAPHIC."ADMISSION_LOCATION",DEMOGRAPHIC."DIAGNOSIS" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "James Cepeda"
+
+
+
+tell me the time of admission and days for which patient michael witt was hospitalized.
+PRED: SELECT DEMOGRAPHIC."ADMITTIME", DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = 'Michael Witt'
+GOLD: SELECT DEMOGRAPHIC."DAYS_STAY",DEMOGRAPHIC."ADMITTIME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Michael Witt"
+
+
+
+specify complete details of icd9 code 4591
+PRED: SELECT PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."ICD9_CODE" = "4591"
+GOLD: SELECT PROCEDURES."SHORT_TITLE",PROCEDURES."LONG_TITLE" FROM PROCEDURES WHERE PROCEDURES."ICD9_CODE" = "4591"
+
+
+
+tell me the drug code and route of administration of mult drug.
+PRED: SELECT PRESCRIPTIONS."FORMULARY_DRUG_CD", PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mult Drug"
+GOLD: SELECT PRESCRIPTIONS."FORMULARY_DRUG_CD",PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mult"
+
+
+
+find out mor10l medications type and route of administration.
+PRED: SELECT PRESCRIPTIONS."DRUG_TYPE", PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = "Mor10l"
+GOLD: SELECT PRESCRIPTIONS."DRUG_TYPE",PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."FORMULARY_DRUG_CD" = "MOR10L"
+
+
+
+Find the route of administration for medication with a GELCLAIR drug code.
+PRED: SELECT PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."DRUG" = 'GELCLAIR'
+GOLD: SELECT PRESCRIPTIONS."ROUTE" FROM PRESCRIPTIONS WHERE PRESCRIPTIONS."FORMULARY_DRUG_CD" = "GELCLAIR"
+
+
+
+what is the number of patients suffering from right upper quadrant pain primary disease?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'RIGHT UPPER QUADRANT PAIN'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "RUQ PAIN"
+
+
+
+how many patients had pituitary bleed?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."SHORT_TITLE" = "Pituitary bleed"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "PITUITARY BLEED"
+
+
+
+tell me the number of patients who were born in or before 2132.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" <= "2132"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOD_YEAR" <= "2132.0"
+
+
+
+how many patients have been diagnosed with unspecified pseudomonas infection?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = "Unspecified pseudomonas infection"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Pseudomonas infect NOS"
+
+
+
+how many patients were diagnosed with urinary incontinence nos?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DIAGNOSES."LONG_TITLE" = "Urinary incontinence NOS"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Urinary incontinence NOS"
+
+
+
+what is the number of patients with replaced route of drug administration?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE PRESCRIPTIONS."ROUTE" = "REPLACED"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE PRESCRIPTIONS."ROUTE" = "REPLACE"
+
+
+
+count the number of patients for whom csf lab test was ordered.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE LAB."LABEL" = "CSF"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE LAB."FLUID" = "Cerebrospinal Fluid (CSF)"
+
+
+
+Provide the number of unmarried patients who have a hematology lab test category.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."MARITAL_STATUS" = "UNMARRIED" 
+AND LAB."CATEGORY" = "Hematology"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND LAB."CATEGORY" = "Hematology"
+
+
+
+provide the number of patients whose diagnoses is lap surg convert to open and they are female.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "F" 
+AND DIAGNOSES."SHORT_TITLE" = "Lap surg convert to open"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "F" AND DEMOGRAPHIC."DIAGNOSIS" = "VENTRICULAR TACHYCARDIA"
+
+
+
+show me the number of female patients who have been diagnosed with unspecified pneumonia due to staphylococcus.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "F" 
+AND DIAGNOSES."LONG_TITLE" = 'Pneumonia due to Staphylococcus, unspecified'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."GENDER" = "F" AND DIAGNOSES."SHORT_TITLE" = "Staph pneumonia NEC"
+
+
+
+How many male patients had icd9 code 8842?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."GENDER" = "M" 
+AND DIAGNOSES."ICD9_CODE" = "8842"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."GENDER" = "M" AND PROCEDURES."ICD9_CODE" = "8842"
+
+
+
+how many portuguese speaking patients stayed in hospital for more than 3 days?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'PORTUGUESE' AND DEMOGRAPHIC."DAYS_STAY" > 3
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = "PORT" AND DEMOGRAPHIC."DAYS_STAY" > "3"
+
+
+
+Give me the list of patients born before 2071 who prefer spanish.
+PRED: SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = 'SPAN' AND DEMOGRAPHIC."DOB_YEAR" < 2071
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."LANGUAGE" = "SPAN" AND DEMOGRAPHIC."DOB_YEAR" < "2071"
+
+
+
+how many patients are admitted under emergency and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' 
+AND (DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE' 
+OR DEMOGRAPHIC."DIAGNOSIS" = 'CAD\CORONARY ARTERY BYPASS GRAFT WITH MVR;MAZE')
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT WITH MVR; ? MAZE"
+
+
+
+what is the number of emergency room admitted patients who have diagnosis icd9 code e8798?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_LOCATION" = 'EMERGENCY ROOM ADMIT' 
+AND DIAGNOSES."ICD9_CODE" = 'E8798'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DIAGNOSES."ICD9_CODE" = "E8798"
+
+
+
+how many patients on urgent admission were diagnosed with ostium secundum type atrial septal defect?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'URGENT' 
+AND DEMOGRAPHIC."DIAGNOSIS" = 'OSTIUM SECUNDUM TYPE ATRIAL SEPTAL DEFECT'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" AND DIAGNOSES."LONG_TITLE" = "Ostium secundum type atrial septal defect"
+
+
+
+give me the number of urgent hospital admission patients who have replaced route of drug administration.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" 
+AND PRESCRIPTIONS."ROUTE" = "REPLACED"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "URGENT" AND PRESCRIPTIONS."ROUTE" = "REPLACE"
+
+
+
+how many of the patients on self pay had coronary athrscl natve vessel?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."INSURANCE" = 'Self Pay' AND DEMOGRAPHIC."DIAGNOSIS" = '3 VESSEL CORONARY ARTERY DISEASE'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Self Pay" AND DIAGNOSES."SHORT_TITLE" = "Crnry athrscl natve vssl"
+
+
+
+Find me the number of medicare patients for whome amylase a body fluid lab test was ordered.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."INSURANCE" = "Medicare" 
+AND LAB."LABEL" = "Amylase"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."INSURANCE" = "Medicare" AND LAB."LABEL" = "Amylase, Body Fluid"
+
+
+
+how many patients are diagnosed with icd9 code 9600 have an additive drug type?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = "9600" 
+AND PRESCRIPTIONS."DRUG_TYPE" = "ADDITIVE"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "ASIAN" AND DEMOGRAPHIC."AGE" < "50"
+
+
+
+how many american indian/alaska native ethnic background patients were born before 2148?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'AMERICAN INDIAN/ALASKA NATIVE' AND DEMOGRAPHIC."DOB_YEAR" < 2148
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "AMERICAN INDIAN/ALASKA NATIVE" AND DEMOGRAPHIC."ADMITYEAR" < "2148"
+
+
+
+provide the number of asian patients who are taking glyburide medication.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "ASIAN" AND PRESCRIPTIONS."DRUG" = "Glyburide"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "ASIAN" AND PRESCRIPTIONS."DRUG" = "GlyBURIDE"
+
+
+
+Get the list of white-russian patients with a neb route of drug administration.
+PRED: SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE - RUSSIAN' AND PRESCRIPTIONS."ROUTE" = 'NEB'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE - RUSSIAN" AND PRESCRIPTIONS."ROUTE" = "NEB"
+
+
+
+Provide the number of patients that died and had a primary disease of ST elevated myocardial infarction/cardiac cath.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DEMOGRAPHIC."DIAGNOSIS" = 'CARDIAC CATH;ST ELEVATED MYOCARDIAL INFARCTION'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DEMOGRAPHIC."DIAGNOSIS" = "ST ELEVATED MYOCARDIAL INFARCTION\CARDIAC CATH"
+
+
+
+calculate the number of patients diagnosed with icd9 code 29570 whose death status is unspecified
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" IS NULL AND DIAGNOSES."ICD9_CODE" = "29570"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" AND DIAGNOSES."ICD9_CODE" = "29570"
+
+
+
+how many patients survived and were diagnosed with icd9 code 5680?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "0" 
+AND DIAGNOSES."ICD9_CODE" = "5680"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."EXPIRE_FLAG" = "1" AND DIAGNOSES."ICD9_CODE" = "5680"
+
+
+
+give  the number of patients whose primary disease is coronary artery disease/coronary artery bypass graft/sda and who were aged below 89 years.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'CORONARY ARTERY DISEASE/SDA\CORONARY ARTERY BYPASS GRAFT' AND DEMOGRAPHIC."AGE" < 89
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "CORONARY ARTERY DISEASE\CORONARY ARTERY BYPASS GRAFT /SDA" AND DEMOGRAPHIC."AGE" < "89"
+
+
+
+How many of the newborn patients died in or before the year 2122?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOD_YEAR" <= "2122.0" AND DEMOGRAPHIC."DOB_YEAR" = "2122"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "NEWBORN" AND DEMOGRAPHIC."DOD_YEAR" <= "2122.0"
+
+
+
+Among patients with cerebral aneurysm/sda as their primary disease, calculate the total number of those born before the year 2173.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'CEREBRAL ANEURYSM/SDA' AND DEMOGRAPHIC."DOB_YEAR" < 2173
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "CEREBRAL ANEURYSM/SDA" AND DEMOGRAPHIC."ADMITYEAR" < "2173"
+
+
+
+how many patients admitted after year 2146 had ruq pain?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = 'RUQ PAIN' AND DEMOGRAPHIC."ADMITYEAR" > 2146
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "RUQ PAIN" AND DEMOGRAPHIC."ADMITYEAR" < "2146"
+
+
+
+how many of the patients with gangrene as primary disease received po/ng therapy?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'GANGRENE' 
+AND PRESCRIPTIONS."ROUTE" IN ('PO', 'NG')
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "GANGRENE" AND PRESCRIPTIONS."ROUTE" = "PO/NG"
+
+
+
+Count the number of newborn patients whose lab test fluid is blood
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" = 0 AND LAB."FLUID" = 'Blood'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "NEWBORN" AND LAB."FLUID" = "Blood"
+
+
+
+How many patients with s/p fall as their primary disease had ascitic fluid lab test?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'S/P FALL' 
+AND LAB."FLUID" = 'Ascitic Fluid'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DIAGNOSIS" = "S/P FALL" AND LAB."FLUID" = "Ascites"
+
+
+
+how many patients are below 49 years of age and admitted under the year 2198?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" < "49" AND DEMOGRAPHIC."ADMITYEAR" = "2198"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" < "49" AND DEMOGRAPHIC."ADMITYEAR" < "2198"
+
+
+
+among the patients who were treated with pravastatin, how many of them were aged below 72?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < 72 AND PRESCRIPTIONS."DRUG" = 'pravastatin'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < "72" AND PRESCRIPTIONS."DRUG" = "Pravastatin"
+
+
+
+Show the number of patients who are less than 60 years of age and have the drug code morp2i.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 60 
+AND PRESCRIPTIONS."FORMULARY_DRUG_CD" = 'MORP2I'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < "62" AND PRESCRIPTIONS."FORMULARY_DRUG_CD" = "MORP2I"
+
+
+
+how many patients aged below 43 year had the drug route dialysis?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 43 
+AND PRESCRIPTIONS."ROUTE" = 'DIALYSIS'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."AGE" < "43" AND PRESCRIPTIONS."ROUTE" = "DIALYS"
+
+
+
+Bring the list of patients younger than 41 years of age who had a blood lab test done.
+PRED: SELECT DISTINCT DEMOGRAPHIC."SUBJECT_ID" FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "41" AND LAB."FLUID" = "Blood"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "41" AND LAB."FLUID" = "Blood"
+
+
+
+how many patients below 43 years of age tested in lab for pleural fluid?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 43 
+AND LAB."LABEL" = 'Albumin, Pleural'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "43" AND LAB."FLUID" = "Pleural"
+
+
+
+find the number of patients whose lab test category is hematology and age is under 61 years.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."AGE" < 61 
+AND LAB."CATEGORY" = 'HEMATOLOGY'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."AGE" < "61" AND LAB."CATEGORY" = "Hematology"
+
+
+
+how many patients stayed in hospital for more than 6 days and were diagnosed with orthostatic hypertension?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."DAYS_STAY" > "6" 
+AND DIAGNOSES."LONG_TITLE" = "Orthostatic Hypertension"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DAYS_STAY" > "6" AND DIAGNOSES."SHORT_TITLE" = "Orthostatic hypotension"
+
+
+
+provide the number of patients born before 2024 diagnosed with other chronic nonalcoholic liver disease.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DOB_YEAR" < "2024" 
+AND DEMOGRAPHIC."DIAGNOSIS" = "OTHER CHRONIC NONALCOHOLIC LIVER DISEASE"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."DOB_YEAR" < "2024" AND DIAGNOSES."SHORT_TITLE" = "Chronic liver dis NEC"
+
+
+
+count the number of patients on norepinephrine prescription who were born before the year 2109.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DOB_YEAR" < "2109" 
+AND PRESCRIPTIONS."DRUG" = "Norepinephrine"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DEMOGRAPHIC."DOB_YEAR" < "2109" AND PRESCRIPTIONS."DRUG" = "NORepinephrine"
+
+
+
+Out of total number of patients who had a lab test for pleural fluid, how many of them were born before 2089?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DEMOGRAPHIC."DOB_YEAR" < "2089" 
+AND LAB."LABEL" = "Albumin, Pleural"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DEMOGRAPHIC."DOB_YEAR" < "2089" AND LAB."FLUID" = "Pleural"
+
+
+
+Find the number of patients admitted before 2138 who had unspecified schizophrenia and unspecified diagnoses.
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+WHERE DEMOGRAPHIC."ADMITYEAR" < "2138" 
+AND DIAGNOSES."LONG_TITLE" = 'Unspecified schizophrenia, chronic'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID WHERE DEMOGRAPHIC."ADMITYEAR" < "2138" AND DIAGNOSES."LONG_TITLE" = "Unspecified schizophrenia, unspecified"
+
+
+
+how many of the patients diagnosed with icd9 code 4464 were treated with base drug?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = "4464" 
+AND PRESCRIPTIONS."DRUG" = "BASE"
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."ICD9_CODE" = "4464" AND PRESCRIPTIONS."DRUG_TYPE" = "BASE"
+
+
+
+how many patients with diagnoses icd9 code 53190 have had delta abnormal lab test status?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN DIAGNOSES ON DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID 
+INNER JOIN LAB ON DEMOGRAPHIC.HADM_ID = LAB.HADM_ID 
+WHERE DIAGNOSES."ICD9_CODE" = '53190' 
+AND LAB."FLAG" = 'abnormal'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN LAB on DEMOGRAPHIC.HADM_ID = LAB.HADM_ID WHERE DIAGNOSES."ICD9_CODE" = "53190" AND LAB."FLAG" = "delta"
+
+
+
+how many patients with polycythemia were treated with main drug?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'POLYCYTHEMIA' 
+AND PRESCRIPTIONS."DRUG_TYPE" = 'MAIN'
+GOLD: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC INNER JOIN DIAGNOSES on DEMOGRAPHIC.HADM_ID = DIAGNOSES.HADM_ID INNER JOIN PRESCRIPTIONS on DEMOGRAPHIC.HADM_ID = PRESCRIPTIONS.HADM_ID WHERE DIAGNOSES."SHORT_TITLE" = "Polycythemia vera" AND PRESCRIPTIONS."DRUG_TYPE" = "MAIN"
+
+
+
+let me know the age and name of patient with patient id 2560.
+PRED: SELECT DEMOGRAPHIC."AGE", DEMOGRAPHIC."NAME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+GOLD: SELECT DEMOGRAPHIC."NAME",DEMOGRAPHIC."AGE" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+
+
+
+tell me the gender and name of patient with patient id 2560.
+PRED: SELECT DEMOGRAPHIC."GENDER", DEMOGRAPHIC."NAME" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+GOLD: SELECT DEMOGRAPHIC."NAME",DEMOGRAPHIC."GENDER" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."SUBJECT_ID" = "2560"
+
+
+
+give the birthdate and procedure title of jerry deberry.
+PRED: SELECT DEMOGRAPHIC."DOB", PROCEDURES."SHORT_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES ON DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = 'Jerry Deberry'
+GOLD: SELECT DEMOGRAPHIC."DOB",PROCEDURES."LONG_TITLE" FROM DEMOGRAPHIC INNER JOIN PROCEDURES on DEMOGRAPHIC.HADM_ID = PROCEDURES.HADM_ID WHERE DEMOGRAPHIC."NAME" = "Jerry Deberry"
+
+
+
+For how many days Stephanie Sechan stayed in the hospital?
+PRED: SELECT DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Stephanie Sechan"
+GOLD: SELECT DEMOGRAPHIC."DAYS_STAY" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Stephanie Suchan"
+
+
+
+What is the religion of Kelley Gallardo?
+PRED: SELECT DEMOGRAPHIC."RELIGION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Kelley Gallardo"
+GOLD: SELECT DEMOGRAPHIC."RELIGION" FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."NAME" = "Kelly Gallardo"
+
+
+
+what is the minimum days for which patients with brain mass; intracranial hemorrhage were hospitalized?
+PRED: SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS; INTRACRANIAL HEMORRHAGE"
+GOLD: SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS;INTRACRANIAL HEMORRHAGE"
+
+
+
+what is the maximum number of days of hospital stay for patients with hypertension but not coronary artery disease/cardiac cath?
+PRED: SELECT MAX ( DEMOGRAPHIC."DAYS_STAY" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DIAGNOSIS" = 'HYPERTENSION' 
+AND DEMOGRAPHIC."DIAGNOSIS" != 'CORONARY ARTERY DISEASE/CARDIAC CATH'
+GOLD: SELECT MAX ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DIAGNOSIS" = "HYPERTENSION;RULE OUT CORONARY ARTERY DISEASE\CARDIAC CATH"
+
+
+
+find the minimum number of days of hospital stay for patients born before the year 2200.
+PRED: SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" < "2200"
+GOLD: SELECT MIN ( DEMOGRAPHIC."DAYS_STAY" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DOB_YEAR" > "2200"
+
+
+
+what is the maximum age of married patients admitted on self pay status
+PRED: SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."ADMISSION_TYPE" = "SELF PAY"
+GOLD: SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "MARRIED" AND DEMOGRAPHIC."INSURANCE" = "Self Pay"
+
+
+
+what is the maximum age of patients whose marital status is single and who were born before the year 2073?
+PRED: SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = 'SINGLE' AND DEMOGRAPHIC."DOB_YEAR" < 2073
+GOLD: SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND DEMOGRAPHIC."DOB_YEAR" > "2073"
+
+
+
+Specify the average age of unmarried patients admitted in or after the year 2156
+PRED: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "UNMARRIED" AND DEMOGRAPHIC."ADMITYEAR" >= "2156"
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."MARITAL_STATUS" = "SINGLE" AND DEMOGRAPHIC."ADMITYEAR" >= "2156"
+
+
+
+how many male patients are of hispanic or latino ethnicity?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."ETHNICITY" = "HISPANIC OR LATINO"
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."GENDER" = "M" AND DEMOGRAPHIC."ETHNICITY" = "HISPANIC OR LATINO"
+
+
+
+how many patients were admitted in emergency primarily for brain mass; intracranial hemorrhage ?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' 
+AND DEMOGRAPHIC."DIAGNOSIS" = 'BRAIN MASS;INTRACRANIAL HEMORRHAGE'
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "BRAIN MASS;INTRACRANIAL HEMORRHAGE"
+
+
+
+how many patients were admitted in emergency primarily for t5 fracture?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = 'EMERGENCY' AND DEMOGRAPHIC."DIAGNOSIS" = 'T5 FRACTURE'
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ADMISSION_TYPE" = "EMERGENCY" AND DEMOGRAPHIC."DIAGNOSIS" = "T5 FRACTURE"
+
+
+
+how many patients belonging to white ethnic origin were admitted in the year less than or equal to 2120?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = 'WHITE' AND DEMOGRAPHIC."ADMITYEAR" <= 2120
+GOLD: SELECT MAX ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."ETHNICITY" = "WHITE" AND DEMOGRAPHIC."ADMITYEAR" >= "2120"
+
+
+
+How many patients are discharged to home and diagnosed with primary disease sigmoid diverticulitis, colovesical fistula/sda?
+PRED: SELECT COUNT ( DISTINCT DEMOGRAPHIC."SUBJECT_ID" ) 
+FROM DEMOGRAPHIC 
+WHERE DEMOGRAPHIC."DISCHARGE_LOCATION" = "HOME" 
+AND DEMOGRAPHIC."DIAGNOSIS" = "COLONIC FISTULA/SDA"
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."DISCHARGE_LOCATION" = "HOME" AND DEMOGRAPHIC."DIAGNOSIS" = "SIGMOID DIVERTICULITIS, COLOVESTICAL FISTULA/SDA"
+
+
+
+Provide the average age of patients aged 70 and under and admitted in or before the year 2157.
+PRED: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" <= 70 AND DEMOGRAPHIC."ADMITYEAR" <= 2157
+GOLD: SELECT AVG ( DEMOGRAPHIC."AGE" ) FROM DEMOGRAPHIC WHERE DEMOGRAPHIC."AGE" >= "70" AND DEMOGRAPHIC."ADMITYEAR" >= "2157"
+
+
+Execution Accuracy:    0.885
+
+✓ Metrics saved to results\run-6\metrics.json

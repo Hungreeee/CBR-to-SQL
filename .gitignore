@@ -10,7 +10,6 @@ wheels/
 .venv
 
 # User-listed dirs
-results/
 data/
 docker_data/
 .env

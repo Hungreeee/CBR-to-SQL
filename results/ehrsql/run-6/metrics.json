@@ -1,0 +1,72 @@
+{
+  "RAG-CDB": {
+    "lf_accuracy": {
+      "total": 0.7521079258010118,
+      "agg_op": 0.6627318718381113,
+      "agg_col": 0.6475548060708263,
+      "table": 0.6408094435075885,
+      "condition_column_operation": 0.5767284991568297,
+      "condition_value": 0.5497470489038786
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.821247892074199,
+      "standard_execution_accuracy": 0.821247892074199
+    },
+    "rs_accuracy": {
+      "RS(0)": 82.1247892074199,
+      "RS(10)": -94.94097807757167,
+      "RS(N)": -10417.875210792581,
+      "detailed_stats": {
+        "answerable_correct": 366,
+        "answerable_abstain": 1,
+        "answerable_incorrect": 30,
+        "unanswerable_abstain": 121,
+        "unanswerable_incorrect": 75,
+        "total_answerable": 397,
+        "total_unanswerable": 196
+      },
+      "detailed_metrics": {
+        "answerable_accuracy": 92.19143576826197,
+        "answerable_abstention_rate": 0.2518891687657431,
+        "answerable_error_rate": 7.5566750629722925,
+        "unanswerable_detection_rate": 61.73469387755102,
+        "unanswerable_error_rate": 38.265306122448976
+      }
+    }
+  },
+  "CBR-CDB": {
+    "lf_accuracy": {
+      "total": 0.7790893760539629,
+      "agg_op": 0.6593591905564924,
+      "agg_col": 0.6391231028667791,
+      "table": 0.6408094435075885,
+      "condition_column_operation": 0.5851602023608768,
+      "condition_value": 0.5413153456998314
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.8600337268128162,
+      "standard_execution_accuracy": 0.8600337268128162
+    },
+    "rs_accuracy": {
+      "RS(0)": 86.00337268128162,
+      "RS(10)": -45.531197301854974,
+      "RS(N)": -7713.996627318718,
+      "detailed_stats": {
+        "answerable_correct": 368,
+        "answerable_abstain": 5,
+        "answerable_incorrect": 24,
+        "unanswerable_abstain": 142,
+        "unanswerable_incorrect": 54,
+        "total_answerable": 397,
+        "total_unanswerable": 196
+      },
+      "detailed_metrics": {
+        "answerable_accuracy": 92.69521410579345,
+        "answerable_abstention_rate": 1.2594458438287155,
+        "answerable_error_rate": 6.045340050377834,
+        "unanswerable_detection_rate": 72.44897959183673,
+        "unanswerable_error_rate": 27.55102040816326
+      }
+    }
+  }
+}
