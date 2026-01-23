@@ -88,6 +88,9 @@ def logic_form_accuracy(result_dataset: List[Dict], db_model: query):
     for line in result_dataset:
         gold_sql = line['gold_sql']
         pred_sql = line['predicted_sql']
+
+        if pred_sql is None:
+            pred_sql = "None"
         
         # Handle impossible queries
         if gold_sql == "null":

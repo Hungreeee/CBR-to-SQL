@@ -6,7 +6,7 @@ from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_er
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-from schema import EntityExtraction, TagAssignment
+from schema import EntityExtraction, TagAssignment, SqlGeneration, SqlGenerationOptional
 
 from langchain_community.callbacks import get_openai_callback
 from langchain_community.utilities.sql_database import SQLDatabase
@@ -230,7 +230,7 @@ class CBRtoSQL(RAGtoSQL):
         """
         Extract ALL entities (semantic + structural) and assign temporary context-based tags in ONE call
         """
-        llm = self.generator.client.bind_tools([EntityExtraction], strict=True)
+        llm = self.generator.client.bind_tools([EntityExtraction], strict=True, tool_choice="EntityExtraction")
         messages = [
             ("system", self._get_prompt("entity_extraction")),
             ("user", f"Question: {question}")
@@ -240,7 +240,7 @@ class CBRtoSQL(RAGtoSQL):
             response = llm.invoke(messages)
         except Exception as e:
             if is_content_filter_error(e) and self.fallback_generator:
-                llm = self.fallback_generator.client.bind_tools([EntityExtraction], strict=True)
+                llm = self.fallback_generator.client.bind_tools([EntityExtraction], strict=True, tool_choice="EntityExtraction")
                 response = llm.invoke(messages)
             else:
                 raise
@@ -313,7 +313,7 @@ class CBRtoSQL(RAGtoSQL):
             for i, e in enumerate(linked_entities)
         ])
         
-        llm = self.generator.client.bind_tools([TagAssignment], strict=True)
+        llm = self.generator.client.bind_tools([TagAssignment], tool_choice="TagAssignment", strict=True)
         
         messages = [
             ("system", self._get_prompt("tag_assignment")),
@@ -326,7 +326,7 @@ class CBRtoSQL(RAGtoSQL):
             response = llm.invoke(messages)
         except Exception as e:
             if is_content_filter_error(e) and self.fallback_generator:
-                llm = self.fallback_generator.client.bind_tools([TagAssignment], strict=True)
+                llm = self.fallback_generator.client.bind_tools([TagAssignment], tool_choice="TagAssignment", strict=True)
                 response = llm.invoke(messages)
             else:
                 raise
@@ -382,6 +382,12 @@ class CBRtoSQL(RAGtoSQL):
             if e.get('table') and e.get('column')
         ]) if entities else "No entities to replace"
 
+        # Bind tool call structure 
+        if self.config.dataset == "ehrsql":
+            llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
+        else:
+            llm = self.generator.client.bind_tools([SqlGeneration], tool_choice="SqlGeneration", strict=True)
+
         messages = [
             ("system", self._get_prompt("sql_generation")),
             ("user", f"# Original Question: {original_question}"),
@@ -393,12 +399,13 @@ class CBRtoSQL(RAGtoSQL):
         ]
         
         try: 
-            final_sql = self.generator.generate(messages)
+            response = llm.invoke(messages)
+            final_sql = response.tool_calls[0]["args"]["sql_query"]
         except Exception as e:
             if is_content_filter_error(e) and self.fallback_generator:
                 final_sql = self.fallback_generator.generate(messages)
             else:
-                raise
+                raise e
 
         return remove_sql_wrapper(final_sql), retrieved_cases
     

@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-what is patient 51200's last care unit?
+what are the five frequent cultures tested in 2103?
 """
 
 # %%
@@ -109,7 +109,7 @@ res_final = cbr_cdb_pipeline._construct_and_fill_sql(
 res_final
 
 # %%
-cbr_cdb_pipeline._lookup("urine,kidney test", top_k=5)
+cbr_cdb_pipeline._lookup("echinococc granul nos", top_k=5)
 
 # %%
 cbr_cdb_retriever.retrieve(

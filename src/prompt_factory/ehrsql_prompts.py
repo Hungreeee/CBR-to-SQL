@@ -12,52 +12,30 @@ Generate a SQL query by adapting retrieved examples to answer the original natur
 1. Select the examples with the most aligned semantic meaning and logic. Then, Copy that examples' SQL queries' structure to adapt to the current questionc
 2. There is always one filter clause for a condition mentioned in the original question. Do not attempt to address one condition value mutliple times.
 
-## 2. IMPORTANT — Impossible Question Detection
-Before writing SQL, you must decide whether the question is answerable
-by comparing its LOGICAL INTENT to the retrieved examples and the schema.
+## 2. Question Answerability Check
+Before writing SQL, quickly assess if all the question's **core concepts** can be answered using the provided examples and schema.
 
-Procedure:
-1. Remove all specific details (names, IDs, dates, numbers) from the question.
-2. Restate the question as a strict logical intent: what exact fact must be present in the database?
-3. Compare this intent to the retrieved examples.
-   The question is impossible if:
-   - the retrieved examples do not show queries for the same kind of fact, or
-   - the schema does not contain explicit columns that store this fact.
+### Quick Check:
+1. **Identify the core concepts** – Remove all specific details. What general facts or relationships is the question asking for?
+2. **Look for conceptual matches in examples** – Do the examples show queries about a similar *category* of information (e.g., counts, dates, events, assignments). You may interpret the meaning, but only in a tightly logical sense. 
+3. **Verify schema mapping** – Can this concept be directly represented using the available columns?
 
-IMPORTANT:
-- You must evaluate the question literally and strictly.
-- Do not soften, reinterpret, or “help” the question make sense.
-- Carefully evaluate every part of the wording and require direct evidence
-that each requirement is stored in the database.
-- The fact that there are entity mappings DOES NOT affect question answerability. Only consider the literal intent of the question to determine answerability.
-- Answering the question does not require interpreting beyond what is explicitly queried in examples. Every question is direct and explicit, no interpretations needed.
+### Mark as impossible only if:
+- The **core concepts** (e.g., "consent status", etc.) are absent from all examples.
+- The schema has **no columns** to directly represent that concept.
 
-Example #1:
-User question:
-“Has patient X received a consent form for procedure Y?”
-Retrieved examples:
-“Has patient X received procedure Y?”
-Explanation:
-The examples show how to check whether a procedure event occurred.
-They do NOT show how to check whether a consent-related fact exists.
-The question asks for a different kind of fact that is not explicitly stored.
-→ This question is impossible. Return None.
+### Important:
+- **Be literal with concepts, not details.** Match the *type* of query, not the exact scenario.
+- **Examples provide proof of concept.** If examples show "maximum," then "minimum" is a valid concept. If they show "procedure occurred," that does not prove "consent was given" is stored. 
+- **Avoid reinterpretation.** Do not soften wording or infer unstated relationships (e.g., "last ward ID" ≠ "ward ID that can admit").
 
-Example #2:
-User question:
-“What's the ward ID that can get patient X in?”
-Retrieved examples:
-“What was patient X's last ward ID?”
-Explanation:
-The examples retrieve historical ward assignments.
-The question asks about a ward's ability or suitability to admit a patient.
-You must not infer or reinterpret “last ward” as “can admit the patient”.
-These questions often use unusual or vague phrasing to mislead you.
-Only accept questions whose intent exactly matches what the examples show.
-→ This question is impossible. Return None.
+**Examples:**
+- ✅ *"What's the minimum daily prescription?"* → Concept: `aggregate metric (min)` of a `prescription`. Examples show `aggregate metric (sum)` of a `prescription`. **Answerable.** Saying it's possible would be a reasonable and logical interpretation.
+- ❌ *"Has patient received a consent form?"* → Concept: `consent event`. Examples only show `procedure event`. **Impossible.** Saying it's possible would be over-interpretation.
+- ❌ *"What ward can get patient in?"* → Concept: `ward suitability/eligibility`. Examples only show `historical ward assignment`. **Impossible.** Saying it's possible would be over-interpretation.
 
 ## 3. Output Constraints
-* Return "None" if the input question is impossible to be answered.
+* Return "None" ONLY IF the input question is impossible to be answered.
 * Otherwise, output ONLY one SQL query, no markdown, comments, explanations, or extra text. Closely the writing style of the retrieved SQLs (no linebreaks, etc.)
 * Exactly one value per entity placeholder.
 * Write SQL minimally, while strictly following the type, formatting, and logical conventions of the retrieved example.
@@ -66,19 +44,14 @@ Only accept questions whose intent exactly matches what the examples show.
 # ========== CBR-to-SQL: Source Discovery - Iterative Refinement ==========
 
 entity_extraction = """
-You are performing clinical database normalization. Your task is to identify spans of text that correspond to standardized database concepts (e.g., procedure names, diagnostic labels, or coded attributes).
-
-This is a text alignment task only. 
-- Do not infer causes, outcomes, or intent. 
-- Do not reason about events. 
-- Only return text spans that match database concepts.
+Your task is to extract text spans that correspond to standardized database concepts (e.g., diseases, procedure names, diagnostic labels, drugs, patient names, or coded attributes, etc.). This is a text alignment task, by extracting the named entities, you help to find out the real database-specific values of these entities, while masking specific information away, leaving behind the logical form template of the question. Therefore, you must leave enough generic words behind so the sentence is still understandable without the extracted specific information.
 
 For each extracted entity, you must:
-1. Extract the complete value span (preserve typos, special characters, parentheses, slashes) while ignoring generic terms (given as a list)
-2. Assign a temporary tag based on sentence context
-3. Flag whether it's semantic (needs database lookup) or structural (use as-is)
+1. Extract the complete value span (preserve typos, special characters, parentheses, slashes) while ignoring generic terms (given as a list below).
+2. Assign a temporary tag based on sentence context.
+3. Flag whether it's semantic (needs database lookup) or structural (use as-is).
 
-# Entity Types:
+# Example Entity Types:
 
 SEMANTIC ENTITIES (is_semantic = true):
 Examples of entities that need database lookup validation:
@@ -104,31 +77,32 @@ Examples of values that are used as-is for filtering:
 
 # Extraction Rules:
 1. IMPORTANT: **Do not extract generic words:**
-   - List of generic keywords to IGNORE during EXTRACTION: "patient", "microbiology test", "lab test", "procedure", "drug route", "route of drug administration", "hospital admission", and similar terms.
-      - "when did patient 3369 until 67 months ago last get a viral culture:r/o herpes simplex virus microbiology test?" → extract "viral culture:r/o herpes simplex virus", leaving "microbiology test" because it is clearly similar to the generic terms.
-2. **Extract COMPLETE medical phrases, but exclude generic terms**
+   - List of generic words to NOT INCLUDE in EXTRACTION: "patient", "disease", "primary disease", "lab test", "procedure", "drug", "drug route", "route of drug administration", "hospital admission", "therapy", "prescription", "fluid", and similar terms. Instead, prioritize extracting specific details, for example, the NAME of the diagnosis/procedures/drugs/patients/etc., any numerical values, and the NAMED types of related items.
+      - "coronary artery primary disease" → extract "coronary artery" the NAME, leaving "primary disease" because it is clearly similar to the generic terms. 
+      - "elective hospital admission" → extract "elective" the NAMED type, leaving "hospital admission" because it is clearly similar to the generic terms. 
+      - "peura fluid" → extract "peura" the NAME, leaving "fluid" because it is within the list of generic terms.
+2. **Extract COMPLETE medical phrase NAMES, but exclude generic terms**
    - Include everything: slashes (/), parentheses (), hyphens (-)
-      - "viral culture:r/o herpes simplex virus" → Extract ENTIRE phrase
-      - "promote w/fiber" → Extract COMPLETE phrase
+      - "aortic insufficiency/re-do sternotomy (aortic valve replacement)" → Extract ENTIRE phrase
+      - "diabetes complicating a procedure" → Extract COMPLETE phrase
    - Exclude generic terms:
-      - "did there exist any organism found in the first peripheral blood lymphocytes microbiology test of patient 2957 during this hospital visit?" → extract "peripheral blood lymphocytes", exclude "first" and "microbiology test", which is generic terms.
+      - "primary disease called aortic insufficiency/re-do sternotomy (aortic valve replacement)" → extract everything BUT "primary disease", which is similar to the generic terms listed above.
 3. **Preserve original form:**
    - Keep typos, capitalization, spacing, special characters exactly as written
    - "lipalse" → "lipalse" (not "lipase")
-4. **Tagging decision:**
-   - Medical/demographic term that might have variations → is_semantic = true
-   - ID/number/code for exact matching → is_semantic = false
-5. **Compound Entity Extraction**
-   - Extract compound entities as a SINGLE span when connected by conjunctions (and/or/but/not) or punctuation (/, ;, comma).
+   - Extract only the specific value, leaving the generic terms behind (similar to the examples above).
+4. **Compound Entity Extraction**
+   - IMPORTANT: Extract NAMED compound entities as a SINGLE span when connected by conjunctions (and/or/but/not) or punctuation (/, ;, comma).
    - Do NOT split into separate entities - capture the entire phrase.
    Examples:
-   - "hypertension but not coronary artery disease" → Extract: "hypertension but not coronary artery disease" ✓
    - "diabetes and sepsis" → Extract: "diabetes and sepsis" ✓
    - "aspirin/ibuprofen" → Extract: "aspirin/ibuprofen" ✓
    Do NOT extract as separate entities:
-   - ✗ "hypertension", "coronary artery disease"
    - ✗ "diabetes", "sepsis"
    - ✗ "aspirin", "ibuprofen"
+5. **Tagging decision:**
+   - Medical/demographic term that might have variations → is_semantic = true
+   - ID/number/code for exact matching → is_semantic = false
 """
 
 tag_assignment = """
@@ -201,50 +175,48 @@ Generate a SQL query by adapting retrieved examples to answer the original natur
 1. Select the examples with the most aligned semantic meaning and logic. Then, Copy that examples' SQL queries' structure to adapt to the current questionc
 2. There is always one filter clause for a condition mentioned in the original question. Do not attempt to address one condition value mutliple times.
 
-## 2. IMPORTANT — Impossible Question Detection
-Before writing SQL, you must decide whether the question is answerable
-by comparing its LOGICAL INTENT to the retrieved examples and the schema.
+## **2. Question Answerability Assessment**
+Before writing SQL, assess whether the question can be answered given the retrieved examples and the database schema.
 
-Procedure:
-1. Remove all specific details (names, IDs, dates, numbers) from the question.
-2. Restate the question as a strict logical intent: what exact fact must be present in the database?
-3. Compare this intent to the retrieved examples.
-   The question is impossible if:
-   - the retrieved examples do not show queries for the same kind of fact, or
-   - the schema does not contain explicit columns that store this fact.
+### **Assessment Process**
+1. **Extract Core Concepts**
+   - Remove all specific details (names, IDs, numbers, dates).
+   - Identify what **general categories of facts** are being asked for.
+   - List each distinct concept that must be found in the data.
+2. **Check Conceptual Coverage**
+   - **Examples:** Do they demonstrate that the *category* of query is supported?
+   - **Schema:** Are there columns that directly represent each required concept?
+   - A question is **impossible** if any core concept lacks both example support and schema representation.
 
-IMPORTANT:
-- You must evaluate the question literally and strictly.
-- Do not soften, reinterpret, or “help” the question make sense.
-- Carefully evaluate every part of the wording and require direct evidence
-that each requirement is stored in the database.
-- The fact that there are entity mappings DOES NOT affect question answerability. Only consider the literal intent of the question to determine answerability.
-- Answering the question does not require interpreting beyond what is explicitly queried in examples. Every question is direct and explicit, no interpretations needed.
+### **Key Principles**
+**Be Conservative with Inference**
+- Allow **category-level reasoning** (e.g., "minimum" is supported if "maximum" is shown).
+- **Do not infer relationships or meanings** beyond what's explicitly demonstrated.
+- If examples show querying for "events," you may infer that "last event" is a temporal filter on that category.
+- **Do not** infer that because A is stored, B is also stored (e.g., "procedure" does not imply "consent for procedure").
 
-Example #1:
-User question:
-“Has patient X received a consent form for procedure Y?”
-Retrieved examples:
-“Has patient X received procedure Y?”
-Explanation:
-The examples show how to check whether a procedure event occurred.
-They do NOT show how to check whether a consent-related fact exists.
-The question asks for a different kind of fact that is not explicitly stored.
-→ This question is impossible. Return None.
+**Interpret Concepts, Not Implementation**
+- Match the **semantic intent** at a categorical level, not the exact implementation.
+- "Regularly taken medication" → concept: `medication with frequency attribute`.
+- If examples show queries about medication frequency, this concept is supported.
+- If no examples show frequency queries, but the schema has frequency columns, the concept is still supported by the schema.
 
-Example #2:
-User question:
-“What's the ward ID that can get patient X in?”
-Retrieved examples:
-“What was patient X's last ward ID?”
-Explanation:
-The examples retrieve historical ward assignments.
-The question asks about a ward's ability or suitability to admit a patient.
-You must not infer or reinterpret “last ward” as “can admit the patient”.
-These questions often use unusual or vague phrasing to mislead you.
-Only accept questions whose intent exactly matches what the examples show.
-→ This question is impossible. Return None.
+**Reject Vague or Interpretive Concepts**
+- Questions about **suitability, ability, standards, or requirements** that aren't explicit data fields are impossible.
+- "What ward ID *can* admit? / Has patient recieve consent" → requires abstract inference (consent, admission ability) beyond stored facts → impossible.
+- "What *should* be prepared?" → requires normative knowledge → impossible.
+- "What drugs *as sedatives*?" → requires drug classification knowledge → impossible unless examples show such classification queries.
 
+### **Decision Guidelines**
+- ✅ **Answerable:** All core concepts have direct evidence from examples OR schema support.
+- ❌ **Impossible:** Any core concept lacks both example and schema evidence.
+
+### **Common Pitfalls to Avoid**
+1. **Temporal extrapolation:** "Next appointment" is impossible unless examples show future event queries.
+2. **Causal inference:** "Side effects of drug" requires inferred relationships between drug and diagnosis.
+3. **Classification queries:** "Drugs as sedatives" requires a drug classification system in the data.
+4. **Normative standards:** "Reimbursement standard," "what should be prepared," "can be prescribed" require external knowledge.
+5. **Vague attributes:** "Regularly taken," "should be taken daily" require explicit frequency data.
 
 ## 3. Entity Replacement
 Replace every placeholder with exactly one concrete value:

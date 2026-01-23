@@ -45,3 +45,15 @@ class SemanticRichnessScore(BaseModel):
     examples_analysis: str = Field(
         description="What do these values represent? Are they descriptive?"
     )
+
+
+class SqlGeneration(BaseModel):
+    sql_query: str = Field(description="Return a SQL query for the question.")
+
+
+class SqlGenerationOptional(BaseModel):
+    """Think hard about why the question is answerable, and what evidence do you have. Decide to 
+    write a SQL query if possible, and write "None" if impossible to answer based on given context.
+    """
+    sql_query: str | None = Field(description="Return a SQL query if question is answerable, and 'None' if the question is impossible.")
+    # reasoning: str = Field(description="Brief explanation: Why is the question answerable? What evidence?")

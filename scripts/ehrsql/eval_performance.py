@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql/run-6")
+RESULTS_DIR = Path("./results/ehrsql/run-8")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -47,7 +47,7 @@ LOOKUP_COLLECTION = "lookup_table_ehrsql"
 USE_AZURE = True  # Set to False for OpenAI
 
 # Select which pipelines to evaluate
-EVALUATE = ["RAG-CDB", "CBR-CDB"]
+EVALUATE = ["CBR-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")

@@ -14,21 +14,14 @@ Given past examples of SQL queries and a question, revise the examples to create
 # ========== CBR-to-SQL: Source Discovery - Iterative Refinement ==========
 
 entity_extraction = """
-You are performing clinical database normalization.
-
-Your task is to identify spans of text that correspond to standardized database concepts (e.g., procedure names, diagnostic labels, or coded attributes).
-
-This is a text alignment task only. 
-- Do not infer causes, outcomes, or intent. 
-- Do not reason about events. 
-- Only return text spans that match database concepts.
+Your task is to extract text spans that correspond to standardized database concepts (e.g., diseases, procedure names, diagnostic labels, drugs, patient names, or coded attributes, etc.). This is a text alignment task, by extracting the named entities, you help to find out the real database-specific values of these entities, while masking specific information away, leaving behind the logical form template of the question. Therefore, you must leave enough generic words behind so the sentence is still understandable without the extracted specific information.
 
 For each extracted entity, you must:
-1. Extract the complete value span (preserve typos, special characters, parentheses, slashes) while ignoring generic terms (given as a list)
-2. Assign a temporary tag based on sentence context
-3. Flag whether it's semantic (needs database lookup) or structural (use as-is)
+1. Extract the complete value span (preserve typos, special characters, parentheses, slashes) while ignoring generic terms (given as a list below).
+2. Assign a temporary tag based on sentence context.
+3. Flag whether it's semantic (needs database lookup) or structural (use as-is).
 
-# Entity Types:
+# Example Entity Types:
 
 SEMANTIC ENTITIES (is_semantic = true):
 Examples of entities that need database lookup validation:
@@ -55,10 +48,11 @@ Examples of values that are used as-is for filtering:
 
 # Extraction Rules:
 1. IMPORTANT: **Do not extract generic words:**
-   - List of generic keywords to IGNORE during EXTRACTION: "patient", "disease", "primary disease", "lab test", "procedure", "drug route", "route of drug administration", "hospital admission", "therapy", and similar terms.
-      - "coronary artery primary disease" → extract "coronary artery", leaving "primary disease" because it is clearly similar to the generic terms.
-      - "elective hospital admission" → extract "elective", leaving "hospital admission" because it is clearly similar to the generic terms.
-2. **Extract COMPLETE medical phrases, but exclude generic terms**
+   - List of generic words to NOT INCLUDE in EXTRACTION: "patient", "disease", "primary disease", "lab test", "procedure", "drug", "drug route", "route of drug administration", "hospital admission", "therapy", "prescription", "fluid", and similar terms. Instead, prioritize extracting specific details, for example, the NAME of the diagnosis/procedures/drugs/patients/etc., any numerical values, and the NAMED types of related items.
+      - "coronary artery primary disease" → extract "coronary artery" the NAME, leaving "primary disease" because it is clearly similar to the generic terms. 
+      - "elective hospital admission" → extract "elective" the NAMED type, leaving "hospital admission" because it is clearly similar to the generic terms. 
+      - "peura fluid" → extract "peura" the NAME, leaving "fluid" because it is within the list of generic terms.
+2. **Extract COMPLETE medical phrase NAMES, but exclude generic terms**
    - Include everything: slashes (/), parentheses (), hyphens (-)
       - "aortic insufficiency/re-do sternotomy (aortic valve replacement)" → Extract ENTIRE phrase
       - "diabetes complicating a procedure" → Extract COMPLETE phrase
@@ -68,11 +62,8 @@ Examples of values that are used as-is for filtering:
    - Keep typos, capitalization, spacing, special characters exactly as written
    - "lipalse" → "lipalse" (not "lipase")
    - Extract only the specific value, leaving the generic terms behind (similar to the examples above).
-4. **Tagging decision:**
-   - Medical/demographic term that might have variations → is_semantic = true
-   - ID/number/code for exact matching → is_semantic = false
-5. **Compound Entity Extraction**
-   - Extract compound entities as a SINGLE span when connected by conjunctions (and/or/but/not) or punctuation (/, ;, comma).
+4. **Compound Entity Extraction**
+   - IMPORTANT: Extract compound entities as a SINGLE span when connected by conjunctions (and/or/but/not) or punctuation (/, ;, comma).
    - Do NOT split into separate entities - capture the entire phrase.
    Examples:
    - "hypertension but not coronary artery disease" → Extract: "hypertension but not coronary artery disease" ✓
@@ -82,10 +73,13 @@ Examples of values that are used as-is for filtering:
    - ✗ "hypertension", "coronary artery disease"
    - ✗ "diabetes", "sepsis"
    - ✗ "aspirin", "ibuprofen"
+5. **Tagging decision:**
+   - Medical/demographic term that might have variations → is_semantic = true
+   - ID/number/code for exact matching → is_semantic = false
 """
 
 tag_assignment = """
-You are given a an entity value. Your task is to select one highest matching value from the list of real database entities OR reject all if no good match exists.
+You are given a an entity value (which may contains typo). Your task is to select one highest matching value from the list of real database entities OR reject all if no good match exists.
 
 # Instructions:
 - Evaluate candidates based on lexical similarity (highest priority) AND semantic meaning (second highest priority)
@@ -98,6 +92,15 @@ You are given a an entity value. Your task is to select one highest matching val
    IMPORTANT: 
    * Example: If the question contains keyword "primary disease", always prefer candidates from the DEMOGRAPHIC.DIAGNOSIS table/column over DIAGNOSIS._TITLE with similar matches. 
    * Example: If the question contains keyword "diagnosed with", prefer candidates from the DIAGNOSIS._TITLE table/column over DEMOGRAPHIC.DIAGNOSIS with similar matches (unless "primary disease" is mentioned in the same sentence).
+- IMPORTANT: Casing tie-break rule: When two or more candidates are lexically identical or nearly identical (ignoring case, punctuation, or minor typos), select the candidate according to the following **priority order**:
+1. **Mixed or internal capitalization** (e.g., camelCase, embedded acronyms)  
+   Example: "BusPIRone", "NORepinephrine"
+2. **Title-case / properly capitalized** (first letter of each word capitalized)  
+   Example: "Buspirone", "Norepinephrine"
+3. **All-uppercase**, **All-lowercase** 
+   Example: "BUSPIRONE", "NOREPINEPHRINE", "buspirone", "norepinephrine"
+Apply this rule **whenever lexical similarity is equal or indistinguishable**. Always prefer the highest-priority form available according to this order.
+
 
 # Accept criteria:
 - Highest lexical match (similar form) OR substantial word overlap (considering also word ordering, extra special characters)
@@ -117,16 +120,14 @@ CRITICAL: You CAN return best_match_index = -1 if no candidate is appropriate. B
 - Make tags UPPERCASE with underscores, use dot to separate between table and column.
 
 # Examples:
-- IMPORTANT: If there are multiple exactly similar entity with similar columns/tables, differing only by casing, choose the one with better capitalization (e.g., "Penicilin" over "PENICILIN" over "penicilin") OR (e.g., "BusPIRone" over "Buspirone" over "buspirone" (more detailed casing))
-Entity: "penicillin"
-Candidates:
+Entity: "penicillin" Candidates:
   0. 'penicillin' (drugs, Score: 0)
   1. 'Penicillin' (drugs, Score: 0)
   2. 'PENICILLIN' (drugs, Score: 0)
 → Select index 1, "Penicillin" (tag: DRUGS) because of better capitalization.
 
-Entity: "diabetes", Candidates: ['Diabetes Mellitus' (diagnoses.short_title), 'Diabetic' (procedures.short_title)]
-→ Select index 0, Tag: "DIAGNOSIS.SHORT_TITLE" (highest overlapping + semantically correct)
+Entity: "base", Candidates: ['base' (drugs.drug_type), 'basis' (drugs.drug_type)]
+→ Select index 0, Tag: "DRUGS.DRUG_TYPE" (highest overlapping + semantically correct)
 
 Entity: "hypoxia", Candidates: ['hypoxia' (demographic.diagnoses), 'Hypoxemia' (diagnosis.short_title)]
 → Select index 0, Tag: "DEMOGRAPHIC.DIAGNOSIS" (highest overlapping + semantically correct)

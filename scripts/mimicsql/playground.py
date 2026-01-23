@@ -90,7 +90,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 # how many patients discharged to snf had hypoxia primary disease?
 
 question = """
-what is the drug type and drug code of the drug buspirone?
+For how many days Stephanie Sechan stayed in the hospital?
 """
 
 # %%
@@ -120,7 +120,7 @@ res_final = cbr_cdb_pipeline._construct_and_fill_sql(
 res_final
 
 # %%
-cbr_cdb_pipeline._lookup("single ib in-hosp w cs", top_k=5)
+cbr_cdb_pipeline._lookup("Norepinephrine", top_k=5)
 
 # %%
 res = sql_db.run("""
