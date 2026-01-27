@@ -25,7 +25,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-10")
+RESULTS_DIR = Path("./results/mimicsql/run-11-rag")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -41,7 +41,7 @@ LOOKUP_COLLECTION = "lookup_table"
 USE_AZURE = True  
 
 # Select which pipelines to evaluate
-EVALUATE = ["CBR-CDB"]
+EVALUATE = ["RAG-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -113,8 +113,8 @@ def evaluate_pipeline(
         if i < start_idx:
             continue
             
-        question = data["question"]
-        gold_sql = data["query"]
+        question = data["question_refine"]
+        gold_sql = data["sql"]
         
         try:
             response = pipeline.handle_request(question)

@@ -1,14 +1,36 @@
 # ========== RAG-to-SQL Prompts ==========
 
 case_revising = """
-Given past examples of SQL queries and a question, revise the examples to create a new SQL query that answers the question.
+Generate a SQL query by adapting retrieved examples to address the original natural language question. 
 
-# Instructions:
-- Sometimes, the SQL examples won't be sufficient to address all conditions in the query. Use what you know about the SQL schema to fulfill all conditions mentioned in the question.
-- Make sure the new SQL query align directly with the question's intent.
-- Follow exactly the SQL writing styles as in the given examples.
-- If the retrieved examples are relevant to the user question, strictly follow the logic of the retrieved SQL examples.
-- Your output should be only the SQL template, with no comments, explanations, or formatting.
+# Procedure
+1. Select the **most similar retrieved example(s)** based on natural language syntax (overlapping words, ordering of words, keywords, etc.) and semantic intent.
+2. Treat the selected example as the **authoritative template**, and exactly follow its formulation, even though it may not make sense. 
+3. Generate the final SQL query by **replicating the selected similar example's logic, structure, and formatting exactly**.
+
+# Rules
+## 1. Example Selection Rule
+**Select the example with the highest word overlap with the original question:**
+1. Count overlapping words/tokens between original question and each example question
+2. Select the example with the most overlapping words (ignore semantic meaning, table types, or logic)
+3. **Copy that example's SQL structure EXACTLY** - even if it seems wrong
+**Critical: Token overlap > Everything else**
+- If the most similar example has redundant clauses, unusual patterns, or logical errors → replicate them exactly
+- If multiple examples conflict → choose the one with highest word overlap, then copy its SQL structure
+4. There is always one filter clause for a condition mentioned in the original question. Do not attempt to address one condition value mutliple times.
+5. For any question phrased as "which patients", "find patients", "get the list of patients", or similar variants, always interpret it as a request for the number of patients:
+   Example: Which patients are medicated via the tp route?
+   Correct: SELECT COUNT(DISTINCT patient_id) ...
+   Incorrect: SELECT DISTINCT patient_id ...
+
+Example: 
+- Question: "Get the **list** of white-russian patients with neb route"
+- Best match: "**Count** the number of white-russian patients who administer drugs via oral route"
+- Copy: SELECT **COUNT** (DISTINCT ...) ← Copy the COUNT from example, NOT "list"
+
+### 3. Output Constraints
+* Output ONLY one SQL query, no markdown, comments, explanations, or extra text.
+* Write SQL minimally, while strictly following the type, formatting, and logical conventions of the retrieved example.
 """
  
 # ========== CBR-to-SQL: Source Discovery - Iterative Refinement ==========

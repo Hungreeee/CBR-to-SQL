@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql/run-8")
+RESULTS_DIR = Path("./results/ehrsql/run-10")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -67,8 +67,8 @@ print(f"✓ Loaded {len(testset)} test examples")
 
 # %%
 # Stratified sampling for testing
-testset = stratified_sample(testset, p=1/3)
-testset
+# testset = stratified_sample(testset, p=1/3)
+# testset
 
 # %%
 # ========== INITIALIZE PIPELINES ==========
@@ -101,6 +101,9 @@ print(f"✓ Initialized {len(pipelines)} pipelines")
 
 # %%
 # ========== EVALUATION FUNCTIONS ==========
+def ckpt_step(p):
+    return int(p.stem.split("_ckp_")[-1])
+
 def evaluate_pipeline(
     pipeline: RAGtoSQL,
     dataset: List[Dict],
@@ -111,20 +114,21 @@ def evaluate_pipeline(
     results = []
     
     # Try to load the most recent checkpoint
-    checkpoint_files = sorted(RESULTS_DIR.glob(f"{name.lower().replace('-', '_')}_ckp_*.pkl"))
+    checkpoint_files = list(RESULTS_DIR.glob(f"{name.lower().replace('-', '_')}_ckp_*.pkl"))
     if checkpoint_files:
-        latest_ckpt = checkpoint_files[-1]
+        latest_ckpt = max(checkpoint_files, key=ckpt_step)
         with open(latest_ckpt, "rb") as f:
             results = pickle.load(f)
         print(f"📂 Resumed from {latest_ckpt.name}: {len(results)} existing results")
     
     start_idx = len(results)
     
-    for i, data in enumerate(tqdm(dataset, desc=f"Evaluating {name}", initial=start_idx, total=len(dataset))):
-        # Skip already processed items
-        if i < start_idx:
-            continue
-            
+    for data in tqdm(
+        dataset[start_idx:],
+        desc=f"Evaluating {name}",
+        initial=start_idx,
+        total=len(dataset),
+    ):
         question = data["question"]
         gold_sql = data["query"]
         

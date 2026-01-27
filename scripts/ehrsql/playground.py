@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-what are the five frequent cultures tested in 2103?
+is there a genetic test that was given to patient 1561?
 """
 
 # %%

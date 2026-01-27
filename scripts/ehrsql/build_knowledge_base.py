@@ -77,12 +77,82 @@ lookup_table = QdrantRetriever(collection_name=LOOKUP_TABLE_COLLECTION)
 # %%
 def remove_condition_values(sql: str) -> str:
     """
-    Mask entity values in SQL to create abstract templates for clustering
+    Mask entity values in SQL to create abstract templates for clustering.
+    Designed to be robust to nested subqueries, dates, strings, and numerics.
     """
-    sql = re.sub(r'=\s*"[^"]*"', '= "VALUE"', sql)
-    sql = re.sub(r'([<>]=?)\s*[\d\.]+', r'\1 VALUE', sql)         
-    sql = re.sub(r'([<>]=?)\s*"[^"]*"', r'\1 "VALUE"', sql)    
-    sql = re.sub(r'IN\s*\(([^)]*)\)', 'IN (VALUE)', sql, flags=re.IGNORECASE)
+    # Normalize whitespace (helps regex stability)
+    sql = re.sub(r"\s+", " ", sql)
+    
+    # 1. Mask string literals
+    sql = re.sub(
+        r"('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")",
+        "'VALUE'",
+        sql,
+    )
+
+    # 2. Mask numeric literals (ints, floats)
+    sql = re.sub(
+        r"(?<![\w.])([<>]=?|=)\s*-?\d+(\.\d+)?",
+        r"\1 VALUE",
+        sql,
+    )
+
+    # 3. Mask DATE/TIME comparisons explicitly
+    sql = re.sub(
+        r"([<>]=?)\s*VALUE",
+        r"\1 VALUE",
+        sql,
+    )
+
+    # 4. Mask IN (...) clauses - only if they contain literal values, not subqueries
+    def mask_in_clauses(text):
+        result = []
+        i = 0
+        while i < len(text):
+            # Look for "IN (" (case-insensitive)
+            match = re.match(r'\bIN\s*\(', text[i:], re.IGNORECASE)
+            if match:
+                result.append(match.group())
+                i += len(match.group())
+                
+                # Find the matching closing parenthesis
+                depth = 1
+                start = i
+                while i < len(text) and depth > 0:
+                    if text[i] == '(':
+                        depth += 1
+                    elif text[i] == ')':
+                        depth -= 1
+                    i += 1
+                
+                # Get the content between parentheses
+                content = text[start:i-1].strip()
+                
+                # Check if it's a subquery (contains SELECT) or literal values
+                if re.search(r'\bSELECT\b', content, re.IGNORECASE):
+                    # Keep subquery as-is
+                    result.append(content)
+                else:
+                    # Replace literal values with VALUE
+                    result.append('VALUE')
+                
+                result.append(')')
+            else:
+                result.append(text[i])
+                i += 1
+        
+        return ''.join(result)
+    
+    sql = mask_in_clauses(sql)
+
+    # 5. Mask BETWEEN VALUE AND VALUE
+    sql = re.sub(
+        r"\bBETWEEN\s+VALUE\s+AND\s+VALUE\b",
+        "BETWEEN VALUE AND VALUE",
+        sql,
+        flags=re.IGNORECASE,
+    )
+    
     return sql
 
 
@@ -223,7 +293,7 @@ for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]))[:10]:
     
     # Show sample questions
     for item in items[:3]:
-        print(f"   - {item['question_refine']}")
+        print(f"   - {item['question']}")
     if len(items) > 3:
         print(f"   ... ({len(items) - 3} more)")
 
@@ -274,94 +344,6 @@ cbr_idb_pipeline = CBRtoSQL(
 print(f"Retaining {len(idb_dataset)} cases for CBR-IDB...")
 retain_cases_cbr(cbr_idb_pipeline, idb_dataset, desc="CBR-IDB retention")
 print("✓ CBR-IDB case retention complete!")
-
-# %%
-# ========== ENVIRONMENT 2: IDB (INCOMPLETE DATABASE) ==========
-
-# %%
-print("\n" + "="*60)
-print("ENVIRONMENT 2: INCOMPLETE DATABASE (IDB)")
-print("="*60)
-
-# Create IDB environment via clustering
-# Store all intermediate variables for later visualization
-idb_creation_results = create_idb_environment(
-    trainset,
-    min_cluster_size=MIN_CLUSTER_SIZE,
-    cluster_epsilon=CLUSTER_EPSILON
-)
-
-# Unpack results
-label_dict = idb_creation_results["label_dict"]
-hdb = idb_creation_results["hdb"]
-encoded_sql = idb_creation_results["encoded_sql"]
-
-# %%
-# Show cluster statistics
-print("\n--- Top 10 Largest Clusters ---")
-for label, items in sorted(label_dict.items(), key=lambda x: -len(x[1]))[:10]:
-    if label == -1:
-        print(f"\n❌ Noise Cluster (-1): {len(items)} items (all will be retained)")
-    else:
-        print(f"\n✅ Cluster {label}: {len(items)} items (1 representative will be retained)")
-    
-    # Show sample questions
-    for item in items[:3]:
-        print(f"   - {item['question_refine']}")
-    if len(items) > 3:
-        print(f"   ... ({len(items) - 3} more)")
-
-# %%
-# Build IDB dataset: 1 representative per cluster + all outliers
-print("\n--- Building IDB Dataset ---")
-idb_dataset = []
-
-for label, items in label_dict.items():
-    if label == -1:
-        # Noise: retain all outliers
-        idb_dataset.extend(items)
-        print(f"  Added {len(items)} noise/outlier cases")
-    else:
-        # Cluster: retain only the first case as representative
-        idb_dataset.append(items[0])
-
-print(f"\n✓ IDB dataset created: {len(idb_dataset)} cases")
-print(f"  Original dataset: {len(trainset)} cases")
-print(f"  Reduction: {len(trainset) - len(idb_dataset)} cases ({(1 - len(idb_dataset)/len(trainset))*100:.1f}%)")
-
-# %%
-# Initialize RAG-IDB pipeline
-print("\n--- RAG-to-SQL IDB ---")
-rag_idb_retriever = QdrantRetriever(collection_name=RAG_IDB_COLLECTION)
-rag_idb_pipeline = RAGtoSQL(
-    retriever=rag_idb_retriever,
-    generator=generator,
-    sql_db=sql_db,
-)
-
-# Retain IDB cases
-print(f"Retaining {len(idb_dataset)} cases for RAG-IDB...")
-retain_cases_rag(rag_idb_pipeline, idb_dataset, desc="RAG-IDB retention")
-print("✓ RAG-IDB case retention complete!")
-
-# %%
-# Initialize CBR-IDB pipeline
-print("\n--- CBR-to-SQL IDB ---")
-cbr_idb_retriever = QdrantRetriever(collection_name=CBR_IDB_COLLECTION)
-cbr_idb_pipeline = CBRtoSQL(
-    retriever=cbr_idb_retriever,
-    generator=generator,
-    sql_db=sql_db,
-    lookup_table=lookup_table,
-)
-
-# Retain IDB cases (with entity tagging)
-print(f"Retaining {len(idb_dataset)} cases for CBR-IDB...")
-print("⚠️  Warning: This will take longer due to entity tagging")
-retain_cases_cbr(cbr_idb_pipeline, idb_dataset, desc="CBR-IDB retention")
-print("✓ CBR-IDB case retention complete!")
-
-# ========== VISUALIZATION (OPTIONAL) ==========
 
 # %%
 print("\n" + "="*60)

@@ -382,11 +382,11 @@ class CBRtoSQL(RAGtoSQL):
             if e.get('table') and e.get('column')
         ]) if entities else "No entities to replace"
 
-        # Bind tool call structure 
-        if self.config.dataset == "ehrsql":
-            llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
-        else:
-            llm = self.generator.client.bind_tools([SqlGeneration], tool_choice="SqlGeneration", strict=True)
+        # # Bind tool call structure 
+        # if self.config.dataset == "ehrsql":
+        #     llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
+        # else:
+        #     llm = self.generator.client.bind_tools([SqlGeneration], tool_choice="SqlGeneration", strict=True)
 
         messages = [
             ("system", self._get_prompt("sql_generation")),
@@ -399,15 +399,16 @@ class CBRtoSQL(RAGtoSQL):
         ]
         
         try: 
-            response = llm.invoke(messages)
-            final_sql = response.tool_calls[0]["args"]["sql_query"]
+            sql_query = self.generator.generate(messages) 
+            # response = llm.invoke(messages)
+            # sql_query = response.tool_calls[0]["args"]["sql_query"]
         except Exception as e:
             if is_content_filter_error(e) and self.fallback_generator:
-                final_sql = self.fallback_generator.generate(messages)
+                sql_query = self.fallback_generator.generate(messages)
             else:
                 raise e
 
-        return remove_sql_wrapper(final_sql), retrieved_cases
+        return remove_sql_wrapper(sql_query), retrieved_cases
     
     def _mask_question(self, question: str, entities: List[Dict]) -> str:
         """Replace entity values with tags"""
