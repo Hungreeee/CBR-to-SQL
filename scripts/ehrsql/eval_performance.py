@@ -122,6 +122,7 @@ def evaluate_pipeline(
         print(f"📂 Resumed from {latest_ckpt.name}: {len(results)} existing results")
     
     start_idx = len(results)
+    error_flag = False
     
     for data in tqdm(
         dataset[start_idx:],
@@ -144,6 +145,10 @@ def evaluate_pipeline(
                 "token_usage": response["token_usage"],
             })
         except Exception as e:
+            if "aalto" in str(e).lower() or "429" in str(e).lower():
+                error_flag = True
+                print("Breaking due to rate limit exceeded.")
+                break
             results.append({
                 "question": question,
                 "predicted_sql": "",
@@ -153,7 +158,7 @@ def evaluate_pipeline(
             })
 
         # Save checkpoint
-        if len(results) % checkpoint_iters == 0:
+        if len(results) % checkpoint_iters == 0 or error_flag:
             ckpt_num = len(results)
             with open(RESULTS_DIR / f"{name.lower().replace('-', '_')}_ckp_{ckpt_num}.pkl", "wb") as f:
                 pickle.dump(results, f)

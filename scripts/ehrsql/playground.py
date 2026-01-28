@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-is there a genetic test that was given to patient 1561?
+what's the name of the med that shouldn't be given during exc/dest hrt lesion open.
 """
 
 # %%
