@@ -14,24 +14,23 @@ from src.generator import AzureAIAgent, OpenAIAgent
 from src.rag_pipeline import RAGtoSQL, CBRtoSQL
 from src.retriever import QdrantRetriever
 from src.utils import query
-from src.metrics import parse_sql
-from src.ehrsql_metric import parse_sql_nested, parse_single_query, post_process_sql
+from src.metrics.ehrsql24_metrics import parse_sql_nested, parse_single_query, post_process_sql
 
 from langchain_community.utilities.sql_database import SQLDatabase
 
 np.random.seed(42)
 
 # %%
-DATABASE_URI = "sqlite:///./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
-DATABASE_LOCATION = "./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
+DATABASE_URI = "sqlite:///./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
+DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 
 # Collection names
-RAG_CDB_COLLECTION = "rag_complete_ehrsql"      # RAG with all data
-RAG_IDB_COLLECTION = "rag_incomplete_ehrsql"    # RAG with clustered data
-CBR_CDB_COLLECTION = "cbr_complete_ehrsql"      # CBR with all data
-CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql"    # CBR with clustered data
+RAG_CDB_COLLECTION = "rag_complete_ehrsql24"      # RAG with all data
+RAG_IDB_COLLECTION = "rag_incomplete_ehrsql24"    # RAG with clustered data
+CBR_CDB_COLLECTION = "cbr_complete_ehrsql24"      # CBR with all data
+CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql24"    # CBR with clustered data
 
-LOOKUP_COLLECTION = "lookup_table_ehrsql"
+LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
 # Clustering parameters for IDB
 MIN_CLUSTER_SIZE = 2
@@ -39,11 +38,11 @@ CLUSTER_EPSILON = 0.10
 
 # %%
 trainset = []
-with open("./data/EHRSQL/dataset/ehrsql/mimic_iii/train.json", "r") as f:
+with open("./data/ehrsql-2024/data/mimic_iv/train/annotated.json", "r") as f:
     trainset = json.loads(f.read())
 
 testset = []
-with open("./data/EHRSQL/dataset/ehrsql/mimic_iii/test.json", "r") as f:
+with open("./data/ehrsql-2024/data/mimic_iv/test/annotated.json", "r") as f:
     testset = json.loads(f.read())
 
 print(f"✓ Loaded {len(trainset)} training examples")
@@ -75,12 +74,12 @@ cbr_cdb_pipeline = CBRtoSQL(
     sql_db=sql_db,
     lookup_table=lookup_table,
     fallback_generator=fallback_generator,
-    config=RAGConfig(dataset="ehrsql")
+    config=RAGConfig(dataset="ehrsql24")
 )
 
 # %%
 question = """
-tell me the maximum hospital cost when there is retention urine nos since 1 year ago?
+What is the specimen quality of the most recent microbiology test done for patient 1272?
 """
 
 # %%
@@ -105,21 +104,26 @@ res_final = cbr_cdb_pipeline._construct_and_fill_sql(
 res_final
 
 # %%
-cbr_cdb_pipeline._lookup("stool", top_k=5)
+cbr_cdb_pipeline._lookup("activity o2 sat - aerobic activity response", top_k=5)
 
 # %%
 lookup_table.retrieve("lactated ringers intake", top_k=5)
 
 # %%
 cbr_cdb_retriever.retrieve(
-    query=res[0]
+    query="Has there been any results of"
 )
 
 # %%
 sql_db.run(post_process_sql("""
-select count(*)>0 from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 23070 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'heart rate' and d_items.linksto = 'chartevents' ) and chartevents.valuenum > 94.0 and strftime('%m',chartevents.charttime) = '03' and strftime('%Y',chartevents.charttime) = strftime('%Y',current_time)
+SELECT COUNT(DISTINCT admissions.subject_id) FROM admissions WHERE admissions.hadm_id IN (SELECT microbiologyevents.hadm_id FROM microbiologyevents WHERE microbiologyevents.test_name = 'mini-bal' AND strftime('%Y', microbiologyevents.charttime) >= '2100')
 """
 ))
+
+# %%
+post_process_sql("""
+SELECT COUNT(*) FROM inputevents WHERE inputevents.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021487 ) ) AND inputevents.itemid IN ( SELECT d_items.itemid FROM d_items WHERE d_items.label = 'replete with fiber (full)' AND d_items.linksto = 'inputevents' ) AND datetime(inputevents.starttime,'start of year') = datetime(current_time,'start of year','-0 year') AND strftime('%m-%d',inputevents.starttime) = '01-13'
+""")
 
 # %%
 db_head = sql_eval_model.db_head

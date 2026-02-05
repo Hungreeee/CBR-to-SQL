@@ -1,0 +1,37 @@
+{
+  "CBR-CDB": {
+    "lf_accuracy": {
+      "total": 0.7396907216494846,
+      "agg_op": 0.961340206185567,
+      "agg_col": 0.845360824742268,
+      "table": 0.8762886597938144,
+      "condition_column_operation": 0.7835051546391752,
+      "condition_value": 0.7654639175257731
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.8582474226804123,
+      "standard_execution_accuracy": 0.8582474226804123
+    },
+    "rs_accuracy": {
+      "RS(0)": 85.82474226804123,
+      "RS(10)": 31.70103092783505,
+      "RS(N)": -2014.1752577319587,
+      "detailed_stats": {
+        "answerable_correct": 258,
+        "answerable_abstain": 34,
+        "answerable_incorrect": 19,
+        "unanswerable_abstain": 75,
+        "unanswerable_incorrect": 2,
+        "total_answerable": 311,
+        "total_unanswerable": 77
+      },
+      "detailed_metrics": {
+        "answerable_accuracy": 82.95819935691318,
+        "answerable_abstention_rate": 10.932475884244374,
+        "answerable_error_rate": 6.109324758842444,
+        "unanswerable_detection_rate": 97.40259740259741,
+        "unanswerable_error_rate": 2.5974025974025974
+      }
+    }
+  }
+}

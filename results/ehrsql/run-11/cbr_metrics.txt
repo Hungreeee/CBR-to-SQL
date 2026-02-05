@@ -1,0 +1,1288 @@
+============================================================
+COMPUTING METRICS
+============================================================
+
+--- CBR-IDB ---
+what is the newly prescribed drug of patient 2518 today compared to that of yesterday?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 2518 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-0 day') except select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 2518 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-1 day')
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '2518'], ["datetime(prescriptions.startdate,'start", 'of', 'day ) = datetime(current_time, start of day , -1 day )']]}
+----------
+
+how many times is levofloxacin ordered to patient 14203 until 2 years ago?
+----------
+PREDS:
+select count(*) from prescriptions where prescriptions.drug = 'levofloxacin' and prescriptions.subject_id = 14203 and datetime(prescriptions.startdate) <= datetime(current_time,'-2 year')
+Flattened: {'sel': 'count', 'agg': [], 'tab': ['prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '<=', 'datetime(current_time, -2 year )'], ['prescriptions.drug', '=', 'levofloxacin'], ['prescriptions.subject_id', '=', '14203']]}
+----------
+TRUTH:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14203 ) and prescriptions.drug = 'levofloxacin' and datetime(prescriptions.startdate) <= datetime(current_time,'-2 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '14203'], ['datetime(prescriptions.startdate)', '<=', 'datetime(current_time, -2 year )'], ['prescriptions.drug', '=', 'levofloxacin']]}
+----------
+
+count the number of patients since 2100 that had been discharged from the hospital.
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.dischtime is not null and strftime('%Y', admissions.dischtime) >= '2100'
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.dischtime is not null and strftime('%y',admissions.dischtime) >= '2100'
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ["strftime('%y',admissions.dischtime)", '>=', '2100']]}
+----------
+
+retrieve patient 5865's daily average temperature c (calc) during their first hospital encounter.
+----------
+PREDS:
+select avg(chartevents.valuenum) from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 5865 order by admissions.admittime limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'temperature c (calc)' and d_items.linksto = 'chartevents' ) group by strftime('%Y-%m-%d',chartevents.charttime)
+Flattened: {'sel': 'avg', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '5865'], ['d_items.label', '=', 'temperature c (calc)'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+TRUTH:
+select avg(chartevents.valuenum) from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 5865 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'temperature c (calc)' and d_items.linksto = 'chartevents' ) group by strftime('%y-%m-%d',chartevents.charttime)
+Flattened: {'sel': 'avg', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '5865'], ['d_items.label', '=', 'temperature c (calc)'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+
+how many patients left the hospital the last year?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where datetime(admissions.dischtime,'start of year') = datetime(current_time,'start of year','-1 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [["datetime(admissions.dischtime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.dischtime is not null and datetime(admissions.dischtime,'start of year') = datetime(current_time,'start of year','-1 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ["datetime(admissions.dischtime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )']]}
+----------
+
+what percentile of the mcv value of 94.0 is among patients of the same age as patient 30733 on their first hospital visit?
+----------
+PREDS:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'mcv' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 30733 and admissions.dischtime is null order by admissions.admittime asc limit 1 ) ) ) as t1 where t1.valuenum = 94.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '30733'], ['d_labitems.label', '=', 'mcv'], ['t1.valuenum', '=', '94.0']]}
+----------
+TRUTH:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'mcv' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 30733 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) ) ) as t1 where t1.valuenum = 94.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '30733'], ['d_labitems.label', '=', 'mcv'], ['t1.valuenum', '=', '94.0']]}
+----------
+
+what's the new prescription of patient 1784 today compared to the prescription yesterday?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1784 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-0 day') except select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1784 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-1 day')
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '1784'], ["datetime(prescriptions.startdate,'start", 'of', 'day ) = datetime(current_time, start of day , -1 day )']]}
+----------
+
+what are the number of patients who had received a catheter tip-iv microbiology test since 2102?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select microbiologyevents.hadm_id from microbiologyevents where microbiologyevents.spec_type_desc = 'catheter tip-iv' and strftime('%Y', microbiologyevents.charttime) >= '2102')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'microbiologyevents.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['microbiologyevents.spec_type_desc', '=', 'catheter tip-iv']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select microbiologyevents.hadm_id from microbiologyevents where microbiologyevents.spec_type_desc = 'catheter tip-iv' and strftime('%y',microbiologyevents.charttime) >= '2102' )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'microbiologyevents.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['microbiologyevents.spec_type_desc', '=', 'catheter tip-iv'], ["strftime('%y',microbiologyevents.charttime)", '>=', '2102']]}
+----------
+
+tell me the percentile of the hematocrit, calculated value of 37.0 among patients of the same age as patient 97395 during their current hospital encounter?
+----------
+PREDS:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'hematocrit' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 97395 and admissions.dischtime is null ) ) ) as t1 where t1.valuenum = 37.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '97395'], ['d_labitems.label', '=', 'hematocrit'], ['t1.valuenum', '=', '37.0']]}
+----------
+TRUTH:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'hematocrit, calculated' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 97395 and admissions.dischtime is null ) ) ) as t1 where t1.valuenum = 37.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '97395'], ['d_labitems.label', '=', 'hematocrit, calculated'], ['t1.valuenum', '=', '37.0']]}
+----------
+
+how many patients were prescribed with d5w in the same month after the diagnosis of atrial fibrillation, until 1 year ago?
+----------
+PREDS:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'atrial fibrillation' ) and datetime(diagnoses_icd.charttime,'start of year') = datetime(current_time,'start of year','-1 year') ) as t1 join ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'd5w' and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-1 year') ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.startdate and datetime(t1.charttime,'start of month') = datetime(t2.startdate,'start of month')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'prescriptions.startdate', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'prescriptions'], 'cond': [['d_icd_diagnoses.short_title', '=', 'atrial fibrillation'], ["datetime(diagnoses_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ["datetime(t1.charttime,'start", 'of', 'month ) = datetime(t2.startdate, start of month )'], ['prescriptions.drug', '=', 'd5w'], ['t1.charttime', '<', 't2.startdate']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'atrial fibrillation' ) and datetime(diagnoses_icd.charttime) <= datetime(current_time,'-1 year') ) as t1 join ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'd5w' and datetime(prescriptions.startdate) <= datetime(current_time,'-1 year') ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.startdate and datetime(t1.charttime,'start of month') = datetime(t2.startdate,'start of month')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'prescriptions.startdate', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'prescriptions'], 'cond': [['d_icd_diagnoses.short_title', '=', 'atrial fibrillation'], ['datetime(diagnoses_icd.charttime)', '<=', 'datetime(current_time, -1 year )'], ['datetime(prescriptions.startdate)', '<=', 'datetime(current_time, -1 year )'], ["datetime(t1.charttime,'start", 'of', 'month ) = datetime(t2.startdate, start of month )'], ['prescriptions.drug', '=', 'd5w'], ['t1.charttime', '<', 't2.startdate']]}
+----------
+
+count the number of patients who have been given a parathyroid hormone test during this year.
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select labevents.hadm_id from labevents where labevents.itemid in (select d_labitems.itemid from d_labitems where d_labitems.label = 'parathyroid hormone') and strftime('%Y', labevents.charttime) = strftime('%Y', 'now'))
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'parathyroid hormone']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select labevents.hadm_id from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'parathyroid hormone' ) and datetime(labevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'parathyroid hormone'], ["datetime(labevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )']]}
+----------
+
+how many patients were given a opn aortic valvuloplasty two or more times this year?
+----------
+PREDS:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'opn aortic valvuloplasty' ) and datetime(procedures_icd.charttime,'start of year') = datetime(current_time,'start of year') group by admissions.subject_id ) as t1 where t1.c1 >= 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'opn aortic valvuloplasty'], ["datetime(procedures_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year )'], ['t1.c1', '>=', '2']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'opn aortic valvuloplasty' ) and datetime(procedures_icd.charttime,'start of year') = datetime(current_time,'start of year','-0 year') group by admissions.subject_id ) as t1 where t1.c1 >= 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'opn aortic valvuloplasty'], ["datetime(procedures_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['t1.c1', '>=', '2']]}
+----------
+
+tell me the total number of patients who received a ct gent gtt intake since 2104?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select icustays.hadm_id from icustays where icustays.icustay_id in (select inputevents_cv.icustay_id from inputevents_cv where inputevents_cv.itemid in (select d_items.itemid from d_items where d_items.label = 'ct gent gtt' and d_items.linksto = 'inputevents_cv') and strftime('%Y', inputevents_cv.charttime) >= '2104'))
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_items.itemid', 'icustays.hadm_id', 'inputevents_cv.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['d_items.label', '=', 'ct gent gtt'], ['d_items.linksto', '=', 'inputevents_cv']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select icustays.hadm_id from icustays where icustays.icustay_id in ( select inputevents_cv.icustay_id from inputevents_cv where inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'ct gent gtt' and d_items.linksto = 'inputevents_cv' ) and strftime('%y',inputevents_cv.charttime) >= '2104' ) )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_items.itemid', 'icustays.hadm_id', 'inputevents_cv.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['d_items.label', '=', 'ct gent gtt'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y',inputevents_cv.charttime)", '>=', '2104']]}
+----------
+
+when was the first direct antigen test for herpes simplex virus types 1 & 2 microbiology test conducted in patient 50065 since 04/2101?
+----------
+PREDS:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 50065 ) and microbiologyevents.spec_type_desc = 'direct antigen test for herpes simplex virus types 1 & 2' and datetime(microbiologyevents.charttime) >= datetime('2101-04-01') order by microbiologyevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '50065'], ['datetime(microbiologyevents.charttime)', '>=', 'datetime( 2101-04-01 )'], ['microbiologyevents.spec_type_desc', '=', 'direct antigen test for herpes simplex virus types 1 & 2']]}
+----------
+TRUTH:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 50065 ) and microbiologyevents.spec_type_desc = 'direct antigen test for herpes simplex virus types 1 & 2' and strftime('%y-%m',microbiologyevents.charttime) >= '2101-04' order by microbiologyevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '50065'], ['microbiologyevents.spec_type_desc', '=', 'direct antigen test for herpes simplex virus types 1 & 2'], ["strftime('%y-%m',microbiologyevents.charttime)", '>=', '2101-04']]}
+----------
+
+how many patients have been discharged from the hospital until 2101?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.dischtime is not null and strftime('%Y', admissions.dischtime) <= '2101'
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.dischtime is not null and strftime('%y',admissions.dischtime) <= '2101'
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ["strftime('%y',admissions.dischtime)", '<=', '2101']]}
+----------
+
+when was the last time that patient 40059 received a sputum microbiology test during this hospital encounter?
+----------
+PREDS:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 40059 and admissions.dischtime is not null order by admissions.admittime desc limit 1 ) and microbiologyevents.spec_type_desc = 'sputum' order by microbiologyevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '40059'], ['microbiologyevents.spec_type_desc', '=', 'sputum']]}
+----------
+TRUTH:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 40059 and admissions.dischtime is null ) and microbiologyevents.spec_type_desc = 'sputum' order by microbiologyevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '40059'], ['microbiologyevents.spec_type_desc', '=', 'sputum']]}
+----------
+
+how many patients got a chloride, whole blood test in 2105?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select labevents.hadm_id from labevents where labevents.itemid in (select d_labitems.itemid from d_labitems where d_labitems.label = 'chloride, whole blood') and strftime('%Y', labevents.charttime) = '2105')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'chloride, whole blood']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select labevents.hadm_id from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'chloride, whole blood' ) and strftime('%y',labevents.charttime) = '2105' )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'chloride, whole blood'], ["strftime('%y',labevents.charttime)", '=', '2105']]}
+----------
+
+count the number of patients who were diagnosed with thrombocytopenia nos within the same hospital visit after having already been diagnosed with drug dermatitis nos in the last year.
+----------
+PREDS:
+select count(distinct t1.subject_id) from (select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'drug dermatitis nos') and strftime('%Y', diagnoses_icd.charttime) >= strftime('%Y', 'now', '-1 year')) as t1 join (select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'thrombocytopenia nos')) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.charttime and t1.hadm_id = t2.hadm_id
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'drug dermatitis nos'], ['d_icd_diagnoses.short_title', '=', 'thrombocytopenia nos'], ['t1.charttime', '<', 't2.charttime'], ['t1.hadm_id', '=', 't2.hadm_id']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'thrombocytopenia nos' ) and datetime(diagnoses_icd.charttime,'start of year') = datetime(current_time,'start of year','-1 year') ) as t1 join ( select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'drug dermatitis nos' ) and datetime(diagnoses_icd.charttime,'start of year') = datetime(current_time,'start of year','-1 year') ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.charttime and t1.hadm_id = t2.hadm_id
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'drug dermatitis nos'], ['d_icd_diagnoses.short_title', '=', 'thrombocytopenia nos'], ["datetime(diagnoses_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['t1.charttime', '<', 't2.charttime'], ['t1.hadm_id', '=', 't2.hadm_id']]}
+----------
+
+how many times lr was prescribed to patient 76275 during this year?
+----------
+PREDS:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 76275 ) and prescriptions.drug = 'lr' and strftime('%Y',prescriptions.startdate) = strftime('%Y', 'now')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '76275'], ['prescriptions.drug', '=', 'lr'], ["strftime('%y',prescriptions.startdate)", '=', 'strftime( %y , now )']]}
+----------
+TRUTH:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 76275 ) and prescriptions.drug = 'lr' and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-0 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '76275'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['prescriptions.drug', '=', 'lr']]}
+----------
+
+when was the first time on the current icu visit that patient 20898 had an intake of d5w?
+----------
+PREDS:
+select inputevents_cv.charttime from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 20898 and admissions.dischtime is null ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'd5w' and d_items.linksto = 'inputevents_cv' ) order by inputevents_cv.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '20898'], ['d_items.label', '=', 'd5w'], ['d_items.linksto', '=', 'inputevents_cv']]}
+----------
+TRUTH:
+select inputevents_cv.charttime from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 20898 ) and icustays.outtime is null ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'd5w' and d_items.linksto = 'inputevents_cv' ) order by inputevents_cv.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '20898'], ['d_items.label', '=', 'd5w'], ['d_items.linksto', '=', 'inputevents_cv'], ['icustays.outtime', 'is', 'null']]}
+----------
+
+how many patients were prescribed glipizide during the same hospital visit in this year after being diagnosed with streptococcal septicemia?
+----------
+PREDS:
+select count(distinct t1.subject_id) from (select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.long_title = 'streptococcal septicemia') and strftime('%Y', diagnoses_icd.charttime) = strftime('%Y', 'now')) as t1 join (select admissions.subject_id, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'glipizide' and strftime('%Y', prescriptions.startdate) = strftime('%Y', 'now')) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.startdate and t1.hadm_id = t2.hadm_id
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'prescriptions.startdate', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'prescriptions'], 'cond': [['d_icd_diagnoses.long_title', '=', 'streptococcal septicemia'], ['prescriptions.drug', '=', 'glipizide'], ['t1.charttime', '<', 't2.startdate'], ['t1.hadm_id', '=', 't2.hadm_id']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, diagnoses_icd.charttime, admissions.hadm_id from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'streptococcal septicemia' ) and datetime(diagnoses_icd.charttime,'start of year') = datetime(current_time,'start of year','-0 year') ) as t1 join ( select admissions.subject_id, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'glipizide' and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-0 year') ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.startdate and t1.hadm_id = t2.hadm_id
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'prescriptions.startdate', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'prescriptions'], 'cond': [['d_icd_diagnoses.short_title', '=', 'streptococcal septicemia'], ["datetime(diagnoses_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['prescriptions.drug', '=', 'glipizide'], ['t1.charttime', '<', 't2.startdate'], ['t1.hadm_id', '=', 't2.hadm_id']]}
+----------
+
+count the number of times that patient 77053 has had or urine output in 04/2105.
+----------
+PREDS:
+select count(*) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 77053 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'urine output' and d_items.linksto = 'outputevents' ) and strftime('%y-%m',outputevents.charttime) = '2105-04'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '77053'], ['d_items.label', '=', 'urine output'], ['d_items.linksto', '=', 'outputevents'], ["strftime('%y-%m',outputevents.charttime)", '=', '2105-04']]}
+----------
+TRUTH:
+select count(*) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 77053 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'or urine' and d_items.linksto = 'outputevents' ) and strftime('%y-%m',outputevents.charttime) = '2105-04'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '77053'], ['d_items.label', '=', 'or urine'], ['d_items.linksto', '=', 'outputevents'], ["strftime('%y-%m',outputevents.charttime)", '=', '2105-04']]}
+----------
+
+how tall is patient 27703 based on the first measurement in a month before?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 27703 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'admit ht' and d_items.linksto = 'chartevents' ) and datetime(chartevents.charttime,'start of month') = datetime(current_time,'start of month','-1 month') order by chartevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '27703'], ['d_items.label', '=', 'admit ht'], ['d_items.linksto', '=', 'chartevents'], ["datetime(chartevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )']]}
+----------
+
+how many times is methadone prescribed for patient 12274 this year?
+----------
+PREDS:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12274 ) and prescriptions.drug = 'methadone' and strftime('%Y', prescriptions.startdate) = strftime('%Y', 'now')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '12274'], ['prescriptions.drug', '=', 'methadone']]}
+----------
+TRUTH:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12274 ) and prescriptions.drug = 'methadone' and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-0 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '12274'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['prescriptions.drug', '=', 'methadone']]}
+----------
+
+when did patient 24547 visit the hospital via emergency room admit for the first time in the previous year?
+----------
+PREDS:
+select min(admissions.admittime) from admissions where admissions.subject_id = 24547 and admissions.admission_location = 'emergency room admit' and strftime('%Y', admissions.admittime) = strftime('%Y', 'now', '-1 year')
+Flattened: {'sel': 'min', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.admission_location', '=', 'emergency room admit'], ['admissions.subject_id', '=', '24547']]}
+----------
+TRUTH:
+select admissions.admittime from admissions where admissions.subject_id = 24547 and admissions.admission_location = 'emergency room admit' and datetime(admissions.admittime,'start of year') = datetime(current_time,'start of year','-1 year') order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.admission_location', '=', 'emergency room admit'], ['admissions.subject_id', '=', '24547'], ["datetime(admissions.admittime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )']]}
+----------
+
+when was patient 2002's last minimum heart rate since 1742 days ago?'
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select chartevents.charttime from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 2002 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'heart rate' and d_items.linksto = 'chartevents' ) and datetime(chartevents.charttime) >= datetime(current_time,'-1742 day') order by chartevents.valuenum asc, chartevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.charttime', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '2002'], ['d_items.label', '=', 'heart rate'], ['d_items.linksto', '=', 'chartevents'], ['datetime(chartevents.charttime)', '>=', 'datetime(current_time, -1742 day )']]}
+----------
+
+how many patients is closed liver biopsy given to two times until 2104?
+----------
+PREDS:
+select count(distinct t1.subject_id) from (select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = (select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'closed liver biopsy') and strftime('%Y', procedures_icd.charttime) <= '2104' group by admissions.subject_id) as t1 where t1.c1 = 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'closed liver biopsy'], ['t1.c1', '=', '2']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'closed liver biopsy' ) and strftime('%y',procedures_icd.charttime) <= '2104' group by admissions.subject_id ) as t1 where t1.c1 = 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'closed liver biopsy'], ["strftime('%y',procedures_icd.charttime)", '<=', '2104'], ['t1.c1', '=', '2']]}
+----------
+
+what is patient 26886's monthly minimum platelets intake amount until 09/2100?
+----------
+PREDS:
+select min(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 26886 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'platelets' and d_items.linksto = 'inputevents_cv' ) and strftime('%y-%m-%d',inputevents_cv.charttime) <= '2100-09-01' group by strftime('%y-%m',inputevents_cv.charttime)
+Flattened: {'sel': 'min', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '26886'], ['d_items.label', '=', 'platelets'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y-%m-%d',inputevents_cv.charttime)", '<=', '2100-09-01 )']]}
+----------
+TRUTH:
+select min(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 26886 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'platelets' and d_items.linksto = 'inputevents_cv' ) and strftime('%y-%m',inputevents_cv.charttime) <= '2100-09' group by strftime('%y-%m',inputevents_cv.charttime)
+Flattened: {'sel': 'min', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '26886'], ['d_items.label', '=', 'platelets'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y-%m',inputevents_cv.charttime)", '<=', '2100-09 )']]}
+----------
+
+when was the last time since 3 years ago patient 94316 received a nonop remov hrt asst sys procedure?
+----------
+PREDS:
+select procedures_icd.charttime from procedures_icd where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'nonop remov hrt asst sys' ) and procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 94316 ) and strftime('%Y',procedures_icd.charttime) >= strftime('%Y', 'now', '-3 years') order by procedures_icd.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.icd9_code', 'procedures_icd.charttime'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '94316'], ['d_icd_procedures.short_title', '=', 'nonop remov hrt asst sys'], ["strftime('%y',procedures_icd.charttime)", '>=', 'strftime( %y , now , -3 years )']]}
+----------
+TRUTH:
+select procedures_icd.charttime from procedures_icd where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'nonop remov hrt asst sys' ) and procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 94316 ) and datetime(procedures_icd.charttime) >= datetime(current_time,'-3 year') order by procedures_icd.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.icd9_code', 'procedures_icd.charttime'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '94316'], ['d_icd_procedures.short_title', '=', 'nonop remov hrt asst sys'], ['datetime(procedures_icd.charttime)', '>=', 'datetime(current_time, -3 year )']]}
+----------
+
+what are the four most commonly ordered drugs since 2101 for patients 50s?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 50 and 59 ) and strftime('%y',prescriptions.startdate) >= '2101' group by prescriptions.drug ) as t1 where t1.c1 <= 4
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [["strftime('%y',prescriptions.startdate)", '>=', '2101'], ['t1.c1', '<=', '4']]}
+----------
+
+retrieve the top five most frequent treatments for patients of age 40s?
+----------
+PREDS:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 40 and 49 ) group by prescriptions.drug ) as t1 where t1.c1 <= 5
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['t1.c1', '<=', '5']]}
+----------
+TRUTH:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, dense_rank() over ( order by count(*) desc ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 40 and 49 ) group by procedures_icd.icd9_code ) as t1 where t1.c1 <= 5 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['t1.c1', '<=', '5']]}
+----------
+
+calculate the number of patients admitted to the hospital since 2104.
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where datetime(admissions.admittime) >= datetime('2104-01-01')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['datetime(admissions.admittime)', '>=', 'datetime( 2104-01-01 )']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where strftime('%y',admissions.admittime) >= '2104'
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [["strftime('%y',admissions.admittime)", '>=', '2104']]}
+----------
+
+what is patient 7107's arterial bp [diastolic] change from the last value measured on the last intensive care unit visit compared to the first value measured on the last intensive care unit visit?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 7107 ) and icustays.outtime is not null order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime desc limit 1 ) - ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 7107 ) and icustays.outtime is not null order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '7107'], ['d_items.label', '=', 'arterial bp [diastolic]'], ['d_items.linksto', '=', 'chartevents'], ['icustays.outtime', 'is', 'not null']]}
+----------
+
+how much patient 17608 had to pay during the previous year for their hospital stay?
+----------
+PREDS:
+select sum(cost.cost) from cost where cost.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 17608 and strftime('%Y', admissions.admittime) = strftime('%Y', 'now', '-1 year') )
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'cost.cost'], 'tab': ['admissions', 'cost'], 'cond': [['admissions.subject_id', '=', '17608']]}
+----------
+TRUTH:
+select sum(cost.cost) from cost where cost.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 17608 ) and datetime(cost.chargetime,'start of year') = datetime(current_time,'start of year','-1 year')
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'cost.cost'], 'tab': ['admissions', 'cost'], 'cond': [['admissions.subject_id', '=', '17608'], ["datetime(cost.chargetime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )']]}
+----------
+
+what's the new prescription of patient 31854 today compared to the prescription yesterday?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 31854 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-0 day') except select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 31854 ) and datetime(prescriptions.startdate,'start of day') = datetime(current_time,'start of day','-1 day')
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '31854'], ["datetime(prescriptions.startdate,'start", 'of', 'day ) = datetime(current_time, start of day , -1 day )']]}
+----------
+
+give me the top four most frequently prescribed medications for patients of age 40s until 2102?
+----------
+PREDS:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 40 and 49 ) and datetime(prescriptions.startdate) <= datetime('2102-12-31') group by prescriptions.drug ) as t1 where t1.c1 <= 4
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '<=', 'datetime( 2102-12-31 )'], ['t1.c1', '<=', '4']]}
+----------
+TRUTH:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 40 and 49 ) and strftime('%y',prescriptions.startdate) <= '2102' group by prescriptions.drug ) as t1 where t1.c1 <= 4
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [["strftime('%y',prescriptions.startdate)", '<=', '2102'], ['t1.c1', '<=', '4']]}
+----------
+
+what is patient 14035's arterial bp [diastolic] difference from the last value measured on the last intensive care unit visit compared to the second to last value measured on the last intensive care unit visit?
+----------
+PREDS:
+select ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14035 ) order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime desc limit 1 ) - ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14035 ) order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime desc limit 1 offset 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '14035'], ['d_items.label', '=', 'arterial bp [diastolic]'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+TRUTH:
+select ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14035 ) and icustays.outtime is not null order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime desc limit 1 ) - ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14035 ) and icustays.outtime is not null order by icustays.intime desc limit 1 ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp [diastolic]' and d_items.linksto = 'chartevents' ) order by chartevents.charttime desc limit 1 offset 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '14035'], ['d_items.label', '=', 'arterial bp [diastolic]'], ['d_items.linksto', '=', 'chartevents'], ['icustays.outtime', 'is', 'not null']]}
+----------
+
+what are the number of patients who had received a postmortem culture microbiology test during the previous year?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select microbiologyevents.hadm_id from microbiologyevents where microbiologyevents.spec_type_desc = 'blood culture (post-mortem)' and datetime(microbiologyevents.charttime,'start of year') = datetime(current_time,'start of year','-1 year'))
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'microbiologyevents.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [["datetime(microbiologyevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['microbiologyevents.spec_type_desc', '=', 'blood culture (post-mortem)']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select microbiologyevents.hadm_id from microbiologyevents where microbiologyevents.spec_type_desc = 'postmortem culture' and datetime(microbiologyevents.charttime,'start of year') = datetime(current_time,'start of year','-1 year') )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'microbiologyevents.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [["datetime(microbiologyevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['microbiologyevents.spec_type_desc', '=', 'postmortem culture']]}
+----------
+
+among the patients who were prescribed ns after having been diagnosed with nontox multinodul goiter, calculate the four year survival rate.
+----------
+PREDS:
+select sum( case when patients.dod is null then 1 when strftime('%j',patients.dod) - strftime('%j',t4.charttime) > 4 * 365 then 1 else 0 end ) * 100 / count(*) from ( select t2.subject_id, t2.charttime from ( select t1.subject_id, t1.charttime from ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.long_title = 'nontoxic multinodular goiter' ) group by admissions.subject_id having min(diagnoses_icd.charttime) = diagnoses_icd.charttime ) as t1 where strftime('%j',current_time) - strftime('%j',t1.charttime) > 4 * 365 ) as t2 join ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'ns' ) as t3 on t2.subject_id = t3.subject_id where t2.charttime < t3.startdate ) as t4 join patients on t4.subject_id = patients.subject_id
+Flattened: {'sel': 'sum', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'patients.dod', 'prescriptions.startdate', 't1.charttime', 't1.subject_id', 't2.charttime', 't2.subject_id', 't4.charttime'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'patients', 'prescriptions'], 'cond': [['d_icd_diagnoses.long_title', '=', 'nontoxic multinodular goiter'], ['prescriptions.drug', '=', 'ns'], ['t2.charttime', '<', 't3.startdate']]}
+----------
+TRUTH:
+select sum( case when patients.dod is null then 1 when strftime('%j',patients.dod) - strftime('%j',t4.charttime) > 4 * 365 then 1 else 0 end ) * 100 / count(*) from ( select t2.subject_id, t2.charttime from ( select t1.subject_id, t1.charttime from ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'nontox multinodul goiter' ) group by admissions.subject_id having min(diagnoses_icd.charttime) = diagnoses_icd.charttime ) as t1 where strftime('%j',current_time) - strftime('%j',t1.charttime) > 4 * 365 ) as t2 join ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'ns' ) as t3 on t2.subject_id = t3.subject_id where t2.charttime < t3.startdate ) as t4 join patients on t4.subject_id = patients.subject_id
+Flattened: {'sel': 'sum', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 'patients.dod', 'prescriptions.startdate', 't1.charttime', 't1.subject_id', 't2.charttime', 't2.subject_id', 't4.charttime'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd', 'patients', 'prescriptions'], 'cond': [['d_icd_diagnoses.short_title', '=', 'nontox multinodul goiter'], ['prescriptions.drug', '=', 'ns'], ['t2.charttime', '<', 't3.startdate']]}
+----------
+
+what was patient 99080's last event time of foley on 11/18/2103?
+----------
+PREDS:
+select chartevents.charttime from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 99080 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'foley' and d_items.linksto = 'chartevents' ) and strftime('%y-%m-%d',chartevents.charttime) = '2103-11-18' order by chartevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.charttime', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '99080'], ['d_items.label', '=', 'foley'], ['d_items.linksto', '=', 'chartevents'], ["strftime('%y-%m-%d',chartevents.charttime)", '=', '2103-11-18']]}
+----------
+TRUTH:
+select outputevents.charttime from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 99080 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'foley' and d_items.linksto = 'outputevents' ) and strftime('%y-%m-%d',outputevents.charttime) = '2103-11-18' order by outputevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '99080'], ['d_items.label', '=', 'foley'], ['d_items.linksto', '=', 'outputevents'], ["strftime('%y-%m-%d',outputevents.charttime)", '=', '2103-11-18']]}
+----------
+
+how many patients received sm bowel endoscopy nec within 2 months after the previous insert intercostal cath, in 2102?
+----------
+PREDS:
+select count(distinct t1.subject_id) from (select admissions.subject_id, procedures_icd.charttime from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = (select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'insert intercostal cath') and strftime('%Y', procedures_icd.charttime) = '2102') as t1 join (select admissions.subject_id, procedures_icd.charttime from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = (select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'sm bowel endoscopy nec') and strftime('%Y', procedures_icd.charttime) = '2102') as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.charttime and julianday(t2.charttime) - julianday(t1.charttime) <= 60
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 'procedures_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'insert intercostal cath'], ['d_icd_procedures.short_title', '=', 'sm bowel endoscopy nec'], ['julianday(t2.charttime)', '-', 'julianday(t1.charttime) <= 60'], ['t1.charttime', '<', 't2.charttime']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, procedures_icd.charttime from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'insert intercostal cath' ) and strftime('%y',procedures_icd.charttime) = '2102' ) as t1 join ( select admissions.subject_id, procedures_icd.charttime from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'sm bowel endoscopy nec' ) and strftime('%y',procedures_icd.charttime) = '2102' ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.charttime and datetime(t2.charttime) between datetime(t1.charttime) and datetime(t1.charttime,'+2 month')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 'procedures_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'insert intercostal cath'], ['d_icd_procedures.short_title', '=', 'sm bowel endoscopy nec'], ["strftime('%y',procedures_icd.charttime)", '=', '2102'], ['t1.charttime', '<', 't2.charttime']]}
+----------
+
+how many patients have had periph nerve transposit done until 2103?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select procedures_icd.hadm_id from procedures_icd where procedures_icd.icd9_code = (select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'periph nerve transposit') and strftime('%Y', procedures_icd.charttime) <= '2103')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 'procedures_icd.hadm_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'periph nerve transposit']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select procedures_icd.hadm_id from procedures_icd where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'periph nerve transposit' ) and strftime('%y',procedures_icd.charttime) <= '2103' )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 'procedures_icd.hadm_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'periph nerve transposit'], ["strftime('%y',procedures_icd.charttime)", '<=', '2103']]}
+----------
+
+how many patients were staying in careunit ccu since 6 years ago?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select transfers.hadm_id from transfers where transfers.careunit = 'ccu' and transfers.intime >= date('now', '-6 years'))
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'transfers.hadm_id'], 'tab': ['admissions', 'transfers'], 'cond': [['transfers.careunit', '=', 'ccu'], ['transfers.intime', '>=', 'date( now , -6 years )']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select transfers.hadm_id from transfers where transfers.careunit = 'ccu' and datetime(transfers.intime) >= datetime(current_time,'-6 year') )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'transfers.hadm_id'], 'tab': ['admissions', 'transfers'], 'cond': [['datetime(transfers.intime)', '>=', 'datetime(current_time, -6 year )'], ['transfers.careunit', '=', 'ccu']]}
+----------
+
+what percentile of the asparate aminotransferase (ast) value of 30.0 is among patients of the same age as patient 97677 on the first hospital visit?
+----------
+PREDS:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'asparate aminotransferase (ast)' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 97677 and admissions.admittime is not null order by admissions.admittime asc limit 1 ) ) ) as t1 where t1.valuenum = 30.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.admittime', 'is', 'not null'], ['admissions.subject_id', '=', '97677'], ['d_labitems.label', '=', 'asparate aminotransferase (ast)'], ['t1.valuenum', '=', '30.0']]}
+----------
+TRUTH:
+select distinct t1.c1 from ( select labevents.valuenum, percent_rank() over ( order by labevents.valuenum ) as c1 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'asparate aminotransferase (ast)' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.age = ( select admissions.age from admissions where admissions.subject_id = 97677 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) ) ) as t1 where t1.valuenum = 30.0
+Flattened: {'sel': '', 'agg': ['admissions.age', 'admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '97677'], ['d_labitems.label', '=', 'asparate aminotransferase (ast)'], ['t1.valuenum', '=', '30.0']]}
+----------
+
+when did patient 31473 first have a .9% normal saline intake since 02/14/2104?
+----------
+PREDS:
+select inputevents_cv.charttime from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 31473 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = '0.9% normal saline' ) and strftime('%Y-%m-%d',inputevents_cv.charttime) >= '2104-02-14' order by inputevents_cv.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '31473'], ['d_items.label', '=', '0.9% normal saline'], ["strftime('%y-%m-%d',inputevents_cv.charttime)", '>=', '2104-02-14']]}
+----------
+TRUTH:
+select inputevents_cv.charttime from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 31473 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = '.9% normal saline' and d_items.linksto = 'inputevents_cv' ) and strftime('%y-%m-%d',inputevents_cv.charttime) >= '2104-02-14' order by inputevents_cv.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '31473'], ['d_items.label', '=', '.9% normal saline'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y-%m-%d',inputevents_cv.charttime)", '>=', '2104-02-14']]}
+----------
+
+how many patients have stayed at the careunit ccu until 2101?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select transfers.hadm_id from transfers where transfers.careunit = 'ccu' and strftime('%Y', transfers.intime) <= '2101')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'transfers.hadm_id'], 'tab': ['admissions', 'transfers'], 'cond': [['transfers.careunit', '=', 'ccu']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select transfers.hadm_id from transfers where transfers.careunit = 'ccu' and strftime('%y',transfers.intime) <= '2101' )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'transfers.hadm_id'], 'tab': ['admissions', 'transfers'], 'cond': [["strftime('%y',transfers.intime)", '<=', '2101'], ['transfers.careunit', '=', 'ccu']]}
+----------
+
+tell me the top four most frequently prescribed medications for patients with age 50s in this year?
+----------
+PREDS:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 50 and 59 ) and strftime('%Y',prescriptions.startdate) = strftime('%Y', 'now') group by prescriptions.drug ) as t1 where t1.c1 <= 4
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [["strftime('%y',prescriptions.startdate)", '=', 'strftime( %y , now )'], ['t1.c1', '<=', '4']]}
+----------
+TRUTH:
+select t1.drug from ( select prescriptions.drug, dense_rank() over ( order by count(*) desc ) as c1 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 50 and 59 ) and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-0 year') group by prescriptions.drug ) as t1 where t1.c1 <= 4
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug', 't1.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['t1.c1', '<=', '4']]}
+----------
+
+number of times patient 12917 has been prescribed d5w since 04/2103.
+----------
+PREDS:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12917 ) and prescriptions.drug = 'd5w' and datetime(prescriptions.startdate) >= datetime('2103-04-01')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '12917'], ['datetime(prescriptions.startdate)', '>=', 'datetime( 2103-04-01 )'], ['prescriptions.drug', '=', 'd5w']]}
+----------
+TRUTH:
+select count(*) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12917 ) and prescriptions.drug = 'd5w' and strftime('%y-%m',prescriptions.startdate) >= '2103-04'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '12917'], ['prescriptions.drug', '=', 'd5w'], ["strftime('%y-%m',prescriptions.startdate)", '>=', '2103-04']]}
+----------
+
+since 4 years ago, how many patients were diagnosed with hypothyroidism nos during the same month after previously being diagnosed with parox ventric tachycard?
+----------
+PREDS:
+select count(distinct t1.subject_id) from (select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'hypothyroidism nos') and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year')) as t1 join (select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.long_title = 'paroxysmal ventricular tachycardia') and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year')) as t2 on t1.subject_id = t2.subject_id where t1.charttime > t2.charttime and datetime(t1.charttime,'start of month') = datetime(t2.charttime,'start of month')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.long_title', '=', 'paroxysmal ventricular tachycardia'], ['d_icd_diagnoses.short_title', '=', 'hypothyroidism nos'], ['datetime(diagnoses_icd.charttime)', '>=', 'datetime(current_time, -4 year )'], ["datetime(t1.charttime,'start", 'of', 'month ) = datetime(t2.charttime, start of month )'], ['t1.charttime', '>', 't2.charttime']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'parox ventric tachycard' ) and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year') ) as t1 join ( select admissions.subject_id, diagnoses_icd.charttime from diagnoses_icd join admissions on diagnoses_icd.hadm_id = admissions.hadm_id where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'hypothyroidism nos' ) and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year') ) as t2 on t1.subject_id = t2.subject_id where t1.charttime < t2.charttime and datetime(t1.charttime,'start of month') = datetime(t2.charttime,'start of month')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.charttime', 't1.subject_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'hypothyroidism nos'], ['d_icd_diagnoses.short_title', '=', 'parox ventric tachycard'], ['datetime(diagnoses_icd.charttime)', '>=', 'datetime(current_time, -4 year )'], ["datetime(t1.charttime,'start", 'of', 'month ) = datetime(t2.charttime, start of month )'], ['t1.charttime', '<', 't2.charttime']]}
+----------
+
+how many times has patient 19412 had a tpn intake in the previous day?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select count(*) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19412 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'tpn' and d_items.linksto = 'inputevents_cv' ) and datetime(inputevents_cv.charttime,'start of day') = datetime(current_time,'start of day','-1 day')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '19412'], ['d_items.label', '=', 'tpn'], ['d_items.linksto', '=', 'inputevents_cv'], ["datetime(inputevents_cv.charttime,'start", 'of', 'day ) = datetime(current_time, start of day , -1 day )']]}
+----------
+
+how many patients have received a diagnosis of lymph/hematpoitc tis nec in 2102.
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select diagnoses_icd.hadm_id from diagnoses_icd where diagnoses_icd.icd9_code = (select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'lymph/hematpoitc tis nec') and strftime('%Y', diagnoses_icd.charttime) = '2102')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.hadm_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'lymph/hematpoitc tis nec']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select diagnoses_icd.hadm_id from diagnoses_icd where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'lymph/hematpoitc tis nec' ) and strftime('%y',diagnoses_icd.charttime) = '2102' )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.hadm_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'lymph/hematpoitc tis nec'], ["strftime('%y',diagnoses_icd.charttime)", '=', '2102']]}
+----------
+
+count the number of patients that have had a oth cerv fusion ant/ant procedure two or more times in 2105.
+----------
+PREDS:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'oth cerv fusion ant/ant' ) and strftime('%Y', procedures_icd.charttime) = '2105' group by admissions.subject_id ) as t1 where t1.c1 >= 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'oth cerv fusion ant/ant'], ['t1.c1', '>=', '2']]}
+----------
+TRUTH:
+select count( distinct t1.subject_id ) from ( select admissions.subject_id, count(*) as c1 from procedures_icd join admissions on procedures_icd.hadm_id = admissions.hadm_id where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'oth cerv fusion ant/ant' ) and strftime('%y',procedures_icd.charttime) = '2105' group by admissions.subject_id ) as t1 where t1.c1 >= 2
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_icd_procedures.icd9_code', 't1.subject_id'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['d_icd_procedures.short_title', '=', 'oth cerv fusion ant/ant'], ["strftime('%y',procedures_icd.charttime)", '=', '2105'], ['t1.c1', '>=', '2']]}
+----------
+
+what was patient 4401's last pre-admission output pre-admission output time yesterday?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select outputevents.charttime from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 4401 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'pre-admission output pre-admission output' and d_items.linksto = 'outputevents' ) and datetime(outputevents.charttime,'start of day') = datetime(current_time,'start of day','-1 day') order by outputevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.charttime'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '4401'], ['d_items.label', '=', 'pre-admission output pre-admission output'], ['d_items.linksto', '=', 'outputevents'], ["datetime(outputevents.charttime,'start", 'of', 'day ) = datetime(current_time, start of day , -1 day )']]}
+----------
+
+what was the number of patients that were discharged from hospital in this year?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.dischtime is not null and strftime('%Y', admissions.dischtime) = strftime('%Y', 'now')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.dischtime is not null and datetime(admissions.dischtime,'start of year') = datetime(current_time,'start of year','-0 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ["datetime(admissions.dischtime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )']]}
+----------
+
+tell me the top four most frequent procedures for patients 30s until 1 year ago?
+----------
+PREDS:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, dense_rank() over ( order by count(*) desc ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 30 and 39 ) and strftime('%Y', procedures_icd.charttime) <= strftime('%Y', 'now', '-1 year') group by procedures_icd.icd9_code ) as t1 where t1.c1 <= 4 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['t1.c1', '<=', '4']]}
+----------
+TRUTH:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, dense_rank() over ( order by count(*) desc ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.age between 30 and 39 ) and datetime(procedures_icd.charttime) <= datetime(current_time,'-1 year') group by procedures_icd.icd9_code ) as t1 where t1.c1 <= 4 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['datetime(procedures_icd.charttime)', '<=', 'datetime(current_time, -1 year )'], ['t1.c1', '<=', '4']]}
+----------
+
+how many patients took a protein c, functional lab test until 1 year ago?
+----------
+PREDS:
+select count(distinct admissions.subject_id) from admissions where admissions.hadm_id in (select labevents.hadm_id from labevents where labevents.itemid in (select d_labitems.itemid from d_labitems where d_labitems.label = 'protein c, functional') and strftime('%Y', labevents.charttime) <= strftime('%Y', date('now', '-1 year')))
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'protein c, functional']]}
+----------
+TRUTH:
+select count( distinct admissions.subject_id ) from admissions where admissions.hadm_id in ( select labevents.hadm_id from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'protein c, functional' ) and datetime(labevents.charttime) <= datetime(current_time,'-1 year') )
+Flattened: {'sel': 'count', 'agg': ['admissions.subject_id', 'd_labitems.itemid', 'labevents.hadm_id'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['d_labitems.label', '=', 'protein c, functional'], ['datetime(labevents.charttime)', '<=', 'datetime(current_time, -1 year )']]}
+----------
+
+calculate the total amount of d5ns patient 13995 received until 07/30/2103.
+----------
+PREDS:
+select sum(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 13995 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'd5ns' and d_items.linksto = 'inputevents_cv' ) and datetime(inputevents_cv.charttime) <= '2103-07-30'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '13995'], ['d_items.label', '=', 'd5ns'], ['d_items.linksto', '=', 'inputevents_cv'], ['datetime(inputevents_cv.charttime)', '<=', '2103-07-30']]}
+----------
+TRUTH:
+select sum(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 13995 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'd5ns' and d_items.linksto = 'inputevents_cv' ) and strftime('%y-%m-%d',inputevents_cv.charttime) <= '2103-07-30'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '13995'], ['d_items.label', '=', 'd5ns'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y-%m-%d',inputevents_cv.charttime)", '<=', '2103-07-30']]}
+----------
+
+had patient 65582 been given a transferrin test in 12/2105?
+----------
+PREDS:
+select count(*)>0 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'transferrin' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 65582 ) and datetime(labevents.charttime,'start of year') = datetime('2105-01-01','start of year') and strftime('%m',labevents.charttime) = '12'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_labitems.itemid'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '65582'], ['d_labitems.label', '=', 'transferrin'], ["datetime(labevents.charttime,'start", 'of', 'year ) = datetime( 2105-01-01 , start of year )'], ["strftime('%m',labevents.charttime)", '=', '12']]}
+----------
+TRUTH:
+select count(*)>0 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'transferrin' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 65582 ) and strftime('%y-%m',labevents.charttime) = '2105-12'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_labitems.itemid'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '65582'], ['d_labitems.label', '=', 'transferrin'], ["strftime('%y-%m',labevents.charttime)", '=', '2105-12']]}
+----------
+
+show the top five most frequent output events in this year?
+----------
+PREDS:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select outputevents.itemid, dense_rank() over ( order by count(*) desc ) as c1 from outputevents where strftime('%Y',outputevents.charttime) = strftime('%Y', 'now') group by outputevents.itemid ) as t1 where t1.c1 <= 5 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'outputevents.itemid', 't1.itemid'], 'tab': ['d_items', 'outputevents'], 'cond': [["strftime('%y',outputevents.charttime)", '=', 'strftime( %y , now )'], ['t1.c1', '<=', '5']]}
+----------
+TRUTH:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select outputevents.itemid, dense_rank() over ( order by count(*) desc ) as c1 from outputevents where datetime(outputevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') group by outputevents.itemid ) as t1 where t1.c1 <= 5 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'outputevents.itemid', 't1.itemid'], 'tab': ['d_items', 'outputevents'], 'cond': [["datetime(outputevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ['t1.c1', '<=', '5']]}
+----------
+
+give me the top three most common outputs during the last year?
+----------
+PREDS:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select outputevents.itemid, dense_rank() over ( order by count(*) desc ) as c1 from outputevents where datetime(outputevents.charttime) >= datetime(current_time,'-1 year') group by outputevents.itemid ) as t1 where t1.c1 <= 3 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'outputevents.itemid', 't1.itemid'], 'tab': ['d_items', 'outputevents'], 'cond': [['datetime(outputevents.charttime)', '>=', 'datetime(current_time, -1 year )'], ['t1.c1', '<=', '3']]}
+----------
+TRUTH:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select outputevents.itemid, dense_rank() over ( order by count(*) desc ) as c1 from outputevents where datetime(outputevents.charttime,'start of year') = datetime(current_time,'start of year','-1 year') group by outputevents.itemid ) as t1 where t1.c1 <= 3 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'outputevents.itemid', 't1.itemid'], 'tab': ['d_items', 'outputevents'], 'cond': [["datetime(outputevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['t1.c1', '<=', '3']]}
+----------
+
+in total, how much neo*po*chlorothiazide was prescribed to patient 54390 since 171 months ago?
+----------
+PREDS:
+select sum(prescriptions.dose_val_rx) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 54390 ) and prescriptions.drug = 'neo*po*chlorothiazide' and prescriptions.startdate >= datetime(current_time,'-171 months')
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '54390'], ['prescriptions.drug', '=', 'neo*po*chlorothiazide'], ['prescriptions.startdate', '>=', 'datetime(current_time, -171 months )']]}
+----------
+TRUTH:
+select sum(prescriptions.dose_val_rx) from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 54390 ) and prescriptions.drug = 'neo*po*chlorothiazide' and datetime(prescriptions.startdate) >= datetime(current_time,'-171 month')
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '54390'], ['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -171 month )'], ['prescriptions.drug', '=', 'neo*po*chlorothiazide']]}
+----------
+
+what was patient 42473's minimum value for eosinophils since 11/2104?
+----------
+PREDS:
+select min(labevents.valuenum) from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 42473 ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'eosinophils' ) and datetime(labevents.charttime) >= datetime('2104-11-01')
+Flattened: {'sel': 'min', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '42473'], ['d_labitems.label', '=', 'eosinophils'], ['datetime(labevents.charttime)', '>=', 'datetime( 2104-11-01 )']]}
+----------
+TRUTH:
+select min(labevents.valuenum) from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 42473 ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'eosinophils' ) and strftime('%y-%m',labevents.charttime) >= '2104-11'
+Flattened: {'sel': 'min', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '42473'], ['d_labitems.label', '=', 'eosinophils'], ["strftime('%y-%m',labevents.charttime)", '>=', '2104-11']]}
+----------
+
+has any microbiology test been done on the stem cell - blood culture of patient 3369 until 2100?
+----------
+PREDS:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 3369 ) and microbiologyevents.spec_type_desc = 'stem cell - blood culture' and datetime(microbiologyevents.charttime) <= datetime('2100-01-01')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '3369'], ['datetime(microbiologyevents.charttime)', '<=', 'datetime( 2100-01-01 )'], ['microbiologyevents.spec_type_desc', '=', 'stem cell - blood culture']]}
+----------
+TRUTH:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 3369 ) and microbiologyevents.spec_type_desc = 'stem cell - blood culture' and strftime('%y',microbiologyevents.charttime) <= '2100'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '3369'], ['microbiologyevents.spec_type_desc', '=', 'stem cell - blood culture'], ["strftime('%y',microbiologyevents.charttime)", '<=', '2100']]}
+----------
+
+when did patient 14836 receive anion gap test for the last time when they visited the hospital first time?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'anion gap' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14836 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '14836'], ['d_labitems.label', '=', 'anion gap']]}
+----------
+
+in 03/this year what was the last value of the pt-lab test of patient 32026?
+----------
+PREDS:
+select labevents.valuenum from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 32026 ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'pt' ) and strftime('%y-%m',labevents.charttime) = strftime('%y-%m','now') order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '32026'], ['d_labitems.label', '=', 'pt'], ["strftime('%y-%m',labevents.charttime)", '=', 'strftime( %y-%m , now )']]}
+----------
+TRUTH:
+select labevents.valuenum from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 32026 ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'pt' ) and datetime(labevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m',labevents.charttime) = '03' order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '32026'], ['d_labitems.label', '=', 'pt'], ["datetime(labevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m',labevents.charttime)", '=', '03']]}
+----------
+
+give me the drug that patient 14467 has been first prescribed in 09/this year.
+----------
+PREDS:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year') and strftime('%m',prescriptions.startdate) = '09' order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '14467'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year )'], ["strftime('%m',prescriptions.startdate)", '=', '09']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m',prescriptions.startdate) = '09' order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '14467'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m',prescriptions.startdate)", '=', '09']]}
+----------
+
+what were the three most commonly prescribed drugs for patients since 5 years ago who were also prescribed with mirapex at the same time?
+----------
+PREDS:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'mirapex' and datetime(prescriptions.startdate) >= datetime(current_time,'-5 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-5 year') ) as t2 on t1.subject_id = t2.subject_id where datetime(t1.startdate) = datetime(t2.startdate) group by t2.drug ) as t3 where t3.c1 <= 3
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -5 year )'], ['datetime(t1.startdate)', '=', 'datetime(t2.startdate)'], ['prescriptions.drug', '=', 'mirapex'], ['t3.c1', '<=', '3']]}
+----------
+TRUTH:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'mirapex' and datetime(prescriptions.startdate) >= datetime(current_time,'-5 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-5 year') ) as t2 on t1.subject_id = t2.subject_id where datetime(t1.startdate) = datetime(t2.startdate) group by t2.drug ) as t3 where t3.c1 <= 3
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -5 year )'], ['datetime(t1.startdate)', '=', 'datetime(t2.startdate)'], ['prescriptions.drug', '=', 'mirapex'], ['t3.c1', '<=', '3']]}
+----------
+
+tell me patient 25523's first measured arterial bp mean on 06/22/last year?
+----------
+PREDS:
+select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 25523 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp mean' and d_items.linksto = 'chartevents' ) and strftime('%Y-%m-%d', chartevents.charttime) = '2022-06-22' order by chartevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '25523'], ['d_items.label', '=', 'arterial bp mean'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+TRUTH:
+select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 25523 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp mean' and d_items.linksto = 'chartevents' ) and datetime(chartevents.charttime,'start of year') = datetime(current_time,'start of year','-1 year') and strftime('%m-%d',chartevents.charttime) = '06-22' order by chartevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '25523'], ['d_items.label', '=', 'arterial bp mean'], ['d_items.linksto', '=', 'chartevents'], ["datetime(chartevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ["strftime('%m-%d',chartevents.charttime)", '=', '06-22']]}
+----------
+
+when has patient 17398 visited the hospital for the first time until 2104?
+----------
+PREDS:
+select admissions.admittime from admissions where admissions.subject_id = 17398 and strftime('%Y', admissions.admittime) <= '2104' order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '17398']]}
+----------
+TRUTH:
+select admissions.admittime from admissions where admissions.subject_id = 17398 and strftime('%y',admissions.admittime) <= '2104' order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '17398'], ["strftime('%y',admissions.admittime)", '<=', '2104']]}
+----------
+
+when did patient 52898 receive a microbiology test for the last time in 08/this year?
+----------
+PREDS:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.subject_id = 52898 and strftime('%Y-%m', microbiologyevents.charttime) = strftime('%Y-%m', 'now', 'start of year', '+7 months') order by microbiologyevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['microbiologyevents.charttime'], 'tab': ['microbiologyevents'], 'cond': [['microbiologyevents.subject_id', '=', '52898']]}
+----------
+TRUTH:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 52898 ) and datetime(microbiologyevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m',microbiologyevents.charttime) = '08' order by microbiologyevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '52898'], ["datetime(microbiologyevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m',microbiologyevents.charttime)", '=', '08']]}
+----------
+
+what was the first dose of phenylephrine that patient 9983 was prescribed until 36 months ago.
+----------
+PREDS:
+select prescriptions.dose_val_rx from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 9983 ) and prescriptions.drug = 'phenylephrine' and prescriptions.startdate <= datetime('now', '-36 months') order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '9983'], ['prescriptions.drug', '=', 'phenylephrine'], ['prescriptions.startdate', '<=', 'datetime( now , -36 months )']]}
+----------
+TRUTH:
+select prescriptions.dose_val_rx from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 9983 ) and prescriptions.drug = 'phenylephrine' and datetime(prescriptions.startdate) <= datetime(current_time,'-36 month') order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '9983'], ['datetime(prescriptions.startdate)', '<=', 'datetime(current_time, -36 month )'], ['prescriptions.drug', '=', 'phenylephrine']]}
+----------
+
+has there been any microbiology test result for patient 76637 until 02/2102?
+----------
+PREDS:
+select count(*)>0 from MICROBIOLOGYEVENTS where MICROBIOLOGYEVENTS.SUBJECT_ID = 76637 and strftime('%Y', MICROBIOLOGYEVENTS.CHARTTIME) <= '2102'
+Flattened: {'sel': 'count', 'agg': [], 'tab': ['microbiologyevents'], 'cond': [['microbiologyevents.subject_id', '=', '76637']]}
+----------
+TRUTH:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 76637 ) and strftime('%y-%m',microbiologyevents.charttime) <= '2102-02'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '76637'], ["strftime('%y-%m',microbiologyevents.charttime)", '<=', '2102-02']]}
+----------
+
+has patient 95909 undergone any lab test in 10/this year?
+----------
+PREDS:
+select count(*)>0 from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 95909 ) and strftime('%Y',labevents.charttime) = strftime('%Y',current_time) and strftime('%m',labevents.charttime) = '10'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'labevents'], 'cond': [['admissions.subject_id', '=', '95909'], ["strftime('%m',labevents.charttime)", '=', '10'], ["strftime('%y',labevents.charttime)", '=', 'strftime( %y ,current_time)']]}
+----------
+TRUTH:
+select count(*)>0 from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 95909 ) and datetime(labevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m',labevents.charttime) = '10'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'labevents'], 'cond': [['admissions.subject_id', '=', '95909'], ["datetime(labevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m',labevents.charttime)", '=', '10']]}
+----------
+
+how much difference is patient 60136's glucose level second measured on the current hospital visit compared to the first value measured on the current hospital visit?
+----------
+PREDS:
+select ( select chartevents.valuenum from chartevents where chartevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60136 and admissions.dischtime is null ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'glucose' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 offset 1 ) - ( select chartevents.valuenum from chartevents where chartevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60136 and admissions.dischtime is null ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'glucose' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid'], 'tab': ['admissions', 'chartevents', 'd_items'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '60136'], ['d_items.label', '=', 'glucose'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+TRUTH:
+select ( select labevents.valuenum from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60136 and admissions.dischtime is null ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'glucose' ) order by labevents.charttime asc limit 1 offset 1 ) - ( select labevents.valuenum from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60136 and admissions.dischtime is null ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'glucose' ) order by labevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.valuenum'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'null'], ['admissions.subject_id', '=', '60136'], ['d_labitems.label', '=', 'glucose']]}
+----------
+
+has patient 27463 had any tpn d10.0 intake in 08/this year.
+----------
+PREDS:
+select count(*)>0 from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 27463 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'tpn d10.0' and d_items.linksto = 'inputevents_cv' ) and strftime('%m',inputevents_cv.charttime) = '08' and strftime('%Y',inputevents_cv.charttime) = strftime('%Y',current_time)
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '27463'], ['d_items.label', '=', 'tpn d10.0'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%m',inputevents_cv.charttime)", '=', '08'], ["strftime('%y',inputevents_cv.charttime)", '=', 'strftime( %y ,current_time)']]}
+----------
+TRUTH:
+select count(*)>0 from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 27463 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'tpn d10.0' and d_items.linksto = 'inputevents_cv' ) and datetime(inputevents_cv.charttime,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m',inputevents_cv.charttime) = '08'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '27463'], ['d_items.label', '=', 'tpn d10.0'], ['d_items.linksto', '=', 'inputevents_cv'], ["datetime(inputevents_cv.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m',inputevents_cv.charttime)", '=', '08']]}
+----------
+
+what patient ids received the diagnosis other anaphylactic react since 2105?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select admissions.subject_id from admissions where admissions.hadm_id in ( select diagnoses_icd.hadm_id from diagnoses_icd where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'other anaphylactic react' ) and strftime('%y',diagnoses_icd.charttime) >= '2105' )
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.hadm_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'other anaphylactic react'], ["strftime('%y',diagnoses_icd.charttime)", '>=', '2105']]}
+----------
+
+is there any microbiology test record for patient 14467's pleural fluid since 11/2103?
+----------
+PREDS:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) and microbiologyevents.spec_type_desc = 'pleural fluid' and datetime(microbiologyevents.charttime) >= datetime('2103-11-01')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '14467'], ['datetime(microbiologyevents.charttime)', '>=', 'datetime( 2103-11-01 )'], ['microbiologyevents.spec_type_desc', '=', 'pleural fluid']]}
+----------
+TRUTH:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) and microbiologyevents.spec_type_desc = 'pleural fluid' and strftime('%y-%m',microbiologyevents.charttime) >= '2103-11'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '14467'], ['microbiologyevents.spec_type_desc', '=', 'pleural fluid'], ["strftime('%y-%m',microbiologyevents.charttime)", '>=', '2103-11']]}
+----------
+
+how much is the total gastric oral gastric output of patient 11362 on last month/25?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 11362 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'gastric oral gastric' and d_items.linksto = 'outputevents' ) and datetime(outputevents.charttime,'start of month') = datetime(current_time,'start of month','-1 month') and strftime('%d',outputevents.charttime) = '25'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '11362'], ['d_items.label', '=', 'gastric oral gastric'], ['d_items.linksto', '=', 'outputevents'], ["datetime(outputevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )'], ["strftime('%d',outputevents.charttime)", '=', '25']]}
+----------
+
+what was patient 19175's arterial bp mean for the last time on last month/02?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19175 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'arterial bp mean' and d_items.linksto = 'chartevents' ) and datetime(chartevents.charttime,'start of month') = datetime(current_time,'start of month','-1 month') and strftime('%d',chartevents.charttime) = '02' order by chartevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '19175'], ['d_items.label', '=', 'arterial bp mean'], ['d_items.linksto', '=', 'chartevents'], ["datetime(chartevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )'], ["strftime('%d',chartevents.charttime)", '=', '02']]}
+----------
+
+tell me the amount of blood out lab patient 92846 had since 11/24/2104.
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 92846 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'blood out lab' and d_items.linksto = 'outputevents' ) and strftime('%y-%m-%d',outputevents.charttime) >= '2104-11-24'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '92846'], ['d_items.label', '=', 'blood out lab'], ['d_items.linksto', '=', 'outputevents'], ["strftime('%y-%m-%d',outputevents.charttime)", '>=', '2104-11-24']]}
+----------
+
+on the first icu visit, when was the first intake time of patient 24364?
+----------
+PREDS:
+select icustays.intime from icustays where icustays.subject_id = 24364 order by icustays.intime asc limit 1
+Flattened: {'sel': '', 'agg': ['icustays.intime'], 'tab': ['icustays'], 'cond': [['icustays.subject_id', '=', '24364']]}
+----------
+TRUTH:
+select inputevents_cv.charttime from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 24364 ) and icustays.outtime is not null order by icustays.intime asc limit 1 ) order by inputevents_cv.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'icustays.icustay_id', 'inputevents_cv.charttime'], 'tab': ['admissions', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '24364'], ['icustays.outtime', 'is', 'not null']]}
+----------
+
+what was the drug prescribed to patient 23070 for the first time via pr route during this month?
+----------
+PREDS:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 23070 ) and prescriptions.route = 'pr' and strftime('%Y-%m',prescriptions.startdate) = strftime('%Y-%m',current_date) order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '23070'], ['prescriptions.route', '=', 'pr'], ["strftime('%y-%m',prescriptions.startdate)", '=', 'strftime( %y-%m ,current_date)']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 23070 ) and prescriptions.route = 'pr' and datetime(prescriptions.startdate,'start of month') = datetime(current_time,'start of month','-0 month') order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '23070'], ["datetime(prescriptions.startdate,'start", 'of', 'month ) = datetime(current_time, start of month , -0 month )'], ['prescriptions.route', '=', 'pr']]}
+----------
+
+how much is cd3 %?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select distinct cost.cost from cost where cost.event_type = 'labevents' and cost.event_id in ( select labevents.row_id from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'cd3 %' ) )
+Flattened: {'sel': '', 'agg': ['cost.cost', 'd_labitems.itemid', 'labevents.row_id'], 'tab': ['cost', 'd_labitems', 'labevents'], 'cond': [['cost.event_type', '=', 'labevents'], ['d_labitems.label', '=', 'cd3 %']]}
+----------
+
+tell me whether patient 65124 got hemorrhage complic proc until 1 year ago?
+----------
+PREDS:
+select count(*)>0 from procedures_icd where procedures_icd.icd9_code = ( select d_icd_procedures.icd9_code from d_icd_procedures where d_icd_procedures.short_title = 'hemorrhage complic proc' ) and procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 65124 ) and datetime(procedures_icd.charttime,'start of year') <= datetime(current_time,'start of year','-1 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_icd_procedures.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '65124'], ['d_icd_procedures.short_title', '=', 'hemorrhage complic proc'], ["datetime(procedures_icd.charttime,'start", 'of', 'year ) <= datetime(current_time, start of year , -1 year )']]}
+----------
+TRUTH:
+select count(*)>0 from diagnoses_icd where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'hemorrhage complic proc' ) and diagnoses_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 65124 ) and datetime(diagnoses_icd.charttime) <= datetime(current_time,'-1 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_icd_diagnoses.icd9_code'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['admissions.subject_id', '=', '65124'], ['d_icd_diagnoses.short_title', '=', 'hemorrhage complic proc'], ['datetime(diagnoses_icd.charttime)', '<=', 'datetime(current_time, -1 year )']]}
+----------
+
+when was patient 6990 first prescribed for a drug in 07/last year?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select prescriptions.startdate from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 6990 ) and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-1 year') and strftime('%m',prescriptions.startdate) = '07' order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.startdate'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '6990'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ["strftime('%m',prescriptions.startdate)", '=', '07']]}
+----------
+
+has indinavir sulfate ever given to patient 10425 since 3 years ago?
+----------
+PREDS:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 10425 ) and prescriptions.drug = 'indinavir sulfate' and datetime(prescriptions.startdate) >= datetime(current_date, '-3 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '10425'], ['datetime(prescriptions.startdate)', '>=', 'datetime(current_date, -3 year )'], ['prescriptions.drug', '=', 'indinavir sulfate']]}
+----------
+TRUTH:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 10425 ) and prescriptions.drug = 'indinavir sulfate' and datetime(prescriptions.startdate) >= datetime(current_time,'-3 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '10425'], ['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -3 year )'], ['prescriptions.drug', '=', 'indinavir sulfate']]}
+----------
+
+what medication was first prescribed to patient 51177 via od route during the last month?
+----------
+PREDS:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 51177 ) and prescriptions.route = 'od' and datetime(prescriptions.startdate) >= datetime(current_time,'start of month','-1 month') order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '51177'], ['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, start of month , -1 month )'], ['prescriptions.route', '=', 'od']]}
+----------
+TRUTH:
+select prescriptions.drug from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 51177 ) and prescriptions.route = 'od' and datetime(prescriptions.startdate,'start of month') = datetime(current_time,'start of month','-1 month') order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '51177'], ["datetime(prescriptions.startdate,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )'], ['prescriptions.route', '=', 'od']]}
+----------
+
+until 2 years ago, what was the first hospital admission time for patient 52342?
+----------
+PREDS:
+select admissions.admittime from admissions where admissions.subject_id = 52342 and strftime('%Y', admissions.admittime) <= strftime('%Y', 'now', '-2 years') order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '52342']]}
+----------
+TRUTH:
+select admissions.admittime from admissions where admissions.subject_id = 52342 and datetime(admissions.admittime) <= datetime(current_time,'-2 year') order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '52342'], ['datetime(admissions.admittime)', '<=', 'datetime(current_time, -2 year )']]}
+----------
+
+calculate patient 14502's total drain out #1 pigtail output.
+----------
+PREDS:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14502 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'pigtail #1' and d_items.linksto = 'outputevents' )
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '14502'], ['d_items.label', '=', 'pigtail #1'], ['d_items.linksto', '=', 'outputevents']]}
+----------
+TRUTH:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14502 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'drain out #1 pigtail' and d_items.linksto = 'outputevents' )
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '14502'], ['d_items.label', '=', 'drain out #1 pigtail'], ['d_items.linksto', '=', 'outputevents']]}
+----------
+
+when did patient 19059 receive ptt lab test for the last time since 12 months ago?
+----------
+PREDS:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'ptt' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19059 ) and labevents.charttime >= datetime('now', '-12 months') order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '19059'], ['d_labitems.label', '=', 'ptt'], ['labevents.charttime', '>=', 'datetime( now , -12 months )']]}
+----------
+TRUTH:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'ptt' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19059 ) and datetime(labevents.charttime) >= datetime(current_time,'-12 month') order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '19059'], ['d_labitems.label', '=', 'ptt'], ['datetime(labevents.charttime)', '>=', 'datetime(current_time, -12 month )']]}
+----------
+
+what lab test did patient 8773 receive for the first time on their first hospital visit?
+----------
+PREDS:
+select d_labitems.label from d_labitems where d_labitems.itemid in ( select labevents.itemid from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 8773 order by admissions.admittime asc limit 1 ) order by labevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.label', 'labevents.itemid'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '8773']]}
+----------
+TRUTH:
+select d_labitems.label from d_labitems where d_labitems.itemid in ( select labevents.itemid from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 8773 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) order by labevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.label', 'labevents.itemid'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '8773']]}
+----------
+
+for patients that were prescribed with amoxicillin-clavulanic acid, what are the five most commonly prescribed medications at the same time, since 1 year ago?
+----------
+PREDS:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'amoxicillin-clavulanic acid' and datetime(prescriptions.startdate) >= datetime(current_time,'-1 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-1 year') ) as t2 on t1.subject_id = t2.subject_id where t1.startdate = t2.startdate and t1.hadm_id = t2.hadm_id group by t2.drug ) as t3 where t3.c1 <= 5
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -1 year )'], ['prescriptions.drug', '=', 'amoxicillin-clavulanic acid'], ['t1.hadm_id', '=', 't2.hadm_id'], ['t1.startdate', '=', 't2.startdate'], ['t3.c1', '<=', '5']]}
+----------
+TRUTH:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'amoxicillin-clavulanic acid' and datetime(prescriptions.startdate) >= datetime(current_time,'-1 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-1 year') ) as t2 on t1.subject_id = t2.subject_id where datetime(t1.startdate) = datetime(t2.startdate) group by t2.drug ) as t3 where t3.c1 <= 5
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -1 year )'], ['datetime(t1.startdate)', '=', 'datetime(t2.startdate)'], ['prescriptions.drug', '=', 'amoxicillin-clavulanic acid'], ['t3.c1', '<=', '5']]}
+----------
+
+what is the procedure they gave to patient 90369 two or more times until 05/2103?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, count( procedures_icd.charttime ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 90369 ) and strftime('%y-%m',procedures_icd.charttime) <= '2103-05' group by procedures_icd.icd9_code ) as t1 where t1.c1 >= 2 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.charttime', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '90369'], ["strftime('%y-%m',procedures_icd.charttime)", '<=', '2103-05'], ['t1.c1', '>=', '2']]}
+----------
+
+what was the last dose of lisinopril that patient 66015 was prescribed this month.
+----------
+PREDS:
+select prescriptions.dose_val_rx from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 66015 ) and prescriptions.drug = 'lisinopril' and datetime(prescriptions.startdate,'start of month') = datetime(current_time,'start of month') order by prescriptions.startdate desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '66015'], ["datetime(prescriptions.startdate,'start", 'of', 'month ) = datetime(current_time, start of month )'], ['prescriptions.drug', '=', 'lisinopril']]}
+----------
+TRUTH:
+select prescriptions.dose_val_rx from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 66015 ) and prescriptions.drug = 'lisinopril' and datetime(prescriptions.startdate,'start of month') = datetime(current_time,'start of month','-0 month') order by prescriptions.startdate desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.dose_val_rx'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '66015'], ["datetime(prescriptions.startdate,'start", 'of', 'month ) = datetime(current_time, start of month , -0 month )'], ['prescriptions.drug', '=', 'lisinopril']]}
+----------
+
+count the number of hospital visits that patient 26350 went to last year.
+----------
+PREDS:
+select count(distinct admissions.hadm_id) from admissions where admissions.subject_id = 26350 and strftime('%Y', admissions.admittime) = '2022'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '26350']]}
+----------
+TRUTH:
+select count( distinct admissions.hadm_id ) from admissions where admissions.subject_id = 26350 and datetime(admissions.admittime,'start of year') = datetime(current_time,'start of year','-1 year')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '26350'], ["datetime(admissions.admittime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )']]}
+----------
+
+when was patient 41816 prescribed for a medication for the first time during their first hospital visit?
+----------
+PREDS:
+select prescriptions.startdate from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 41816 order by admissions.admittime asc limit 1 ) order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.startdate'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '41816']]}
+----------
+TRUTH:
+select prescriptions.startdate from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 41816 and admissions.dischtime is not null order by admissions.admittime asc limit 1 ) order by prescriptions.startdate asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'prescriptions.startdate'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '41816']]}
+----------
+
+among patients that were prescribed with mesalamine dr, what are the five most commonly prescribed drugs at the same time, since 2 years ago?
+----------
+PREDS:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'mesalamine dr' and datetime(prescriptions.startdate) >= datetime(current_time,'-2 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate, admissions.hadm_id from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-2 year') ) as t2 on t1.subject_id = t2.subject_id where t1.startdate = t2.startdate and t1.hadm_id = t2.hadm_id group by t2.drug ) as t3 where t3.c1 <= 5
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -2 year )'], ['prescriptions.drug', '=', 'mesalamine dr'], ['t1.hadm_id', '=', 't2.hadm_id'], ['t1.startdate', '=', 't2.startdate'], ['t3.c1', '<=', '5']]}
+----------
+TRUTH:
+select t3.drug from ( select t2.drug, dense_rank() over ( order by count(*) desc ) as c1 from ( select admissions.subject_id, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where prescriptions.drug = 'mesalamine dr' and datetime(prescriptions.startdate) >= datetime(current_time,'-2 year') ) as t1 join ( select admissions.subject_id, prescriptions.drug, prescriptions.startdate from prescriptions join admissions on prescriptions.hadm_id = admissions.hadm_id where datetime(prescriptions.startdate) >= datetime(current_time,'-2 year') ) as t2 on t1.subject_id = t2.subject_id where datetime(t1.startdate) = datetime(t2.startdate) group by t2.drug ) as t3 where t3.c1 <= 5
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'prescriptions.drug', 'prescriptions.startdate', 't2.drug', 't3.drug'], 'tab': ['admissions', 'prescriptions'], 'cond': [['datetime(prescriptions.startdate)', '>=', 'datetime(current_time, -2 year )'], ['datetime(t1.startdate)', '=', 'datetime(t2.startdate)'], ['prescriptions.drug', '=', 'mesalamine dr'], ['t3.c1', '<=', '5']]}
+----------
+
+retrieve the patient ids who have been diagnosed with injury to facial nerve since 4 years ago.
+----------
+PREDS:
+select admissions.subject_id from admissions where admissions.hadm_id in ( select diagnoses_icd.hadm_id from diagnoses_icd where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.long_title = 'injury to facial nerve' ) and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year') )
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.hadm_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.long_title', '=', 'injury to facial nerve'], ['datetime(diagnoses_icd.charttime)', '>=', 'datetime(current_time, -4 year )']]}
+----------
+TRUTH:
+select admissions.subject_id from admissions where admissions.hadm_id in ( select diagnoses_icd.hadm_id from diagnoses_icd where diagnoses_icd.icd9_code = ( select d_icd_diagnoses.icd9_code from d_icd_diagnoses where d_icd_diagnoses.short_title = 'injury to facial nerve' ) and datetime(diagnoses_icd.charttime) >= datetime(current_time,'-4 year') )
+Flattened: {'sel': '', 'agg': ['admissions.subject_id', 'd_icd_diagnoses.icd9_code', 'diagnoses_icd.hadm_id'], 'tab': ['admissions', 'd_icd_diagnoses', 'diagnoses_icd'], 'cond': [['d_icd_diagnoses.short_title', '=', 'injury to facial nerve'], ['datetime(diagnoses_icd.charttime)', '>=', 'datetime(current_time, -4 year )']]}
+----------
+
+how many times has patient 81783 visited hospital since 2104?
+----------
+PREDS:
+select count(distinct admissions.hadm_id) from admissions where admissions.subject_id = 81783 and datetime(admissions.admittime) >= datetime('2104-01-01')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '81783'], ['datetime(admissions.admittime)', '>=', 'datetime( 2104-01-01 )']]}
+----------
+TRUTH:
+select count( distinct admissions.hadm_id ) from admissions where admissions.subject_id = 81783 and strftime('%y',admissions.admittime) >= '2104'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '81783'], ["strftime('%y',admissions.admittime)", '>=', '2104']]}
+----------
+
+how long was patient 24762's first hospital stay?
+----------
+PREDS:
+select strftime('%j',admissions.dischtime) - strftime('%j',admissions.admittime) from admissions where admissions.subject_id = 24762 order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime', 'admissions.dischtime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '24762']]}
+----------
+TRUTH:
+select strftime('%j',admissions.dischtime) - strftime('%j',admissions.admittime) from admissions where admissions.subject_id = 24762 and admissions.dischtime is not null order by admissions.admittime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.admittime', 'admissions.dischtime'], 'tab': ['admissions'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '24762']]}
+----------
+
+is there any record of the microbiology test until 148 months ago for patient 12797?
+----------
+PREDS:
+select microbiologyevents.charttime from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12797 ) and datetime(microbiologyevents.charttime) <= datetime(current_time,'-148 month')
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'microbiologyevents.charttime'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '12797'], ['datetime(microbiologyevents.charttime)', '<=', 'datetime(current_time, -148 month )']]}
+----------
+TRUTH:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 12797 ) and datetime(microbiologyevents.charttime) <= datetime(current_time,'-148 month')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '12797'], ['datetime(microbiologyevents.charttime)', '<=', 'datetime(current_time, -148 month )']]}
+----------
+
+give me patient 14467's total oral gastric output amount on 12/02/this year.
+----------
+PREDS:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'gastric oral gastric' and d_items.linksto = 'outputevents' ) and strftime('%m-%d',outputevents.charttime) = '12-02' and strftime('%Y',outputevents.charttime) = strftime('%Y',current_time)
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '14467'], ['d_items.label', '=', 'gastric oral gastric'], ['d_items.linksto', '=', 'outputevents'], ["strftime('%m-%d',outputevents.charttime)", '=', '12-02'], ["strftime('%y',outputevents.charttime)", '=', 'strftime( %y ,current_time)']]}
+----------
+TRUTH:
+select sum(outputevents.value) from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14467 ) ) and outputevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'oral gastric' and d_items.linksto = 'outputevents' ) and datetime(outputevents.charttime,'start of year') = datetime(current_time,'start of year','-0 year') and strftime('%m-%d',outputevents.charttime) = '12-02'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'outputevents.value'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '14467'], ['d_items.label', '=', 'oral gastric'], ['d_items.linksto', '=', 'outputevents'], ["datetime(outputevents.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -0 year )'], ["strftime('%m-%d',outputevents.charttime)", '=', '12-02']]}
+----------
+
+did patient 52456 have any laboratory tests the previous month?
+----------
+PREDS:
+select count(*)>0 from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 52456 ) and datetime(labevents.charttime) >= datetime(current_time,'start of month','-1 month') and datetime(labevents.charttime) < datetime(current_time,'start of month')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'labevents'], 'cond': [['admissions.subject_id', '=', '52456'], ['datetime(labevents.charttime)', '<', 'datetime(current_time, start of month )'], ['datetime(labevents.charttime)', '>=', 'datetime(current_time, start of month , -1 month )']]}
+----------
+TRUTH:
+select count(*)>0 from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 52456 ) and datetime(labevents.charttime,'start of month') = datetime(current_time,'start of month','-1 month')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'labevents'], 'cond': [['admissions.subject_id', '=', '52456'], ["datetime(labevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )']]}
+----------
+
+what are the differences in weight of patient 1798 second measured on the last hospital visit compared to the first value measured on the last hospital visit?
+----------
+PREDS:
+select ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1798 order by admissions.admittime desc limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'admit wt' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 offset 1 ) - ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1798 order by admissions.admittime desc limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'admit wt' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.subject_id', '=', '1798'], ['d_items.label', '=', 'admit wt'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+TRUTH:
+select ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1798 and admissions.dischtime is not null order by admissions.admittime desc limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'admit wt' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 offset 1 ) - ( select chartevents.valuenum from chartevents where chartevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 1798 and admissions.dischtime is not null order by admissions.admittime desc limit 1 ) ) and chartevents.itemid in ( select d_items.itemid from d_items where d_items.label = 'admit wt' and d_items.linksto = 'chartevents' ) order by chartevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'chartevents.valuenum', 'd_items.itemid', 'icustays.icustay_id'], 'tab': ['admissions', 'chartevents', 'd_items', 'icustays'], 'cond': [['admissions.dischtime', 'is', 'not null'], ['admissions.subject_id', '=', '1798'], ['d_items.label', '=', 'admit wt'], ['d_items.linksto', '=', 'chartevents']]}
+----------
+
+had patient 32804 been given a methemoglobin test since 2104?
+----------
+PREDS:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'methemoglobin' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 32804 ) and strftime('%Y',labevents.charttime) >= '2104' order by labevents.charttime desc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '32804'], ['d_labitems.label', '=', 'methemoglobin'], ["strftime('%y',labevents.charttime)", '>=', '2104']]}
+----------
+TRUTH:
+select count(*)>0 from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'methemoglobin' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 32804 ) and strftime('%y',labevents.charttime) >= '2104'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id', 'd_labitems.itemid'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '32804'], ['d_labitems.label', '=', 'methemoglobin'], ["strftime('%y',labevents.charttime)", '>=', '2104']]}
+----------
+
+what was the name of that output that patient 19412 first had on this month/28?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select d_items.label from d_items where d_items.itemid in ( select outputevents.itemid from outputevents where outputevents.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19412 ) ) and datetime(outputevents.charttime,'start of month') = datetime(current_time,'start of month','-0 month') and strftime('%d',outputevents.charttime) = '28' order by outputevents.charttime asc limit 1 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_items.label', 'icustays.icustay_id', 'outputevents.itemid'], 'tab': ['admissions', 'd_items', 'icustays', 'outputevents'], 'cond': [['admissions.subject_id', '=', '19412'], ["datetime(outputevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -0 month )'], ["strftime('%d',outputevents.charttime)", '=', '28']]}
+----------
+
+what was the first time patient 30987 was discharged from the hospital since 2104?
+----------
+PREDS:
+select admissions.dischtime from admissions where admissions.subject_id = 30987 and datetime(admissions.dischtime) >= datetime('2104-01-01') order by admissions.dischtime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.dischtime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '30987'], ['datetime(admissions.dischtime)', '>=', 'datetime( 2104-01-01 )']]}
+----------
+TRUTH:
+select admissions.dischtime from admissions where admissions.subject_id = 30987 and strftime('%y',admissions.dischtime) >= '2104' order by admissions.dischtime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.dischtime'], 'tab': ['admissions'], 'cond': [['admissions.subject_id', '=', '30987'], ["strftime('%y',admissions.dischtime)", '>=', '2104']]}
+----------
+
+give me the top five most frequent procedures last year?
+----------
+PREDS:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, dense_rank() over ( order by count(*) desc ) as c1 from procedures_icd where strftime('%Y',procedures_icd.charttime) = '2022' group by procedures_icd.icd9_code ) as t1 where t1.c1 <= 5 )
+Flattened: {'sel': '', 'agg': ['d_icd_procedures.short_title', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['d_icd_procedures', 'procedures_icd'], 'cond': [["strftime('%y',procedures_icd.charttime)", '=', '2022'], ['t1.c1', '<=', '5']]}
+----------
+TRUTH:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, dense_rank() over ( order by count(*) desc ) as c1 from procedures_icd where datetime(procedures_icd.charttime,'start of year') = datetime(current_time,'start of year','-1 year') group by procedures_icd.icd9_code ) as t1 where t1.c1 <= 5 )
+Flattened: {'sel': '', 'agg': ['d_icd_procedures.short_title', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['d_icd_procedures', 'procedures_icd'], 'cond': [["datetime(procedures_icd.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['t1.c1', '<=', '5']]}
+----------
+
+what is the total amount of tpn d12.0 intake that patient 21977 received until 06/01/2101?
+----------
+PREDS:
+select sum(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 21977 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'tpn d12.0' and d_items.linksto = 'inputevents_cv' ) and datetime(inputevents_cv.charttime) <= datetime('2101-06-01')
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '21977'], ['d_items.label', '=', 'tpn d12.0'], ['d_items.linksto', '=', 'inputevents_cv'], ['datetime(inputevents_cv.charttime)', '<=', 'datetime( 2101-06-01 )']]}
+----------
+TRUTH:
+select sum(inputevents_cv.amount) from inputevents_cv where inputevents_cv.icustay_id in ( select icustays.icustay_id from icustays where icustays.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 21977 ) ) and inputevents_cv.itemid in ( select d_items.itemid from d_items where d_items.label = 'tpn d12.0' and d_items.linksto = 'inputevents_cv' ) and strftime('%y-%m-%d',inputevents_cv.charttime) <= '2101-06-01'
+Flattened: {'sel': 'sum', 'agg': ['admissions.hadm_id', 'd_items.itemid', 'icustays.icustay_id', 'inputevents_cv.amount'], 'tab': ['admissions', 'd_items', 'icustays', 'inputevents_cv'], 'cond': [['admissions.subject_id', '=', '21977'], ['d_items.label', '=', 'tpn d12.0'], ['d_items.linksto', '=', 'inputevents_cv'], ["strftime('%y-%m-%d',inputevents_cv.charttime)", '<=', '2101-06-01']]}
+----------
+
+list the top four most frequent intake events last year?
+----------
+PREDS:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select inputevents_cv.itemid, dense_rank() over ( order by count(*) desc ) as c1 from inputevents_cv where strftime('%Y',inputevents_cv.charttime) = '2103' group by inputevents_cv.itemid ) as t1 where t1.c1 <= 4 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'inputevents_cv.itemid', 't1.itemid'], 'tab': ['d_items', 'inputevents_cv'], 'cond': [["strftime('%y',inputevents_cv.charttime)", '=', '2103'], ['t1.c1', '<=', '4']]}
+----------
+TRUTH:
+select d_items.label from d_items where d_items.itemid in ( select t1.itemid from ( select inputevents_cv.itemid, dense_rank() over ( order by count(*) desc ) as c1 from inputevents_cv where datetime(inputevents_cv.charttime,'start of year') = datetime(current_time,'start of year','-1 year') group by inputevents_cv.itemid ) as t1 where t1.c1 <= 4 )
+Flattened: {'sel': '', 'agg': ['d_items.label', 'inputevents_cv.itemid', 't1.itemid'], 'tab': ['d_items', 'inputevents_cv'], 'cond': [["datetime(inputevents_cv.charttime,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ['t1.c1', '<=', '4']]}
+----------
+
+has patient 73913 had any prescription for any medicines in 05/last year?
+----------
+PREDS:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 73913 ) and strftime('%Y-%m',prescriptions.startdate) = '2105-05'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '73913'], ["strftime('%y-%m',prescriptions.startdate)", '=', '2105-05']]}
+----------
+TRUTH:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 73913 ) and datetime(prescriptions.startdate,'start of year') = datetime(current_time,'start of year','-1 year') and strftime('%m',prescriptions.startdate) = '05'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '73913'], ["datetime(prescriptions.startdate,'start", 'of', 'year ) = datetime(current_time, start of year , -1 year )'], ["strftime('%m',prescriptions.startdate)", '=', '05']]}
+----------
+
+what's the name of the procedure that patient 14397 got two times in this month?
+----------
+PREDS:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, count( procedures_icd.charttime ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14397 ) and strftime('%Y-%m',procedures_icd.charttime) = strftime('%Y-%m',current_date) group by procedures_icd.icd9_code ) as t1 where t1.c1 = 2 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.charttime', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '14397'], ["strftime('%y-%m',procedures_icd.charttime)", '=', 'strftime( %y-%m ,current_date)'], ['t1.c1', '=', '2']]}
+----------
+TRUTH:
+select d_icd_procedures.short_title from d_icd_procedures where d_icd_procedures.icd9_code in ( select t1.icd9_code from ( select procedures_icd.icd9_code, count( procedures_icd.charttime ) as c1 from procedures_icd where procedures_icd.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 14397 ) and datetime(procedures_icd.charttime,'start of month') = datetime(current_time,'start of month','-0 month') group by procedures_icd.icd9_code ) as t1 where t1.c1 = 2 )
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_icd_procedures.short_title', 'procedures_icd.charttime', 'procedures_icd.icd9_code', 't1.icd9_code'], 'tab': ['admissions', 'd_icd_procedures', 'procedures_icd'], 'cond': [['admissions.subject_id', '=', '14397'], ["datetime(procedures_icd.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -0 month )'], ['t1.c1', '=', '2']]}
+----------
+
+since 03/2103, when did patient 60763 first receive a ptt test?
+----------
+PREDS:
+select labevents.charttime from labevents where labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60763 ) and labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'ptt' ) and strftime('%Y', labevents.charttime) >= '2103' order by labevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '60763'], ['d_labitems.label', '=', 'ptt']]}
+----------
+TRUTH:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'ptt' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 60763 ) and strftime('%y-%m',labevents.charttime) >= '2103-03' order by labevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '60763'], ['d_labitems.label', '=', 'ptt'], ["strftime('%y-%m',labevents.charttime)", '>=', '2103-03']]}
+----------
+
+has any urine microbiology test been done to patient 48774 in 2105?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select count(*)>0 from microbiologyevents where microbiologyevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 48774 ) and microbiologyevents.spec_type_desc = 'urine' and strftime('%y',microbiologyevents.charttime) = '2105'
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'microbiologyevents'], 'cond': [['admissions.subject_id', '=', '48774'], ['microbiologyevents.spec_type_desc', '=', 'urine'], ["strftime('%y',microbiologyevents.charttime)", '=', '2105']]}
+----------
+
+what was patient 83901's first mcv lab test time a month before?
+----------
+PREDS:
+None
+Flattened: {'sel': '', 'agg': [], 'tab': [], 'cond': [['test."nothing"', '=', 'none']]}
+----------
+TRUTH:
+select labevents.charttime from labevents where labevents.itemid in ( select d_labitems.itemid from d_labitems where d_labitems.label = 'mcv' ) and labevents.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 83901 ) and datetime(labevents.charttime,'start of month') = datetime(current_time,'start of month','-1 month') order by labevents.charttime asc limit 1
+Flattened: {'sel': '', 'agg': ['admissions.hadm_id', 'd_labitems.itemid', 'labevents.charttime'], 'tab': ['admissions', 'd_labitems', 'labevents'], 'cond': [['admissions.subject_id', '=', '83901'], ['d_labitems.label', '=', 'mcv'], ["datetime(labevents.charttime,'start", 'of', 'month ) = datetime(current_time, start of month , -1 month )']]}
+----------
+
+has patient 19412 been prescribed any prescription drugs this month?
+----------
+PREDS:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19412 ) and strftime('%Y-%m',prescriptions.startdate) = strftime('%Y-%m',current_date)
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '19412'], ["strftime('%y-%m',prescriptions.startdate)", '=', 'strftime( %y-%m ,current_date)']]}
+----------
+TRUTH:
+select count(*)>0 from prescriptions where prescriptions.hadm_id in ( select admissions.hadm_id from admissions where admissions.subject_id = 19412 ) and datetime(prescriptions.startdate,'start of month') = datetime(current_time,'start of month','-0 month')
+Flattened: {'sel': 'count', 'agg': ['admissions.hadm_id'], 'tab': ['admissions', 'prescriptions'], 'cond': [['admissions.subject_id', '=', '19412'], ["datetime(prescriptions.startdate,'start", 'of', 'month ) = datetime(current_time, start of month , -0 month )']]}
+----------
+
+Logical Form Accuracy: {'total': 0.5572519083969466, 'agg_op': 0.9732824427480916, 'agg_col': 0.8740458015267175, 'table': 0.8931297709923665, 'condition_column_operation': 0.6106870229007634, 'condition_value': 0.5725190839694656}
+
+==========
+
+
+
+✓ Metrics saved to results\ehrsql\run-11\metrics.json

@@ -6,7 +6,7 @@ from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_er
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-from schema import EntityExtraction, TagAssignment, SqlGeneration, SqlGenerationOptional
+from schema import EntityExtraction, TagAssignment, SqlGeneration, SqlGenerationOptional, PromptDecomposition
 
 from langchain_community.callbacks import get_openai_callback
 from langchain_community.utilities.sql_database import SQLDatabase
@@ -43,15 +43,55 @@ class RAGtoSQL:
         }
 
     def generate_sql(self, question: str) -> Tuple[str, List]:
-        retrieved_cases = self.retriever.retrieve(question, top_k=self.config.top_k)
-
+        # Retrieve cases from main question
+        retrieved_cases = self.retriever.retrieve(
+            question, 
+            top_k=self.config.top_k, 
+            hybrid=self.config.hybrid_retrieval
+        )
+        
+        # If decomposition enabled, retrieve additional cases from subquestions
+        if self.config.prompt_decomposition:
+            subquestions = self._decompose_prompt(question)
+            
+            # Format with subquestion grouping
+            formatted_sections = []
+            for i, subq in enumerate(subquestions, 1):
+                sub_cases = self.retriever.retrieve(
+                    subq, 
+                    top_k=self.config.top_k,
+                    hybrid=self.config.hybrid_retrieval
+                )
+                retrieved_cases.extend(sub_cases)
+                
+                # Format examples for this subquestion
+                subq_examples = "\n".join([
+                    f"  - Question: {doc.page_content}\n"
+                    f"    SQL: {doc.metadata.get('sql_query', 'N/A')}"
+                    for doc in sub_cases[:3]
+                    if doc.metadata.get('sql_query')
+                ])
+                formatted_sections.append(f"## Sub-question {i}: {subq}\n{subq_examples}")
+            
+            formatted_examples = "\n\n".join(formatted_sections)
+            
+            # Deduplicate retrieved_cases
+            seen = set()
+            unique_cases = []
+            for doc in retrieved_cases:
+                if doc.page_content not in seen:
+                    seen.add(doc.page_content)
+                    unique_cases.append(doc)
+            retrieved_cases = unique_cases[:self.config.top_k]
+        else:
+            # Standard flat formatting
+            formatted_examples = "\n\n".join(
+                f"Query: {doc.page_content}\nSQL: {doc.metadata['sql_query']}" 
+                for doc in retrieved_cases
+            )
+        
         if self.config.brittle_retrieval:
             retrieved_cases = drop_cases(retrieved_cases)
-
-        formatted_examples = "\n\n".join(
-            f"Query: {doc.page_content}\nSQL: {doc.metadata['sql_query']}" 
-            for doc in retrieved_cases
-        )
         
         messages = [
             ("system", self._get_prompt("case_revising")),
@@ -82,6 +122,33 @@ class RAGtoSQL:
             getattr(prompt_factory, f"{self.config.dataset}_prompts"),
             prompt_type
         )
+    
+    def _decompose_prompt(self, question: str) -> List[str]:
+        llm = self.generator.client.bind_tools([PromptDecomposition], tool_choice="PromptDecomposition", strict=True)
+        
+        messages = [
+            ("system", self._get_prompt("prompt_decomposition")),
+            ("user", f"# Question: {question}"),
+        ]
+
+        try: 
+            response = llm.invoke(messages)
+        except Exception as e:
+            raise e
+        
+        tool_calls = getattr(response, "tool_calls", None)
+        if tool_calls:
+            try:
+                args = tool_calls[0].get("args", {})
+                decomposed_prompts = args.get("decomposed_prompts", [])
+                decomposed_prompts.append(question)
+                return decomposed_prompts
+
+            except (KeyError, IndexError, TypeError):
+                pass
+        
+        # Fallback: rejection (parsing failed or invalid response)
+        return [question]
 
 
 class CBRtoSQL(RAGtoSQL):
@@ -355,6 +422,13 @@ class CBRtoSQL(RAGtoSQL):
         
         # Fallback: rejection (parsing failed or invalid response)
         return None
+    
+    def _mask_question(self, question: str, entities: List[Dict]) -> str:
+        """Replace entity values with tags"""
+        masked = question
+        for entity in sorted(entities, key=lambda x: len(x["original"]), reverse=True):
+            masked = masked.replace(entity["original"], f"[{entity['label']}]")
+        return masked
 
     def _construct_and_fill_sql(
         self, 
@@ -363,16 +437,60 @@ class CBRtoSQL(RAGtoSQL):
         entities: List[Dict]
     ) -> Tuple[str | None, List]:
         """Generate SQL directly from masked question with entity mappings in ONE call"""
-        retrieved_cases = self.retriever.retrieve(masked_question, top_k=self.config.top_k)
+        
+        # Retrieve cases from masked question
+        retrieved_cases = self.retriever.retrieve(
+            masked_question, 
+            top_k=self.config.top_k, 
+            hybrid=self.config.hybrid_retrieval
+        )
+        
+        # If decomposition enabled, retrieve additional cases from subquestions
+        if self.config.prompt_decomposition:
+            subquestions = self._decompose_prompt(original_question)
+            
+            # Format with subquestion grouping
+            formatted_sections = []
+            for i, subq in enumerate(subquestions, 1):
+                sub_cases = self.retriever.retrieve(
+                    subq, 
+                    top_k=self.config.top_k, 
+                    hybrid=self.config.hybrid_retrieval
+                )
+                retrieved_cases.extend(sub_cases)
+                
+                # Format examples for this subquestion
+                subq_examples = "\n".join([
+                    f"  - Question: {doc.metadata.get('case', 'N/A')}\n"
+                    f"    Masked: {doc.page_content}\n"
+                    f"    SQL: {doc.metadata.get('sql_query', 'Unanswerable question!')}"
+                    for doc in sub_cases[:3]
+                    if doc.metadata.get('case') or doc.metadata.get('sql_query')
+                ])
+                formatted_sections.append(f"## Sub-question {i}: {subq}\n{subq_examples}")
+            
+            formatted_examples = "\n\n".join(formatted_sections)
+            
+            # Deduplicate retrieved_cases
+            seen = set()
+            unique_cases = []
+            for doc in retrieved_cases:
+                if doc.page_content not in seen:
+                    seen.add(doc.page_content)
+                    unique_cases.append(doc)
+            retrieved_cases = unique_cases[:self.config.top_k]
+        else:
+            # Standard flat formatting
+            formatted_examples = "\n---\n".join(
+                f"* Example question: {doc.metadata['case']}\n"
+                f"* Masked question form: {doc.page_content}\n"
+                f"* Example SQL query: {doc.metadata.get('sql_query', 'Unanswerable question!')}" 
+                for doc in retrieved_cases 
+                if doc.metadata.get('case') or doc.metadata.get('sql_query')
+            )
         
         if self.config.brittle_retrieval:
-            retrieved_cases = drop_cases(retrieved_cases)
-
-        formatted_examples = "\n---\n".join(
-            f"* Example question: {doc.metadata['case']}\n* Masked question form: {doc.page_content}\n*Example SQL query: {doc.metadata['sql_query']}" 
-            for doc in retrieved_cases 
-            if doc.metadata.get('case') or doc.metadata.get('sql_query')
-        )
+            retrieved_cases = drop_cases(retrieved_cases, top_k=5*len(subquestions))
         
         # Format entity mappings
         entity_info = "\n---\n".join([
@@ -385,22 +503,25 @@ class CBRtoSQL(RAGtoSQL):
         # # Bind tool call structure 
         # if self.config.dataset == "ehrsql":
         #     llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
+        # elif self.config.dataset == "ehrsql24":
+        #     llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
         # else:
         #     llm = self.generator.client.bind_tools([SqlGeneration], tool_choice="SqlGeneration", strict=True)
 
         messages = [
             ("system", self._get_prompt("sql_generation")),
             ("user", f"# Original Question: {original_question}"),
-            ("user", f"# Masked Question (with entity spans extracted): {original_question}"),
+            ("user", f"# Masked Question (with entity spans extracted): {masked_question}"),
             ("user", f"# Retrieved Examples:\n\n{formatted_examples}"),
             ("user", f"# Entity Mappings:\n\n{entity_info}"),
             ("user", f"# Schema:\n\n{self.sql_db.get_table_info()}"),
             ("user", "# Adapted SQL query:"),
         ]
-        
+
         try: 
             sql_query = self.generator.generate(messages) 
             # response = llm.invoke(messages)
+            # print(response)
             # sql_query = response.tool_calls[0]["args"]["sql_query"]
         except Exception as e:
             if is_content_filter_error(e) and self.fallback_generator:
@@ -410,9 +531,33 @@ class CBRtoSQL(RAGtoSQL):
 
         return remove_sql_wrapper(sql_query), retrieved_cases
     
-    def _mask_question(self, question: str, entities: List[Dict]) -> str:
-        """Replace entity values with tags"""
-        masked = question
-        for entity in sorted(entities, key=lambda x: len(x["original"]), reverse=True):
-            masked = masked.replace(entity["original"], f"[{entity['label']}]")
-        return masked
+    def _decompose_prompt(self, question: str) -> List[str]:
+        llm = self.generator.client.bind_tools([PromptDecomposition], tool_choice="PromptDecomposition", strict=True)
+        
+        messages = [
+            ("system", self._get_prompt("prompt_decomposition")),
+            ("user", f"# Question: {question}"),
+        ]
+
+        try: 
+            response = llm.invoke(messages)
+        except Exception as e:
+            if is_content_filter_error(e) and self.fallback_generator:
+                llm = self.fallback_generator.client.bind_tools([PromptDecomposition], tool_choice="PromptDecomposition", strict=True)
+                response = llm.invoke(messages)
+            else:
+                raise
+        
+        tool_calls = getattr(response, "tool_calls", None)
+        if tool_calls:
+            try:
+                args = tool_calls[0].get("args", {})
+                decomposed_prompts = args.get("decomposed_prompts", [])
+                decomposed_prompts.append(question)
+                return decomposed_prompts
+
+            except (KeyError, IndexError, TypeError):
+                pass
+        
+        # Fallback: rejection (parsing failed or invalid response)
+        return [question]

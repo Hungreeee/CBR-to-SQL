@@ -22,26 +22,26 @@ from src.configs import RAGConfig
 from src.generator import AzureAIAgent, OpenAIAgent
 from src.rag_pipeline import RAGtoSQL, CBRtoSQL
 from src.retriever import QdrantRetriever
-from src.metrics.ehrsql_metrics import logic_form_accuracy, execution_accuracy, compute_rs_variants
+from src.metrics.ehrsql24_metrics import logic_form_accuracy, execution_accuracy, compute_rs_variants
 
 from langchain_community.utilities.sql_database import SQLDatabase
 
 # ========== CONFIGURATION ==========
 
 # %%
-DATABASE_LOCATION = "./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
+DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql/run-14-cbr-cdb")
+RESULTS_DIR = Path("./results/ehrsql24/run-5")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
 COLLECTIONS = {
-    "RAG-CDB": "rag_complete_ehrsql",
-    "RAG-IDB": "rag_incomplete_ehrsql",
-    "CBR-CDB": "cbr_complete_ehrsql",
-    "CBR-IDB": "cbr_incomplete_ehrsql",
+    "RAG-CDB": "rag_complete_ehrsql24",
+    "RAG-IDB": "rag_incomplete_ehrsql24",
+    "CBR-CDB": "cbr_complete_ehrsql24",
+    "CBR-IDB": "cbr_incomplete_ehrsql24",
 }
-LOOKUP_COLLECTION = "lookup_table_ehrsql"
+LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
 # Model selection 
 USE_AZURE = True  # Set to False for OpenAI
@@ -62,13 +62,13 @@ def load_json(filepath: str) -> List[Dict]:
         data = json.loads(f.read())
     return data
 
-testset = load_json("./data/EHRSQL/dataset/ehrsql/mimic_iii/test.json")
+testset = load_json("./data/ehrsql-2024/data/mimic_iv/test/annotated.json")
 print(f"✓ Loaded {len(testset)} test examples")
 
 # %%
-# Stratified sampling for testing
-testset = stratified_sample(testset, p=1/3)
-len(testset)
+# # Stratified sampling for testing
+# testset = stratified_sample(testset, p=1/3, label=False)
+# len(testset)
 
 # %%
 # ========== INITIALIZE PIPELINES ==========
@@ -85,7 +85,7 @@ for name in EVALUATE:
             retriever=QdrantRetriever(collection_name=COLLECTIONS[name]),
             generator=generator,
             sql_db=sql_db,
-            config=RAGConfig(dataset="ehrsql")
+            config=RAGConfig(dataset="ehrsql24")
         )
     else:  # CBR
         pipelines[name] = CBRtoSQL(
@@ -94,7 +94,7 @@ for name in EVALUATE:
             sql_db=sql_db,
             lookup_table=lookup_table,
             fallback_generator=fallback_generator,
-            config=RAGConfig(dataset="ehrsql")
+            config=RAGConfig(dataset="ehrsql24")
         )
 
 print(f"✓ Initialized {len(pipelines)} pipelines")

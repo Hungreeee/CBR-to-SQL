@@ -56,4 +56,8 @@ class SqlGenerationOptional(BaseModel):
     write a SQL query if possible, and write "None" if impossible to answer based on given context.
     """
     sql_query: str | None = Field(description="Return a SQL query if question is answerable, and 'None' if the question is impossible.")
-    # reasoning: str = Field(description="Brief explanation: Why is the question answerable? What evidence?")
+    reasoning: str = Field(description="Very brief explanation: Why is the SQL query written that way. Explain all evidences for every function /condition, etc you wrote.")
+
+
+class PromptDecomposition(BaseModel):
+    decomposed_prompts: List[str] = Field(description="Return the list of decomposed queries here for more nuanced retrieval.")

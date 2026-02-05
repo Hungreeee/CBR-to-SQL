@@ -145,10 +145,13 @@ def is_content_filter_error(error: Exception) -> bool:
     )
 
 
-def stratified_sample(data, p=0.3):
+def stratified_sample(data, p=0.3, label=True):
     strata = defaultdict(list)
     for item in data:
-        key = item.get('importance', 'impossible')
+        if label: 
+            key = item.get('importance', 'impossible')
+        else:
+            key = item["query"] == "null"
         strata[key].append(item)
     
     sampled = []

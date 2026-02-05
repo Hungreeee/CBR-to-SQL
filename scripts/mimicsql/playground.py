@@ -29,10 +29,10 @@ np.random.seed(42)
 DATABASE_URI = "sqlite:///./data/TREQS/evaluation/mimic_db/mimic_all.db"
 
 # Collection names
-RAG_CDB_COLLECTION = "rag_complete"      # RAG with all data
-RAG_IDB_COLLECTION = "rag_incomplete"    # RAG with clustered data
-CBR_CDB_COLLECTION = "cbr_complete"      # CBR with all data
-CBR_IDB_COLLECTION = "cbr_incomplete"    # CBR with clustered data
+RAG_CDB_COLLECTION = "rag_complete"     
+RAG_IDB_COLLECTION = "rag_incomplete"
+CBR_CDB_COLLECTION = "cbr_complete"     
+CBR_IDB_COLLECTION = "cbr_incomplete"  
 
 LOOKUP_COLLECTION = "lookup_table"
 
@@ -90,7 +90,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 # how many patients discharged to snf had hypoxia primary disease?
 
 question = """
-For how many days Stephanie Sechan stayed in the hospital?
+What is the number of medicaid patients who have an automatic implantable cardioverter/defibrillator (aicd) check procedure?
 """
 
 # %%
@@ -118,6 +118,20 @@ res_final = cbr_cdb_pipeline._construct_and_fill_sql(
 )
 
 res_final
+
+# %%
+cbr_cdb_retriever.retrieve(
+    query="how many patients were born before the year 2060?",
+    top_k=5,
+    hybrid=True
+)
+
+# %%
+cbr_cdb_retriever.retrieve(
+    query="how many patients were born before the year 2060?",
+    top_k=5,
+    hybrid=False
+)
 
 # %%
 cbr_cdb_pipeline._lookup("Norepinephrine", top_k=5)

@@ -9,7 +9,8 @@ class RetrieverConfig:
     chunk_overlap: int = 500
     embedding_dim: int = 384
     device: str = "cpu"
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    dense_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    sparse_embedding_model: str = "Qdrant/bm25"
 
     @classmethod
     def default(cls):
@@ -31,10 +32,12 @@ class LLMConfig:
 class RAGConfig:
     top_k: int = 5
     brittle_retrieval: bool = False
+    hybrid_retrieval: bool = False
+    prompt_decomposition: bool = False
     return_response: bool = False
     template_construction: bool = True
     source_discovery: bool = True
-    dataset: Literal["mimicsql", "ehrsql"] = "mimicsql"
+    dataset: Literal["mimicsql", "ehrsql", "ehrsql24"] = "mimicsql"
 
     @classmethod
     def default(cls):

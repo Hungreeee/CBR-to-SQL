@@ -123,7 +123,7 @@ class AzureAIAgent(BaseGenerator):
             event_hooks={
                 "request": [lambda request: update_base_url(request, model=model)],
             }),
-            temperature=0.1,
+            temperature=0.,
             model=full_model,
             use_responses_api=self.is_responses_api,
             # reasoning_effort="minimal"

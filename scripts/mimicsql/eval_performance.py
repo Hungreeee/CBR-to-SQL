@@ -17,7 +17,7 @@ from src.utils import query
 from src.generator import AzureAIAgent, OpenAIAgent
 from src.rag_pipeline import RAGtoSQL, CBRtoSQL
 from src.retriever import QdrantRetriever
-from src.metrics import logic_form_accuracy, execution_accuracy
+from src.metrics.mimicsql_metrics import logic_form_accuracy, execution_accuracy
 
 from langchain_community.utilities.sql_database import SQLDatabase
 
@@ -25,7 +25,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-11-rag")
+RESULTS_DIR = Path("./results/mimicsql/run-11-rag-idb")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -41,7 +41,7 @@ LOOKUP_COLLECTION = "lookup_table"
 USE_AZURE = True  
 
 # Select which pipelines to evaluate
-EVALUATE = ["RAG-CDB"]
+EVALUATE = ["RAG-IDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -195,7 +195,7 @@ for name, results in all_results.items():
         "ex_accuracy": ex_acc,
     }
 
-# # Save metrics
+# Save metrics
 with open(RESULTS_DIR / "metrics.json", "w") as f:
     serializable = {k: {m: v for m, v in metrics.items() if m != "error_idx" and m != "success_idx"} 
                     for k, metrics in all_metrics.items()}

@@ -1,0 +1,1270 @@
+============================================================
+CONSTRUCTING LOOKUP TABLE (TWO-STAGE FILTERING)
+============================================================
+Tables to process: 17
+Stage 1 - Simple threshold: 0.3
+Stage 2 - LLM threshold: 0.5
+============================================================
+
+
+Processing table: admissions
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10004235,), (10009628,), (10006053,), (10031404,), (10005817,)]
+      [DEBUG] Sample values: ['10004235', '10009628', '10006053', '10031404', '10005817']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(20199380,), (20285402,), (20291550,), (20297618,), (20338077,)]
+      [DEBUG] Sample values: ['20199380', '20285402', '20291550', '20297618', '20338077']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-03-19 14:38:00',), ('2100-09-30 17:08:00',), ('2100-11-15 23:39:00',), ('2100-08-07 18:46:00',), ('2100-12-20 01:43:00',)]
+      [DEBUG] Sample values: ['2100-03-19 14:38:00', '2100-09-30 17:08:00', '2100-11-15 23:39:00', '2100-08-07 18:46:00', '2100-12-20 01:43:00']
+  ✗ admittime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-03-28 14:02:00',), ('2100-10-08 13:20:00',), ('2100-11-17 17:20:00',), ('2100-08-09 20:57:00',), ('2100-12-28 15:04:00',)]
+      [DEBUG] Sample values: ['2100-03-28 14:02:00', '2100-10-08 13:20:00', '2100-11-17 17:20:00', '2100-08-09 20:57:00', '2100-12-28 15:04:00']
+  ✗ dischtime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 83 chars
+      [DEBUG] Full result: [('urgent',), ('elective',), ('ew emer.',), ('direct emer.',), ('eu observation',)]
+      [DEBUG] Sample values: ['urgent', 'elective', 'ew emer.', 'direct emer.', 'eu observation']
+  ✓ admission_type: Passed simple filter (score: 0.66)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ admission_type: INCLUDED (final score: 0.60, method: llm)
+      → Added 9 entities
+      [DEBUG] Result length: 107 chars
+      [DEBUG] Full result: [('transfer from hospital',), ('physician referral',), ('emergency room',), ('pacu',), ('procedure site',)]
+      [DEBUG] Sample values: ['transfer from hospital', 'physician referral', 'emergency room', 'pacu', 'procedure site']
+  ✓ admission_location: Passed simple filter (score: 0.66)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ admission_location: INCLUDED (final score: 0.80, method: llm)
+      → Added 7 entities
+      [DEBUG] Result length: 97 chars
+      [DEBUG] Full result: [('skilled nursing facility',), ('home health care',), ('died',), ('home',), ('acute hospital',)]
+      [DEBUG] Sample values: ['skilled nursing facility', 'home health care', 'died', 'home', 'acute hospital']
+  ✓ discharge_location: Passed simple filter (score: 0.62)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ discharge_location: INCLUDED (final score: 0.80, method: llm)
+      → Added 9 entities
+      [DEBUG] Result length: 42 chars
+      [DEBUG] Full result: [('medicaid',), ('other',), ('medicare',)]
+      [DEBUG] Sample values: ['medicaid', 'other', 'medicare']
+  ✓ insurance: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ insurance: INCLUDED (final score: 0.60, method: llm)
+      → Added 3 entities
+      [DEBUG] Result length: 22 chars
+      [DEBUG] Full result: [('english',), ('?',)]
+      [DEBUG] Sample values: ['english', '?']
+  ✓ language: Passed simple filter (score: 0.45)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ language: INCLUDED (final score: 0.60, method: llm)
+      → Added 2 entities
+      [DEBUG] Result length: 56 chars
+      [DEBUG] Full result: [('single',), ('married',), ('widowed',), ('divorced',)]
+      [DEBUG] Sample values: ['single', 'married', 'widowed', 'divorced']
+  ✓ marital_status: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.70
+  ✓✓ marital_status: INCLUDED (final score: 0.70, method: llm)
+      → Added 4 entities
+      [DEBUG] Result length: 35 chars
+      [DEBUG] Full result: [(47,), (58,), (52,), (82,), (66,)]
+      [DEBUG] Sample values: ['47', '58', '52', '82', '66']
+  ✗ age: Not a descriptive text column (type check)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 13 chars
+      [DEBUG] Full result: [('UNIQUE',)]
+      [DEBUG] Sample values: ['UNIQUE']
+  ✓ UNIQUE: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.00
+  ✗ UNIQUE: Failed LLM filter (score: 0.00)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: chartevents
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10005817,), (10027445,), (10020740,), (10006053,), (10007058,)]
+      [DEBUG] Sample values: ['10005817', '10027445', '10020740', '10006053', '10007058']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(20626031,), (29163082,), (25826145,), (22942076,), (22954658,)]
+      [DEBUG] Sample values: ['20626031', '29163082', '25826145', '22942076', '22954658']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(32604416,), (36084484,), (32145159,), (34617352,), (32506122,)]
+      [DEBUG] Sample values: ['32604416', '36084484', '32145159', '34617352', '32506122']
+  ✗ stay_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 55 chars
+      [DEBUG] Full result: [(220210,), (220051,), (223762,), (220052,), (220045,)]
+      [DEBUG] Sample values: ['220210', '220051', '223762', '220052', '220045']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-12-24 00:00:00',), ('2100-12-24 01:00:00',), ('2100-12-24 02:00:00',), ('2100-12-24 03:00:00',), ('2100-12-24 04:00:00',)]
+      [DEBUG] Sample values: ['2100-12-24 00:00:00', '2100-12-24 01:00:00', '2100-12-24 02:00:00', '2100-12-24 03:00:00', '2100-12-24 04:00:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 45 chars
+      [DEBUG] Full result: [(19.0,), (37.0,), (58.0,), (80.0,), (95.0,)]
+      [DEBUG] Sample values: ['19.0', '37.0', '58.0', '80.0', '95.0']
+  ✗ valuenum: Not a descriptive text column (type check)
+      [DEBUG] Result length: 53 chars
+      [DEBUG] Full result: [('insp/min',), ('mmhg',), ('°c',), ('bpm',), ('%',)]
+      [DEBUG] Sample values: ['insp/min', 'mmhg', '°c', 'bpm', '%']
+  ✓ valueuom: Passed simple filter (score: 0.36)
+      → Running LLM evaluation...
+      → LLM score: 0.50
+  ✓✓ valueuom: INCLUDED (final score: 0.50, method: llm)
+      → Added 7 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: cost
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10035185,), (10009049,), (10009035,), (10014729,), (10018501,)]
+      [DEBUG] Sample values: ['10035185', '10009049', '10009035', '10014729', '10018501']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(22580999,), (22995465,), (28324362,), (23300884,), (28479513,)]
+      [DEBUG] Sample values: ['22580999', '22995465', '28324362', '23300884', '28479513']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 77 chars
+      [DEBUG] Full result: [('diagnoses_icd',), ('labevents',), ('procedures_icd',), ('prescriptions',)]
+      [DEBUG] Sample values: ['diagnoses_icd', 'labevents', 'procedures_icd', 'prescriptions']
+  ✓ event_type: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ event_type: INCLUDED (final score: 0.60, method: llm)
+      → Added 4 entities
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ event_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-05-17 12:53:00',), ('2100-06-13 08:21:00',), ('2100-05-12 07:15:00',), ('2100-03-25 16:58:00',), ('2100-08-09 22:34:00',)]
+      [DEBUG] Sample values: ['2100-05-17 12:53:00', '2100-06-13 08:21:00', '2100-05-12 07:15:00', '2100-03-25 16:58:00', '2100-08-09 22:34:00']
+  ✗ chargetime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 45 chars
+      [DEBUG] Full result: [(7.14,), (5.62,), (6.83,), (5.75,), (5.96,)]
+      [DEBUG] Sample values: ['7.14', '5.62', '6.83', '5.75', '5.96']
+  ✗ cost: Not a descriptive text column (type check)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.30
+  ✗ FOREIGN: Failed LLM filter (score: 0.30)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.30
+  ✗ FOREIGN: Failed LLM filter (score: 0.30)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.30
+  ✗ FOREIGN: Failed LLM filter (score: 0.30)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.30
+  ✗ FOREIGN: Failed LLM filter (score: 0.30)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.30
+  ✗ FOREIGN: Failed LLM filter (score: 0.30)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: d_icd_diagnoses
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 84 chars
+      [DEBUG] Full result: [('icd10|a00',), ('icd10|a000',), ('icd10|a001',), ('icd10|a01',), ('icd10|a0100',)]
+      [DEBUG] Sample values: ['icd10|a00', 'icd10|a000', 'icd10|a001', 'icd10|a01', 'icd10|a0100']
+  ✗ icd_code: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 513 chars
+      [DEBUG] Full result: [('infectious colitis, enteritis, and gastroenteritis',), ('tuberculous pneumonia [any form], unspecified',), ('other specified pulmonary tuberculosis, tubercle bacilli not found by bacteriological or histological examination, but tuberculosis confirmed by other methods [inoculation of animals]',), ('tuberculous pleurisy, unspecified',), ('tuberculous laryngitis, tubercle bacilli not found by bacteriological or histological examination, but tuberculosis confirmed by other methods [inoculation of animals]',)]
+      [DEBUG] Sample values: ['infectious colitis, enteritis, and gastroenteritis', 'tuberculous pneumonia [any form], unspecified', 'other specified pulmonary tuberculosis, tubercle bacilli not found by bacteriological or histological examination, but tuberculosis confirmed by other methods [inoculation of animals]', 'tuberculous pleurisy, unspecified', 'tuberculous laryngitis, tubercle bacilli not found by bacteriological or histological examination, but tuberculosis confirmed by other methods [inoculation of animals]']
+  ✓ long_title: Passed simple filter (score: 0.90)
+      → Running LLM evaluation...
+      → LLM score: 0.90
+  ✓✓ long_title: INCLUDED (final score: 0.90, method: llm)
+      → Added 106308 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.00
+  ✗ PRIMARY: Failed LLM filter (score: 0.00)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: d_icd_procedures
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 96 chars
+      [DEBUG] Full result: [('icd10|001',), ('icd10|0016070',), ('icd10|0016071',), ('icd10|0016072',), ('icd10|0016073',)]
+      [DEBUG] Sample values: ['icd10|001', 'icd10|0016070', 'icd10|0016071', 'icd10|0016072', 'icd10|0016073']
+  ✗ icd_code: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 247 chars
+      [DEBUG] Full result: [('other computer assisted surgery',), ('insertion of four or more vascular stents',), ('hip bearing surface, metal-on-polyethylene',), ('hip bearing surface, ceramic-on-polyethylene',), ('insertion of catheter(s) into cranial cavity or tissue',)]
+      [DEBUG] Sample values: ['other computer assisted surgery', 'insertion of four or more vascular stents', 'hip bearing surface, metal-on-polyethylene', 'hip bearing surface, ceramic-on-polyethylene', 'insertion of catheter(s) into cranial cavity or tissue']
+  ✓ long_title: Passed simple filter (score: 0.90)
+      → Running LLM evaluation...
+      → LLM score: 0.85
+  ✓✓ long_title: INCLUDED (final score: 0.85, method: llm)
+      → Added 85254 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: d_items
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 55 chars
+      [DEBUG] Full result: [(220001,), (220045,), (220046,), (220047,), (220048,)]
+      [DEBUG] Sample values: ['220001', '220045', '220046', '220047', '220048']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 126 chars
+      [DEBUG] Full result: [('gender',), ('race',), ('suction events (ch)',), ('oxygenator visible (ch)',), ('cannula sites visually inspected (ecmo)',)]
+      [DEBUG] Sample values: ['gender', 'race', 'suction events (ch)', 'oxygenator visible (ch)', 'cannula sites visually inspected (ecmo)']
+  ✓ label: Passed simple filter (score: 0.72)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ label: INCLUDED (final score: 0.80, method: llm)
+      → Added 3393 entities
+      [DEBUG] Result length: 126 chars
+      [DEBUG] Full result: [('gender',), ('race',), ('suction events (ch)',), ('oxygenator visible (ch)',), ('cannula sites visually inspected (ecmo)',)]
+      [DEBUG] Sample values: ['gender', 'race', 'suction events (ch)', 'oxygenator visible (ch)', 'cannula sites visually inspected (ecmo)']
+  ✓ abbreviation: Passed simple filter (score: 0.72)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ abbreviation: INCLUDED (final score: 0.80, method: llm)
+      → Added 3400 entities
+      [DEBUG] Result length: 55 chars
+      [DEBUG] Full result: [('chartevents',), ('outputevents',), ('inputevents',)]
+      [DEBUG] Sample values: ['chartevents', 'outputevents', 'inputevents']
+  ✓ linksto: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ linksto: INCLUDED (final score: 0.60, method: llm)
+      → Added 3 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 13 chars
+      [DEBUG] Full result: [('UNIQUE',)]
+      [DEBUG] Sample values: ['UNIQUE']
+  ✓ UNIQUE: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ UNIQUE: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: d_labitems
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 50 chars
+      [DEBUG] Full result: [(50801,), (50802,), (50803,), (50804,), (50805,)]
+      [DEBUG] Sample values: ['50801', '50802', '50803', '50804', '50805']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 109 chars
+      [DEBUG] Full result: [('free calcium',), ('tidal volume',), ('lactate',), ('% ionized calcium',), ('alveolar-arterial gradient',)]
+      [DEBUG] Sample values: ['free calcium', 'tidal volume', 'lactate', '% ionized calcium', 'alveolar-arterial gradient']
+  ✓ label: Passed simple filter (score: 0.72)
+      → Running LLM evaluation...
+      → LLM score: 0.85
+  ✓✓ label: INCLUDED (final score: 0.85, method: llm)
+      → Added 1144 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 13 chars
+      [DEBUG] Full result: [('UNIQUE',)]
+      [DEBUG] Sample values: ['UNIQUE']
+  ✓ UNIQUE: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.00
+  ✗ UNIQUE: Failed LLM filter (score: 0.00)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: diagnoses_icd
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10035185,), (10009049,), (10009035,), (10014729,), (10018501,)]
+      [DEBUG] Sample values: ['10035185', '10009049', '10009035', '10014729', '10018501']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(22580999,), (22995465,), (28324362,), (23300884,), (28479513,)]
+      [DEBUG] Sample values: ['22580999', '22995465', '28324362', '23300884', '28479513']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 82 chars
+      [DEBUG] Full result: [('icd9|4139',), ('icd9|v707',), ('icd9|41401',), ('icd9|3899',), ('icd9|v8532',)]
+      [DEBUG] Sample values: ['icd9|4139', 'icd9|v707', 'icd9|41401', 'icd9|3899', 'icd9|v8532']
+  ✗ icd_code: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-05-17 12:53:00',), ('2100-06-13 08:21:00',), ('2100-05-12 07:15:00',), ('2100-03-25 16:58:00',), ('2100-08-09 22:34:00',)]
+      [DEBUG] Sample values: ['2100-05-17 12:53:00', '2100-06-13 08:21:00', '2100-05-12 07:15:00', '2100-03-25 16:58:00', '2100-08-09 22:34:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.00
+  ✗ PRIMARY: Failed LLM filter (score: 0.00)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: icustays
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10018328,), (10020187,), (10020740,), (10019568,), (10018081,)]
+      [DEBUG] Sample values: ['10018328', '10020187', '10020740', '10019568', '10018081']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(23786647,), (24104168,), (25826145,), (28710730,), (21027282,)]
+      [DEBUG] Sample values: ['23786647', '24104168', '25826145', '28710730', '21027282']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(30425410,), (30458995,), (30585761,), (30665396,), (30757476,)]
+      [DEBUG] Sample values: ['30425410', '30458995', '30585761', '30665396', '30757476']
+  ✗ stay_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 173 chars
+      [DEBUG] Full result: [('neuro stepdown',), ('neuro surgical intensive care unit (neuro sicu)',), ('trauma sicu (tsicu)',), ('coronary care unit (ccu)',), ('medical intensive care unit (micu)',)]
+      [DEBUG] Sample values: ['neuro stepdown', 'neuro surgical intensive care unit (neuro sicu)', 'trauma sicu (tsicu)', 'coronary care unit (ccu)', 'medical intensive care unit (micu)']
+  ✓ first_careunit: Passed simple filter (score: 0.86)
+      → Running LLM evaluation...
+      → LLM score: 0.85
+  ✓✓ first_careunit: INCLUDED (final score: 0.85, method: llm)
+      → Added 8 entities
+      [DEBUG] Result length: 161 chars
+      [DEBUG] Full result: [('neuro stepdown',), ('trauma sicu (tsicu)',), ('coronary care unit (ccu)',), ('medical intensive care unit (micu)',), ('surgical intensive care unit (sicu)',)]
+      [DEBUG] Sample values: ['neuro stepdown', 'trauma sicu (tsicu)', 'coronary care unit (ccu)', 'medical intensive care unit (micu)', 'surgical intensive care unit (sicu)']
+  ✓ last_careunit: Passed simple filter (score: 0.86)
+      → Running LLM evaluation...
+      → LLM score: 0.85
+  ✓✓ last_careunit: INCLUDED (final score: 0.85, method: llm)
+      → Added 7 entities
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-05-07 23:03:44',), ('2100-02-01 04:56:00',), ('2100-06-15 20:12:32',), ('2100-02-03 22:51:00',), ('2100-12-26 17:10:00',)]
+      [DEBUG] Sample values: ['2100-05-07 23:03:44', '2100-02-01 04:56:00', '2100-06-15 20:12:32', '2100-02-03 22:51:00', '2100-12-26 17:10:00']
+  ✗ intime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-05-15 15:55:21',), ('2100-02-06 15:47:50',), ('2100-06-16 21:05:58',), ('2100-02-04 18:25:12',), ('2100-12-22 17:34:03',)]
+      [DEBUG] Sample values: ['2100-05-15 15:55:21', '2100-02-06 15:47:50', '2100-06-16 21:05:58', '2100-02-04 18:25:12', '2100-12-22 17:34:03']
+  ✗ outtime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 13 chars
+      [DEBUG] Full result: [('UNIQUE',)]
+      [DEBUG] Sample values: ['UNIQUE']
+  ✓ UNIQUE: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.00
+  ✗ UNIQUE: Failed LLM filter (score: 0.00)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: inputevents
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10005817,), (10027445,), (10020740,), (10006053,), (10007058,)]
+      [DEBUG] Sample values: ['10005817', '10027445', '10020740', '10006053', '10007058']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(20626031,), (29163082,), (25826145,), (22942076,), (22954658,)]
+      [DEBUG] Sample values: ['20626031', '29163082', '25826145', '22942076', '22954658']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(32604416,), (36084484,), (32145159,), (34617352,), (32506122,)]
+      [DEBUG] Sample values: ['32604416', '36084484', '32145159', '34617352', '32506122']
+  ✗ stay_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-12-23 20:10:00',), ('2100-12-24 02:41:00',), ('2100-12-23 14:52:00',), ('2100-12-24 14:35:00',), ('2100-12-24 06:23:00',)]
+      [DEBUG] Sample values: ['2100-12-23 20:10:00', '2100-12-24 02:41:00', '2100-12-23 14:52:00', '2100-12-24 14:35:00', '2100-12-24 06:23:00']
+  ✗ starttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 55 chars
+      [DEBUG] Full result: [(221456,), (220949,), (223258,), (221749,), (222011,)]
+      [DEBUG] Sample values: ['221456', '220949', '223258', '221749', '222011']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 50 chars
+      [DEBUG] Full result: [(100.0,), (250.0,), (500.0,), (50.0,), (2800.0,)]
+      [DEBUG] Sample values: ['100.0', '250.0', '500.0', '50.0', '2800.0']
+  ✗ totalamount: Not a descriptive text column (type check)
+      [DEBUG] Result length: 9 chars
+      [DEBUG] Full result: [('ml',)]
+      [DEBUG] Sample values: ['ml']
+  ✓ totalamountuom: Passed simple filter (score: 0.30)
+      → Running LLM evaluation...
+      → LLM score: 0.50
+  ✓✓ totalamountuom: INCLUDED (final score: 0.50, method: llm)
+      → Added 1 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: labevents
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10031757,), (10007818,), (10020944,), (10022017,), (10029291,)]
+      [DEBUG] Sample values: ['10031757', '10007818', '10020944', '10022017', '10029291']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(28477280,), (22987108,), (29974575,), (22342963,), (22205327,)]
+      [DEBUG] Sample values: ['28477280', '22987108', '29974575', '22342963', '22205327']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 50 chars
+      [DEBUG] Full result: [(50970,), (50931,), (50868,), (50960,), (50862,)]
+      [DEBUG] Sample values: ['50970', '50931', '50868', '50960', '50862']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-10-25 02:00:00',), ('2100-07-05 04:00:00',), ('2100-03-15 04:00:00',), ('2100-10-08 08:00:00',), ('2100-07-05 10:00:00',)]
+      [DEBUG] Sample values: ['2100-10-25 02:00:00', '2100-07-05 04:00:00', '2100-03-15 04:00:00', '2100-10-08 08:00:00', '2100-07-05 10:00:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 42 chars
+      [DEBUG] Full result: [(2.8,), (91.0,), (14.0,), (2.0,), (2.3,)]
+      [DEBUG] Sample values: ['2.8', '91.0', '14.0', '2.0', '2.3']
+  ✗ valuenum: Not a descriptive text column (type check)
+      [DEBUG] Result length: 57 chars
+      [DEBUG] Full result: [('mg/dl',), ('meq/l',), ('g/dl',), ('iu/l',), ('k/ul',)]
+      [DEBUG] Sample values: ['mg/dl', 'meq/l', 'g/dl', 'iu/l', 'k/ul']
+  ✓ valueuom: Passed simple filter (score: 0.42)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ valueuom: INCLUDED (final score: 0.60, method: llm)
+      → Added 32 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: microbiologyevents
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10000032,), (10020944,), (10037975,), (10031757,), (10038999,)]
+      [DEBUG] Sample values: ['10000032', '10020944', '10037975', '10031757', '10038999']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(25742920,), (22595853,), (29079034,), (29974575,), (27617929,)]
+      [DEBUG] Sample values: ['25742920', '22595853', '29079034', '29974575', '27617929']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-08-26 20:35:00',), ('2100-05-27 00:19:00',), ('2100-08-13 00:55:00',), ('2100-03-06 17:41:00',), ('2100-02-07 21:32:00',)]
+      [DEBUG] Sample values: ['2100-08-26 20:35:00', '2100-05-27 00:19:00', '2100-08-13 00:55:00', '2100-03-06 17:41:00', '2100-02-07 21:32:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 83 chars
+      [DEBUG] Full result: [('swab',), ('serology/blood',), ('urine',), ('blood (ebv)',), ('blood (cmv ab)',)]
+      [DEBUG] Sample values: ['swab', 'serology/blood', 'urine', 'blood (ebv)', 'blood (cmv ab)']
+  ✓ spec_type_desc: Passed simple filter (score: 0.62)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ spec_type_desc: INCLUDED (final score: 0.80, method: llm)
+      → Added 27 entities
+      [DEBUG] Result length: 181 chars
+      [DEBUG] Full result: [('r/o vancomycin resistant enterococcus',), ('helicobacter pylori antibody test',), ('rubeola antibody, igg',), ('legionella urinary antigen',), ('epstein-barr virus vca-igm ab',)]
+      [DEBUG] Sample values: ['r/o vancomycin resistant enterococcus', 'helicobacter pylori antibody test', 'rubeola antibody, igg', 'legionella urinary antigen', 'epstein-barr virus vca-igm ab']
+  ✓ test_name: Passed simple filter (score: 0.90)
+      → Running LLM evaluation...
+      → LLM score: 0.85
+  ✓✓ test_name: INCLUDED (final score: 0.85, method: llm)
+      → Added 54 entities
+      [DEBUG] Result length: 150 chars
+      [DEBUG] Full result: [('enterococcus sp.',), ('positive for methicillin resistant staph aureus',), ('escherichia coli',), ('viridans streptococci',), ('gemella species',)]
+      [DEBUG] Sample values: ['enterococcus sp.', 'positive for methicillin resistant staph aureus', 'escherichia coli', 'viridans streptococci', 'gemella species']
+  ✓ org_name: Passed simple filter (score: 0.74)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ org_name: INCLUDED (final score: 0.80, method: llm)
+      → Added 35 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: outputevents
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10027602,), (10029291,), (10002495,), (10004235,), (10026354,)]
+      [DEBUG] Sample values: ['10027602', '10029291', '10002495', '10004235', '10026354']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(28166872,), (22205327,), (24982426,), (24181354,), (24547356,)]
+      [DEBUG] Sample values: ['28166872', '22205327', '24982426', '24181354', '24547356']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(32391858,), (36059427,), (35146796,), (36753294,), (34100191,)]
+      [DEBUG] Sample values: ['32391858', '36059427', '35146796', '36753294', '34100191']
+  ✗ stay_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-12-04 12:00:00',), ('2100-03-01 01:00:00',), ('2100-03-01 02:00:00',), ('2100-03-01 05:00:00',), ('2100-02-28 23:00:00',)]
+      [DEBUG] Sample values: ['2100-12-04 12:00:00', '2100-03-01 01:00:00', '2100-03-01 02:00:00', '2100-03-01 05:00:00', '2100-02-28 23:00:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 55 chars
+      [DEBUG] Full result: [(226559,), (227510,), (226580,), (226632,), (227488,)]
+      [DEBUG] Sample values: ['226559', '227510', '226580', '226632', '227488']
+  ✗ itemid: Not a descriptive text column (type check)
+      [DEBUG] Result length: 46 chars
+      [DEBUG] Full result: [(150.0,), (10.0,), (15.0,), (20.0,), (25.0,)]
+      [DEBUG] Sample values: ['150.0', '10.0', '15.0', '20.0', '25.0']
+  ✗ value: Not a descriptive text column (type check)
+      [DEBUG] Result length: 9 chars
+      [DEBUG] Full result: [('ml',)]
+      [DEBUG] Sample values: ['ml']
+  ✓ valueuom: Passed simple filter (score: 0.30)
+      → Running LLM evaluation...
+      → LLM score: 0.40
+  ✗ valueuom: Failed LLM filter (score: 0.40)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.40
+  ✗ FOREIGN: Failed LLM filter (score: 0.40)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: patients
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10000032,), (10001217,), (10001725,), (10002428,), (10002495,)]
+      [DEBUG] Sample values: ['10000032', '10001217', '10001725', '10002428', '10002495']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 16 chars
+      [DEBUG] Full result: [('f',), ('m',)]
+      [DEBUG] Sample values: ['f', 'm']
+  ✓ gender: Passed simple filter (score: 0.30)
+      → Running LLM evaluation...
+      → LLM score: 0.35
+  ✗ gender: Failed LLM filter (score: 0.35)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2079-07-22 00:00:00',), ('2028-07-25 00:00:00',), ('2020-07-30 00:00:00',), ('2052-07-27 00:00:00',), ('2022-08-05 00:00:00',)]
+      [DEBUG] Sample values: ['2079-07-22 00:00:00', '2028-07-25 00:00:00', '2020-07-30 00:00:00', '2052-07-27 00:00:00', '2022-08-05 00:00:00']
+  ✗ dob: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-12-20 00:00:00',), ('2100-11-09 00:00:00',), ('2100-09-29 00:00:00',), ('2100-10-15 00:00:00',), ('2100-06-30 00:00:00',)]
+      [DEBUG] Sample values: ['2100-12-20 00:00:00', '2100-11-09 00:00:00', '2100-09-29 00:00:00', '2100-10-15 00:00:00', '2100-06-30 00:00:00']
+  ✗ dod: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 13 chars
+      [DEBUG] Full result: [('UNIQUE',)]
+      [DEBUG] Sample values: ['UNIQUE']
+  ✓ UNIQUE: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ UNIQUE: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: prescriptions
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10020740,), (10005817,), (10019385,), (10016810,), (10021118,)]
+      [DEBUG] Sample values: ['10020740', '10005817', '10019385', '10016810', '10021118']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(23831430,), (20626031,), (20297618,), (20973395,), (24490144,)]
+      [DEBUG] Sample values: ['23831430', '20626031', '20297618', '20973395', '24490144']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-04-19 11:00:00',), ('2100-12-20 02:00:00',), ('2100-12-27 10:00:00',), ('2100-12-25 19:00:00',), ('2100-04-23 22:00:00',)]
+      [DEBUG] Sample values: ['2100-04-19 11:00:00', '2100-12-20 02:00:00', '2100-12-27 10:00:00', '2100-12-25 19:00:00', '2100-04-23 22:00:00']
+  ✗ starttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-04-20 22:00:00',), ('2100-12-21 12:00:00',), ('2100-12-28 19:00:00',), ('2100-12-27 09:00:00',), ('2100-04-27 17:00:00',)]
+      [DEBUG] Sample values: ['2100-04-20 22:00:00', '2100-12-21 12:00:00', '2100-12-28 19:00:00', '2100-12-27 09:00:00', '2100-04-27 17:00:00']
+  ✗ stoptime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 108 chars
+      [DEBUG] Full result: [('insulin',), ('albuterol 0.083% neb soln',), ('vancomycin',), ('lenalidomide (revlimide)15mg',), ('bag',)]
+      [DEBUG] Sample values: ['insulin', 'albuterol 0.083% neb soln', 'vancomycin', 'lenalidomide (revlimide)15mg', 'bag']
+  ✓ drug: Passed simple filter (score: 0.62)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ drug: INCLUDED (final score: 0.80, method: llm)
+      → Added 351 entities
+      [DEBUG] Result length: 54 chars
+      [DEBUG] Full result: [('0.0',), ('125.0',), ('15.0',), ('1.0',), ('10.0',)]
+      [DEBUG] Sample values: ['0.0', '125.0', '15.0', '1.0', '10.0']
+  ✗ dose_val_rx: Not a descriptive text column (type check)
+      [DEBUG] Result length: 49 chars
+      [DEBUG] Full result: [('unit',), ('neb',), ('mg',), ('bag',), ('ml',)]
+      [DEBUG] Sample values: ['unit', 'neb', 'mg', 'bag', 'ml']
+  ✓ dose_unit_rx: Passed simple filter (score: 0.30)
+      → Running LLM evaluation...
+      → LLM score: 0.60
+  ✓✓ dose_unit_rx: INCLUDED (final score: 0.60, method: llm)
+      → Added 28 entities
+      [DEBUG] Result length: 47 chars
+      [DEBUG] Full result: [('sc',), ('ih',), ('oral',), ('po',), ('iv',)]
+      [DEBUG] Sample values: ['sc', 'ih', 'oral', 'po', 'iv']
+  ✓ route: Passed simple filter (score: 0.30)
+      → Running LLM evaluation...
+      → LLM score: 0.50
+  ✓✓ route: INCLUDED (final score: 0.50, method: llm)
+      → Added 27 entities
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: procedures_icd
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10011398,), (10014729,), (10007818,), (10004235,), (10026255,)]
+      [DEBUG] Sample values: ['10011398', '10014729', '10007818', '10004235', '10026255']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(27505812,), (23300884,), (28889419,), (22987108,), (25970245,)]
+      [DEBUG] Sample values: ['27505812', '23300884', '28889419', '22987108', '25970245']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 80 chars
+      [DEBUG] Full result: [('icd9|3961',), ('icd9|3615',), ('icd9|3614',), ('icd9|3897',), ('icd9|3403',)]
+      [DEBUG] Sample values: ['icd9|3961', 'icd9|3615', 'icd9|3614', 'icd9|3897', 'icd9|3403']
+  ✗ icd_code: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-12-30 13:37:00',), ('2100-03-29 00:00:00',), ('2100-03-26 00:00:00',), ('2100-03-30 00:00:00',), ('2100-03-12 14:25:00',)]
+      [DEBUG] Sample values: ['2100-12-30 13:37:00', '2100-03-29 00:00:00', '2100-03-26 00:00:00', '2100-03-30 00:00:00', '2100-03-12 14:25:00']
+  ✗ charttime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+Processing table: transfers
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(10009049,), (10025612,), (10020786,), (10014078,), (10029484,)]
+      [DEBUG] Sample values: ['10009049', '10025612', '10020786', '10014078', '10029484']
+  ✗ subject_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(22995465,), (23403708,), (23488445,), (25809882,), (20764029,)]
+      [DEBUG] Sample values: ['22995465', '23403708', '23488445', '25809882', '20764029']
+  ✗ hadm_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 65 chars
+      [DEBUG] Full result: [(30030230,), (32533329,), (37922399,), (34694622,), (34199510,)]
+      [DEBUG] Sample values: ['30030230', '32533329', '37922399', '34694622', '34199510']
+  ✗ transfer_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 52 chars
+      [DEBUG] Full result: [('discharge',), ('transfer',), ('admit',), ('ed',)]
+      [DEBUG] Sample values: ['discharge', 'transfer', 'admit', 'ed']
+  ✓ eventtype: Passed simple filter (score: 0.52)
+      → Running LLM evaluation...
+      → LLM score: 0.70
+  ✓✓ eventtype: INCLUDED (final score: 0.70, method: llm)
+      → Added 4 entities
+      [DEBUG] Result length: 78 chars
+      [DEBUG] Full result: [('med/surg',), ('medicine',), ('vascular',), ('neurology',), ('transplant',)]
+      [DEBUG] Sample values: ['med/surg', 'medicine', 'vascular', 'neurology', 'transplant']
+  ✓ careunit: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.80
+  ✓✓ careunit: INCLUDED (final score: 0.80, method: llm)
+      → Added 25 entities
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-06-18 14:21:47',), ('2100-10-09 12:25:27',), ('2100-07-05 17:25:44',), ('2100-09-11 14:49:42',), ('2100-11-26 11:40:33',)]
+      [DEBUG] Sample values: ['2100-06-18 14:21:47', '2100-10-09 12:25:27', '2100-07-05 17:25:44', '2100-09-11 14:49:42', '2100-11-26 11:40:33']
+  ✗ intime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 130 chars
+      [DEBUG] Full result: [('2100-01-22 11:53:26',), ('2100-10-09 12:25:27',), ('2100-04-18 17:45:53',), ('2100-03-20 17:01:34',), ('2100-11-26 11:40:33',)]
+      [DEBUG] Sample values: ['2100-01-22 11:53:26', '2100-10-09 12:25:27', '2100-04-18 17:45:53', '2100-03-20 17:01:34', '2100-11-26 11:40:33']
+  ✗ outtime: Failed simple filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('PRIMARY',)]
+      [DEBUG] Sample values: ['PRIMARY']
+  ✓ PRIMARY: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ PRIMARY: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 14 chars
+      [DEBUG] Full result: [('FOREIGN',)]
+      [DEBUG] Sample values: ['FOREIGN']
+  ✓ FOREIGN: Passed simple filter (score: 0.60)
+      → Running LLM evaluation...
+      → LLM score: 0.10
+  ✗ FOREIGN: Failed LLM filter (score: 0.10)
+      [DEBUG] Result length: 30 chars
+      [DEBUG] Full result: [(0,), (1,), (2,), (3,), (4,)]
+      [DEBUG] Sample values: ['0', '1', '2', '3', '4']
+  ✗ row_id: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('0',)]
+      [DEBUG] Sample values: ['0']
+  ✗ 0: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('1',)]
+      [DEBUG] Sample values: ['1']
+  ✗ 1: Not a descriptive text column (type check)
+      [DEBUG] Result length: 8 chars
+      [DEBUG] Full result: [('2',)]
+      [DEBUG] Sample values: ['2']
+  ✗ 2: Not a descriptive text column (type check)
+
+============================================================
+INGESTING INTO LOOKUP TABLE
+============================================================
+Total entities to ingest: 200146
+✓ Ingestion complete!
+
+============================================================
+CONSTRUCTION SUMMARY
+============================================================
+Total columns analyzed: 226
+└─ Text columns (type check): 97
+   └─ Passed simple filter: 75
+      └─ Passed LLM filter: 26
+
+Total entities indexed: 200146
+
+Included columns (26):
+  [LLM] admissions.admission_type (score: 0.60, simple: 0.66)
+  [LLM] admissions.admission_location (score: 0.80, simple: 0.66)
+  [LLM] admissions.discharge_location (score: 0.80, simple: 0.62)
+  [LLM] admissions.insurance (score: 0.60, simple: 0.60)
+  [LLM] admissions.language (score: 0.60, simple: 0.45)
+  [LLM] admissions.marital_status (score: 0.70, simple: 0.60)
+  [LLM] chartevents.valueuom (score: 0.50, simple: 0.36)
+  [LLM] cost.event_type (score: 0.60, simple: 0.60)
+  [LLM] d_icd_diagnoses.long_title (score: 0.90, simple: 0.90)
+  [LLM] d_icd_procedures.long_title (score: 0.85, simple: 0.90)
+  [LLM] d_items.label (score: 0.80, simple: 0.72)
+  [LLM] d_items.abbreviation (score: 0.80, simple: 0.72)
+  [LLM] d_items.linksto (score: 0.60, simple: 0.60)
+  [LLM] d_labitems.label (score: 0.85, simple: 0.72)
+  [LLM] icustays.first_careunit (score: 0.85, simple: 0.86)
+  [LLM] icustays.last_careunit (score: 0.85, simple: 0.86)
+  [LLM] inputevents.totalamountuom (score: 0.50, simple: 0.30)
+  [LLM] labevents.valueuom (score: 0.60, simple: 0.42)
+  [LLM] microbiologyevents.spec_type_desc (score: 0.80, simple: 0.62)
+  [LLM] microbiologyevents.test_name (score: 0.85, simple: 0.90)
+  [LLM] microbiologyevents.org_name (score: 0.80, simple: 0.74)
+  [LLM] prescriptions.drug (score: 0.80, simple: 0.62)
+  [LLM] prescriptions.dose_unit_rx (score: 0.60, simple: 0.30)
+  [LLM] prescriptions.route (score: 0.50, simple: 0.30)
+  [LLM] transfers.eventtype (score: 0.70, simple: 0.52)
+  [LLM] transfers.careunit (score: 0.80, simple: 0.60)
+
+============================================================
+TESTING LOOKUP TABLE
+============================================================
+
+Query: 'diabetes'
+  1. 'diabetes' (Table: d_items, Column: label)
+  2. 'diabetes' (Table: d_items, Column: abbreviation)
+  3. 'other specified diabetes mellitus' (Table: d_icd_diagnoses, Column: long_title)
+
+Query: 'metformin'
+  1. 'metformin (glucophage)' (Table: prescriptions, Column: drug)
+  2. 'metformin xr (glucophage xr)' (Table: prescriptions, Column: drug)
+  3. 'metoprolol' (Table: d_items, Column: abbreviation)
+
+Query: 'MRI'
+  1. 'imaging, heart, magnetic resonance imaging (mri)' (Table: d_icd_procedures, Column: long_title)
+  2. 'magnetic resonance imaging (mri) of brain' (Table: d_icd_procedures, Column: long_title)
+  3. 'imaging, connective tissue, magnetic resonance imaging (mri)' (Table: d_icd_procedures, Column: long_title)
+
+Query: 'sepsis'
+  1. 'sepsis' (Table: d_icd_diagnoses, Column: long_title)
+  2. 'severe sepsis' (Table: d_icd_diagnoses, Column: long_title)
+  3. 'other sepsis' (Table: d_icd_diagnoses, Column: long_title)
+
+Query: 'emergency'
+  1. 'emergency room' (Table: admissions, Column: admission_location)
+  2. 'emergency department' (Table: transfers, Column: careunit)
+  3. 'emergency department observation' (Table: transfers, Column: careunit)
