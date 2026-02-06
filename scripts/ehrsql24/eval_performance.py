@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-5")
+RESULTS_DIR = Path("./results/ehrsql24/run-6")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -67,8 +67,8 @@ print(f"✓ Loaded {len(testset)} test examples")
 
 # %%
 # # Stratified sampling for testing
-# testset = stratified_sample(testset, p=1/3, label=False)
-# len(testset)
+testset = stratified_sample(testset, p=1/3, label=False)
+len(testset)
 
 # %%
 # ========== INITIALIZE PIPELINES ==========

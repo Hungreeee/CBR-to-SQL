@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-What is the specimen quality of the most recent microbiology test done for patient 1272?
+What is the average age of temporary residents admitted for emergencies last month?
 """
 
 # %%
@@ -111,18 +111,18 @@ lookup_table.retrieve("lactated ringers intake", top_k=5)
 
 # %%
 cbr_cdb_retriever.retrieve(
-    query="Has there been any results of"
+    query="How much is a [D_LABITEMS.LABEL] lab test?"
 )
 
 # %%
 sql_db.run(post_process_sql("""
-SELECT COUNT(DISTINCT admissions.subject_id) FROM admissions WHERE admissions.hadm_id IN (SELECT microbiologyevents.hadm_id FROM microbiologyevents WHERE microbiologyevents.test_name = 'mini-bal' AND strftime('%Y', microbiologyevents.charttime) >= '2100')
+SELECT T1.drug FROM ( SELECT prescriptions.drug, DENSE_RANK() OVER ( ORDER BY COUNT(*) DESC ) AS C1 FROM prescriptions WHERE datetime(prescriptions.starttime,'start of year') = datetime('2100-12-31 23:59:00','start of year','-0 year') GROUP BY prescriptions.drug ) AS T1 WHERE T1.C1 <= 3
 """
 ))
 
 # %%
 post_process_sql("""
-SELECT COUNT(*) FROM inputevents WHERE inputevents.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021487 ) ) AND inputevents.itemid IN ( SELECT d_items.itemid FROM d_items WHERE d_items.label = 'replete with fiber (full)' AND d_items.linksto = 'inputevents' ) AND datetime(inputevents.starttime,'start of year') = datetime(current_time,'start of year','-0 year') AND strftime('%m-%d',inputevents.starttime) = '01-13'
+SELECT T1.drug FROM ( SELECT prescriptions.drug, DENSE_RANK() OVER ( ORDER BY COUNT(*) DESC ) AS C1 FROM prescriptions WHERE datetime(prescriptions.starttime,'start of year') = datetime(current_time,'start of year','-0 year') GROUP BY prescriptions.drug ) AS T1 WHERE T1.C1 <= 3
 """)
 
 # %%

@@ -164,199 +164,269 @@ Entity: "cardiology", Candidates: ['Nephrology', 'Urology']
 """
 
 
+# sql_generation = """
+# **SQL Generation with Mandatory Validation Protocol**
+
+# Generate a SQL query by adapting retrieved examples to directly answer the original question. Return **"None"** if the question cannot be answered with available information.
+
+# ## **Two-Phase Validation Protocol**
+
+# **PHASE 1: REQUIRED INFORMATION CHECK**
+# Before any analysis, verify the question provides all necessary information:
+# - Extract every required piece of information from the question
+# - Check that each piece is **concretely specified** (no placeholders, no too vague references (e.g., "this date" is acceptable because it still points to a relative date, but "that date" is not (which one exactly))).
+# - **IMMEDIATE FAILURE**: If any specific information is missing to answer the query → Return "None"
+
+# **PHASE 2: DATABASE FEASIBILITY CHECK**
+# Validate that the database can store and retrieve the requested information:
+# - For each required information element, identify the **exact database column** that stores it
+# - **CRITICAL RULE**: The column must **directly store** that exact type of information. You may infer this from the schema and the examples. However, you must be strict when comparing concepts, because the question will sometimes introduce similar concepts to trick you.
+#    EXAMPLE: 
+#       - "specimen quality" (impossible, no column) vs "specimen type" (possible, "spec_type_desc"). Such concepts are not limited to only this example, so be strict while verifying the similarity of such concepts.
+#       - "hospital visits/arrivals" (impossible) vs "hospital admissions" (possible, addmission)
+# - **IMMEDIATE FAILURE**: If any element has no direct column match or missing information → Return "None".
+#    EXAMPLE: Get the patient information in this specific date (which information, which specific date?) -> immediately return "None"
+
+# **ONLY IF ALL TWO PHASES PASS**: Proceed to SQL generation
+
+# ## **SQL Generation Process**
+# 1. **Classify Question Intent**:
+#    - **Existence** ("Has there been...") → `SELECT COUNT(*) > 0`
+#    - **Temporal** ("When did...") → Return timestamp
+#    - **Aggregation** ("How many...") → Use appropriate function (return raw values, no extra filters or rounding, exactly what the question asked for).
+#    EXAMPLE: How many hours has passed since ... -> give number of hours as decimals, no abitrary rounding.
+#    HOURS = strftime('%s', 'now') - strftime('%s', prescriptions.starttime)) / 3600.0
+#    - **Fact** ("What is...") → Return value without aggregation unless specified
+
+# 2. **Adapt Examples as Appropriate**:
+#    - Use examples to adapt similar SQL structure. You may read the example questions and the original questions to verify the similarities, then proceed to adapt the corresponding SQL.
+#    - Note that the original question is authorative, and the examples are only support. In certain cases, the examples may not be able to provide enough help, so you must write the SQL on your own rather then enforcing the example templates to the output SQL. Always prioritize writing SQL that directly answers the original question first.
+#    - IMPORTANT: Replace placeholders with concrete values from entity mappings.
+#    - Include only necessary clauses that directly serve the question. Make sure that all aspects of the questions are appropriately covered.
+#    - The formatting style of the SQL query must be similar to the examples (only the small formatting tips like the having no linebreaks, capitalization style, not follow logic strictly).
+
+# 3. **Time Expression Handling**: Be extremely careful with time expressions:
+#      - `this year/mm` or `this month/dd` → filter by corresponding format. Never assume the exact year, month, or date for relative time references (this month, last year, etc.), so always use relative filtering for relative references, exact filtering for exact time references. 
+#       Example: Assuming "this month" is "01" is WRONG.
+#      - `X years ago` → timestamp = datetime(reference_time, '-X years') (exact reference point as rolling window, do not truncate to year)
+#      - `until/before X years ago` → timestamp <= datetime(reference_time, '-X years')
+#      - `since X years ago` → timestamp >= datetime(reference_time, '-X years') (as datetime, not just year)
+#      - `during year X` → timestamps in year X (within calendar year, not rolling window)
+#      - `current visit` → timestamp is null (visit hasn't been completed)
+#      - `first/last visit` → timestamp is not null (visit has been completed)
+#      - **Always filter years with `%Y`**, never `%y`
+
+# ## **Critical Rules for Answerability**
+
+# **UNANSWERABLE QUESTIONS (Return "None"):**
+# 1. Questions with **missing concrete information** (too vague references, placeholders)
+# 2. Questions requesting **information not stored in database** (no corresponding column)
+# 3. Questions requiring **operations not demonstrated in examples**
+# 4. Questions with **semantically impossible mappings** (diagnosis → test column)
+
+# **ANSWERABLE QUESTIONS (Generate SQL):**
+# 1. All required information is concretely specified
+# 2. Each information element has a direct database column
+# 3. Examples demonstrate similar query patterns
+
+# ## **Output Specification**
+# - **Unanswerable**: Return exactly "None" (no SQL, no explanation)
+# - **Answerable**: Return exactly one SQL query (no additional text, no markdown)
+# - **Formatting**: Match example style exactly (no arbitrary rounding, no linebreaks)
+
+# **Final Decision Flow:**
+# ```
+# 1. Does question provide all concrete information? → No → "None"
+# 2. Does database have columns for all information? → No → "None"  
+# 3. All checks pass → Generate SQL from examples
+# ```
+# """
+
+
 sql_generation = """
-**SQL Generation with Mandatory Validation Protocol**
+# SQL Query Generation from Natural Language
 
-Generate a SQL query by adapting retrieved examples to directly answer the original question. Return **"None"** if the question cannot be answered with available information.
+Generate a SQL query by adapting retrieved examples to answer the natural language question. Return **"None"** if the question cannot be answered with available information.
 
-## **Two-Phase Validation Protocol**
+## Core Task Requirements
 
-**PHASE 1: REQUIRED INFORMATION CHECK**
-Before any analysis, verify the question provides all necessary information:
-- Extract every required piece of information from the question
-- Check that each piece is **concretely specified** (no placeholders, no too vague references (e.g., "this date" is acceptable because it still points to a relative date, but "that date" is not (which one exactly))).
-- **IMMEDIATE FAILURE**: If any specific information is missing to answer the query → Return "None"
+This is a high-stakes evaluation requiring exact, minimal responses. Your SQL must directly and completely answer the question using only information available in the schema and examples. The question is authoritative; examples serve only as structural templates.
 
-**PHASE 2: DATABASE FEASIBILITY CHECK**
-Validate that the database can store and retrieve the requested information:
-- For each required information element, identify the **exact database column** that stores it
-- **CRITICAL RULE**: The column must **directly store** that exact type of information. You may infer this from the schema and the examples. However, you must be strict when comparing concepts, because the question will sometimes introduce similar concepts to trick you.
-   EXAMPLE: 
-      - "specimen quality" (impossible, no column) vs "specimen type" (possible, "spec_type_desc"). Such concepts are not limited to only this example, so be strict while verifying the similarity of such concepts.
-      - "hospital visits/arrivals" (impossible) vs "hospital admissions" (possible, addmission)
-- **IMMEDIATE FAILURE**: If any element has no direct column match or missing information → Return "None".
-   EXAMPLE: Get the patient information in this specific date (which information, which specific date?) -> immediately return "None"
+## Two-Phase Validation Protocol
 
-**ONLY IF ALL TWO PHASES PASS**: Proceed to SQL generation
+Execute these phases sequentially. Failure at any phase requires immediate return of "None".
 
-## **SQL Generation Process**
-1. **Classify Question Intent**:
-   - **Existence** ("Has there been...") → `SELECT COUNT(*) > 0`
-   - **Temporal** ("When did...") → Return timestamp
-   - **Aggregation** ("How many...") → Use appropriate function (return raw values, no extra filters or rounding, exactly what the question asked for).
-   EXAMPLE: How many hours has passed since ... -> give number of hours as decimals, no abitrary rounding.
-   HOURS = strftime('%s', 'now') - strftime('%s', prescriptions.starttime)) / 3600.0
-   - **Fact** ("What is...") → Return value without aggregation unless specified
+### Phase 1: Question Completeness Verification
 
-2. **Adapt Examples as Appropriate**:
-   - Use examples to adapt similar SQL structure. You may read the example questions and the original questions to verify the similarities, then proceed to adapt the corresponding SQL.
-   - Note that the original question is authorative, and the examples are only support. In certain cases, the examples may not be able to provide enough help, so you must write the SQL on your own rather then enforcing the example templates to the output SQL. Always prioritize writing SQL that directly answers the original question first.
-   - IMPORTANT: Replace placeholders with concrete values from entity mappings.
-   - Include only necessary clauses that directly serve the question. Make sure that all aspects of the questions are appropriately covered.
-   - The formatting style of the SQL query must be similar to the examples (only the small formatting tips like the having no linebreaks, capitalization style, not follow logic strictly).
+Verify the question provides all concrete information needed:
 
-3. **Time Expression Handling**: Be extremely careful with time expressions:
-     - `this year/mm` or `this month/dd` → filter by corresponding format. Never assume the exact year, month, or date for relative time references (this month, last year, etc.), so always use relative filtering for relative references, exact filtering for exact time references. 
-      Example: Assuming "this month" is "01" is WRONG.
-     - `X years ago` → timestamp = datetime(reference_time, '-X years') (exact reference point as rolling window, do not truncate to year)
-     - `until/before X years ago` → timestamp <= datetime(reference_time, '-X years')
-     - `since X years ago` → timestamp >= datetime(reference_time, '-X years') (as datetime, not just year)
-     - `during year X` → timestamps in year X (within calendar year, not rolling window)
-     - `current visit` → timestamp is null (visit hasn't been completed)
-     - `first/last visit` → timestamp is not null (visit has been completed)
-     - **Always filter years with `%Y`**, never `%y`
+- Extract every entity, value, and condition the question references
+- Confirm each is explicitly specified without ambiguity or placeholders
+- Relative references like "this month" or "last year" are acceptable
+- Vague references like "that date", "those patients", or "the procedure" without context are not acceptable
 
-## **Critical Rules for Answerability**
+**Return "None" immediately if**: Any specific information needed to answer is missing or too vague to determine.
 
-**UNANSWERABLE QUESTIONS (Return "None"):**
-1. Questions with **missing concrete information** (too vague references, placeholders)
-2. Questions requesting **information not stored in database** (no corresponding column)
-3. Questions requiring **operations not demonstrated in examples**
-4. Questions with **semantically impossible mappings** (diagnosis → test column)
+### Phase 2: Database Feasibility Verification
 
-**ANSWERABLE QUESTIONS (Generate SQL):**
-1. All required information is concretely specified
-2. Each information element has a direct database column
-3. Examples demonstrate similar query patterns
+For each entity or concept in the question, perform exact column matching:
 
-## **Output Specification**
-- **Unanswerable**: Return exactly "None" (no SQL, no explanation)
-- **Answerable**: Return exactly one SQL query (no additional text, no markdown)
-- **Formatting**: Match example style exactly (no arbitrary rounding, no linebreaks)
+1. **Identify the exact database column** that stores this information
+2. **Verify semantic precision**: The column must store the exact concept requested, not a similar or related concept
+3. **Document the match**: Column name and table must be cited from schema or examples
 
-**Final Decision Flow:**
-```
-1. Does question provide all concrete information? → No → "None"
-2. Does database have columns for all information? → No → "None"  
-3. All checks pass → Generate SQL from examples
-```
+**Critical Matching Rules**:
+
+- **Exact attribute matching required**: If the question asks for "quality", a column storing "type" is not acceptable even if both relate to the same entity. Example: "specimen quality" cannot map to a column storing "specimen type" - these are different attributes requiring different columns.
+
+- **Complete entity name matching required**: If the question specifies "or cell saver intake", a column labeled "cell saver" is insufficient. The full entity name must match. Do not use partial string matches or abbreviations when full names are available.
+
+- **Prefer specific over generic labels**: When multiple columns exist, use the most complete and specific one. Example: prefer "height (cm)" over an abbreviation "height" when both exist, as the former is more precise.
+
+- **Table-specific columns**: Some concepts exist in multiple tables with different meanings. Lab tests like "oxygen" or "hemoglobin" use labevents table; vital signs like "temperature" or "blood pressure" use chartevents table; inputs use inputevents table; outputs use outputevents table. Verify you're using the correct table for the concept.
+
+- **Distinguish similar concepts strictly**: The question may introduce subtly different concepts to test precision. You must be extremely strict while judging the feasibility of a concept (i.e., can be mapped to a specific column in the schema). Examples of distinct concepts that are similar, but cannot be mapped to each other and is essentially different:
+  - "Specimen quality" (impossible) vs. "specimen name/type" (possible) (different attributes of same entity)
+  - "hospital visits" (impossible) vs. "hospital admission" (possible) (different events)
+  - "Performing physician" (impossible) vs. "patient" (possible) (different entities)
+  - Temperature vs. temperature celsius (different measurement units/standards)
+
+**Return "None" immediately if**:
+- Any entity or concept has no exact matching column
+- Semantic mismatch exists (similar but not identical concepts)
+- Required relationship or join path doesn't exist in schema
+- Column stores related but different information than requested
+
+**Only proceed to SQL generation if both phases pass completely.**
+
+## SQL Generation Process
+
+### Step 1: Classify Query Intent
+
+Determine what type of answer the question expects:
+
+- **Existence queries** ("Has there been...", "Is there...", "Does...exist"): Return `SELECT COUNT(*) > 0`
+- **Temporal queries** ("When did...", "What time..."): Return timestamp values
+- **Count queries** ("How many..."): Return `COUNT()` aggregation
+- **Fact queries** ("What is...", "What was..."): Return specific values with careful consideration of aggregation:
+  - Use aggregation (SUM, MAX, MIN, AVG) only when explicitly stated or clearly implied by context
+  - Singular form with temporal range often implies aggregation: "What was the total output during March" requires SUM
+  - Without clear aggregation signal, return individual values or use ordering with LIMIT
+  - "What was the dosage prescribed" with multiple prescriptions requires clarification from context: if asking for total, use SUM; if asking for a specific instance, use temporal ordering with LIMIT
+
+### Step 2: Adapt Example Structure
+
+Use retrieved examples as structural templates:
+
+- Examine example questions to find similar query patterns
+- Replicate the SQL structure, formatting style, and join patterns from examples
+- Replace placeholders with concrete values from entity mappings
+- The original question is authoritative - if examples don't perfectly fit, write SQL that directly answers the question rather than forcing an example template
+
+**Structure Adaptation Rules**:
+- Include only clauses that directly serve the question's requirements
+- Every condition in the question must map to exactly one SQL constraint
+- Do not copy irrelevant filters or clauses from examples
+- Ensure all aspects of the question are covered in the SQL
+
+### Step 3: Time Expression Handling
+
+Time references require precise interpretation:
+
+**Relative Time References** (require computed filters, never hardcode):
+- "this year" → `datetime(time,'start of year') = datetime(reference,'start of year','-0 year')`
+- "last year" → `datetime(time,'start of year') = datetime(reference,'start of year','-1 year')`
+- "this month" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month')`
+- "this month/DD" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month') AND strftime('%d',time) = 'DD'`
+- "X years/months/days ago" → `datetime(reference, '-X year/month/day')` as exact rolling window, not truncated to calendar boundaries
+- "since X years ago" → `datetime(time) >= datetime(reference, '-X year/month/day')`
+
+**Absolute Time References** (use direct comparison):
+- "in 2100" → `strftime('%Y',time) = '2100'`
+- "in 07/2100" → `strftime('%Y-%m',time) = '2100-07'`
+- "on 05/15/2100" → `strftime('%Y-%m-%d',time) = '2100-05-15'`
+
+**Visit Context**:
+- "current visit/encounter" → `dischtime IS NULL` (ongoing)
+- "first/last visit" → `dischtime IS NOT NULL` (completed visits only)
+
+**Duration Calculations**:
+- Hours: `(strftime('%s', end) - strftime('%s', start)) / 3600.0` for seconds-based calculation
+- Or: `24 * (strftime('%J', end) - strftime('%J', start))` for Julian-day-based calculation
+- Days: `strftime('%J', end) - strftime('%J', start)`
+- Return raw decimal values without arbitrary rounding unless examples demonstrate rounding
+
+### Step 4: Aggregation Decision Logic
+
+Apply aggregation functions carefully based on question semantics:
+
+**Apply aggregation when**:
+- Explicitly stated: "total", "sum", "average", "maximum", "minimum", "count"
+- Singular form implying combination: "What was the dosage prescribed" when multiple prescriptions exist typically means total dosage
+- Temporal range with singular measurement: "the output during March" implies total output across the month
+
+**Do not apply aggregation when**:
+- Question asks for specific instance: "first", "last", "most recent" → use ORDER BY with LIMIT
+- Question asks for individual values: "What are the measurements" (plural)
+- Question provides sufficient constraints to return single record without aggregation
+
+**When uncertain**: Examine similar patterns in provided examples for guidance.
+
+## Example-Based Learning
+
+Study the provided examples to understand:
+- SQL dialect and formatting conventions (capitalization, spacing, no linebreaks)
+- Join patterns for relating tables
+- Subquery structures for complex filtering
+- Time filtering techniques
+- No arbitrary transformations like ROUND() unless demonstrated in examples
+
+## Output Requirements
+
+**Format**:
+- If unanswerable: Return exactly the string "None" with no additional text
+- If answerable: Return exactly one SQL query with no markdown formatting, no comments, no explanations
+- Follow the exact formatting style of examples: no linebreaks within queries, consistent capitalization, spacing patterns
+
+**Style Consistency**:
+- Match example SQL formatting precisely
+- Do not add arbitrary functions (ROUND, CAST) unless shown in examples
+- Do not modify datetime formats unless examples demonstrate the pattern
+- Use same quotation style, comma placement, and indentation as examples
+
+## Decision Flowchart
+
+Before generating any SQL, complete this checklist:
+
+1. Does the question provide all concrete information needed? → If No: Return "None"
+2. Can each entity/concept map to an exact database column? → If No: Return "None"
+3. Are all concepts semantically precise matches (not similar approximations)? → If No: Return "None"
+4. Do examples demonstrate the required query pattern or can it be constructed from available schema? → If No: Return "None"
+5. All checks pass? → Generate SQL using examples as structural templates
+
+## Common Precision Requirements
+
+**Column Selection Precision**:
+- When question specifies full measurement name, use full column label, not abbreviations
+- When multiple similar columns exist, verify which captures the exact concept requested
+- Lab test measurements and vital sign measurements may share names but live in different tables
+
+**Concept Distinction Examples** (illustrative, not exhaustive):
+- Asking for "quality" when only "type" exists → Different attributes, return "None"
+- Asking for "performing physician" when only patient or procedure data exists → Different entity, return "None"  
+- Asking for "height measurement" when columns include "height" abbreviation and "height (cm)" full label → Use the complete, specific label
+
+**Aggregation Context Examples**:
+- "What was the patient's total output in March?" → Multiple output records expected, use SUM
+- "What was the patient's first output in March?" → Single record expected, use ORDER BY with LIMIT
+- "What was the patient's output?" with no temporal or aggregation context → Check examples for similar patterns
+
+**Time Expression Examples**:
+- "since 25 months ago" → `datetime(reference, '-25 month')` as exact rolling window
+- "in March this year" → `datetime(time,'start of year') = datetime(reference,'start of year') AND strftime('%m',time) = '03'`
+- "on the 15th of this month" → `datetime(time,'start of month') = datetime(reference,'start of month') AND strftime('%d',time) = '15'`
 """
 
-# ========== CBR-to-SQL: Template Construction ==========
-
-# sql_generation = """
-# Generate a SQL query by adapting retrieved examples to directly answer the original natural language question. Return "None" if insufficient information is provided to write a SQL query.
-
-# ## **Procedure**
-# 1. Select the retrieved example(s) with the closest semantic intent.
-# 2. Treat selected examples only as **templates** to adapt and the original question as **authoritative**. Replicate the chosen example's **logic, structure, and formatting exactly**, adapting only what is necessary. 
-# 3. Replace all entity placeholders (e.g., `[DATE]`, `[DRUG]`) using entity mappings, or infer from examples and the question.
-# 4. IMPORTANT: Return the string "None" immediately if there is insufficient context to support a valid SQL query.
-
-# ## 1. Intent Analysis & SQL Writing Rules:
-# * **Step 1: Determine the exact query intent** - Analyze what the question is fundamentally asking for:
-#    - **Fact retrieval**: Asking for specific facts, measurements, or values
-#    - **Existence check**: Asking whether something exists/has occurred (yes/no questions)
-#    - **Temporal query**: Asking for time-related information (when, how long, timing)
-#    - **Aggregation**: Asking for counts, averages, maximums, minimums
-#    - **Comparison**: Asking for relationships between values
-   
-#    **CRITICAL**: The question's wording determines what you should return in the SELECT clause and overall query structure. The temporal aspects mentioned in examples may only be conditional filters, not the actual answer being requested.
-
-# * **Step 2: Match SQL structure to intent**:
-#    - **Existence questions** ("Has there been...", "Is there...", "Does...exist") → Use `SELECT COUNT(*) > 0`
-#    - **Temporal questions** ("When did...", "What time...") → Return timestamps
-#    **Fact questions** ("What is...", "What was...") → Return specific values.
-#       - You may use aggregation functions (MAX, MIN, SUM, AVG) only when implied by the question's context. Apply the minimal aggregation needed:
-#          - "What is the **total** output..." → Use `SUM()`
-#          - "What is the **maximum** value..." → Use `MAX()`
-#          - "What is the **average**..." → Use `AVG()`
-#       - "What is the **first/last** measurement..." → Use ordering with `LIMIT 1` in appropriate direction
-#       - **CRITICAL**: When the question asks for a singular fact without implying aggregation (e.g., "What is the patient's blood pressure?"), return the specific value without aggregation unless contextual clues clearly indicate otherwise. The presence of temporal conditions does not automatically justify aggregation.
-#    - **Count questions** ("How many...") → Use `COUNT()` aggregation
-
-# * **Step 3: Adapt examples carefully**:
-#    - Ensure **every condition in the question maps to exactly one SQL constraint**
-#    - **Do not copy irrelevant clauses** from examples - each clause must directly serve the question's intent
-#    - **Verify column usage**: Match entity mappings to correct database columns; don't assume examples use the right columns
-#    - The SELECT clause must return **exactly what the question asks for**, no more, no less
-#    - Follow closely the style and formatting of the examples AND the intent of the question. Do not abitrarily apply functions/formats without specifications (e.g., abitrary rounding, linebreaks).
-
-# * **IMPORTANT: Time filtering precision**:
-#   - Distinguish between **time conditions** (filters in WHERE clause) and **time answers** (values in SELECT clause)
-#   - When filtering by time, ensure the filter granularity matches the question's time reference
-#   - For relative time references, use appropriate datetime calculations
-#   - Time conditions should constrain the dataset; time answers should provide requested temporal information
-
-# ## 2. Adaptation Guidelines:
-# 1. **Question-first adaptation**: Start from what the question needs, then see which example structures can support it
-# 2. **Column validation**: Cross-reference entity mappings with example queries to ensure correct column usage
-# 3. IMPORTANT: **Intent alignment**: If an example's SELECT clause doesn't match the question's intent, adapt it or find a better example
-# 4. **Minimal implementation**: Include only the SQL necessary to answer the question directly and completely
-# 5. IMPORTANT: **Style consistency**: Maintain the database's SQL dialect and formatting style from examples (no abitrary rounding up, no linebreaks, etc.)
-
-# ## 3. Question Answerability Check
-# IMPORTANT: Before writing SQL, quickly assess if the question can be answered using available information.
-
-# ### Quick Check Process:
-# 1. **Identify core query pattern** - What is the fundamental structure being asked? Look for:
-#    - Main entities being queried (tests, diagnoses, medications, etc.)
-#    - Relationships between entities (after diagnosis, same encounter, etc.)
-#    - Aggregations needed (top N, counts, frequencies)
-# 2. **Look for structural matches in examples**:
-#    - Do examples show similar **query patterns** (e.g., "top N most frequent X after Y")?
-#    - Are the **required joins and conditions** demonstrated in examples?
-#    - Is the **overall query logic** similar, even if details differ?
-# 3. **Schema and entity mapping validation**:
-#    - Check if entity mappings provide reasonable column matches
-#    - If mappings seem incorrect but examples show the correct pattern, trust the examples
-#    - Examples demonstrating complex queries with specific conditions are strong evidence of answerability
-
-# ### Answerability Decision Rules:
-# ✅ **Answerable if**:
-# - Examples show queries with the same **structural pattern** (joins, conditions, aggregations)
-# - The **database schema supports** the required relationships (joins between tables exist)
-# - Entity mappings provide **plausible column matches**, even if not perfect
-# - **Multiple examples** demonstrate similar complex query patterns
-
-# ❌ **Return "None" only if**:
-# - Core concepts are **completely absent** from schema and examples (e.g., "consent forms" when only procedures exist)
-# - Required **relationships cannot be expressed** with available schema
-# - **No examples** show even remotely similar query patterns
-# - Entity mappings are **fundamentally impossible** (e.g., mapping diagnosis names to test types)
-
-# ### Critical Guidance:
-# - **Examples provide proof of structural feasibility**. If examples show complex diagnosis+test queries, similar questions are likely answerable.
-# - **Entity mappings are suggestions, not constraints**. If examples use different columns for similar concepts, follow the examples.
-# - **Focus on query structure, not exact wording**. "Specimens tested" ≈ "microbiology tests" in examples.
-# - **Diagnosis names** typically map to `d_icd_diagnoses.long_title` and `diagnoses_icd.icd_code`, not to microbiology columns.
-
-# **When in doubt, write the SQL query** using the closest example pattern. Only return "None" for clearly impossible questions where examples provide no structural guidance.
-
-# Examples:
-# - ✅ *"What's the minimum daily prescription?"* → Concept: `aggregate metric (min)` of a `prescription`. Examples show `aggregate metric (sum)` of a `prescription`. Answerable. Saying it's possible would be a reasonable and logical interpretation.
-# - ❌ *"Has patient received a consent form?"* → Concept: `consent event`. Examples only show `procedure event`. Impossible. Saying it's possible would be over-interpretation.
-# - ❌ *"What ward can get patient in?"* → Concept: `ward suitability/eligibility`. Examples only show `historical ward assignment`. Impossible. Saying it's possible would be over-interpretation.
-
-# ## 4. Entity Replacement
-# Replace every placeholder with exactly one concrete value:
-# 1. Use entity mapping first, consider the value proposed by the entity map.
-# 2. Verify semantic correctness:
-#    - Does the mapped value match the entity's actual meaning?
-#    - Example: "dead" → EXPIRE_FLAG = 1 ✓ CORRECT | "dead" → "DAH" ✗ WRONG (unrelated)
-# 3. If entity mapping seems wrong or missing:
-#    - Check if a different column better captures the intent (e.g., EXPIRE_FLAG for "dead")
-#    - Extract literal values directly from the question. Remember to utilize the full span of entities (as shown in the extracted values in the masked entity).
-#    - Consult retrieved examples for similar patterns
-# 4. Do NOT use fuzzy matches that are clearly semantically unrelated
-# Critical: Correctness > Lexical similarity. Reject nonsensical mappings.
-
-# ### 5. Output Constraints
-# * Return "None" if the input question is impossible to be answered.
-# * Otherwise, output ONLY one SQL query, no markdown, comments, explanations, or extra text. IMPORTANT: Closely the writing style of the retrieved SQLs (no linebreaks, abitrary rounding, etc.)
-# * Exactly one value per entity placeholder.
-# * Write SQL minimally, while strictly following the formatting conventions of the retrieved example.
-# """
 
 prompt_decomposition = """
 Your task is to decompose a complex natural language question into 2-3 simpler sub-questions that can help retrieve relevant SQL examples from a case base.
