@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-What is the average age of temporary residents admitted for emergencies last month?
+What medication was patient 10009049 since 05/2100?
 """
 
 # %%
@@ -116,7 +116,7 @@ cbr_cdb_retriever.retrieve(
 
 # %%
 sql_db.run(post_process_sql("""
-SELECT T1.drug FROM ( SELECT prescriptions.drug, DENSE_RANK() OVER ( ORDER BY COUNT(*) DESC ) AS C1 FROM prescriptions WHERE datetime(prescriptions.starttime,'start of year') = datetime('2100-12-31 23:59:00','start of year','-0 year') GROUP BY prescriptions.drug ) AS T1 WHERE T1.C1 <= 3
+SELECT COUNT(*)>0 FROM inputevents WHERE inputevents.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021487 ) ) AND inputevents.itemid IN ( SELECT d_items.itemid FROM d_items WHERE d_items.label = 'dextrose 5%' AND d_items.linksto = 'inputevents' ) AND datetime(inputevents.starttime,'start of month') = datetime(current_time,'start of month','-0 month') AND strftime('%d',inputevents.starttime) = '07'
 """
 ))
 
