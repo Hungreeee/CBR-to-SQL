@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-What medication was patient 10009049 since 05/2100?
+What was the name of the specimen test that patient 10021666 was given for the first time since 03/2100?
 """
 
 # %%
@@ -116,7 +116,7 @@ cbr_cdb_retriever.retrieve(
 
 # %%
 sql_db.run(post_process_sql("""
-SELECT COUNT(*)>0 FROM inputevents WHERE inputevents.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021487 ) ) AND inputevents.itemid IN ( SELECT d_items.itemid FROM d_items WHERE d_items.label = 'dextrose 5%' AND d_items.linksto = 'inputevents' ) AND datetime(inputevents.starttime,'start of month') = datetime(current_time,'start of month','-0 month') AND strftime('%d',inputevents.starttime) = '07'
+SELECT DISTINCT microbiologyevents.spec_type_desc FROM microbiologyevents WHERE microbiologyevents.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021666 ) AND strftime('%Y-%m',microbiologyevents.charttime) >= '2100-03' AND microbiologyevents.charttime = ( SELECT DISTINCT microbiologyevents.charttime FROM microbiologyevents WHERE microbiologyevents.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021666 ) AND strftime('%Y-%m',microbiologyevents.charttime) >= '2100-03' ORDER BY microbiologyevents.charttime ASC LIMIT 1 )
 """
 ))
 

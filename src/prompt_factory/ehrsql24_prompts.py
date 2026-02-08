@@ -252,30 +252,43 @@ Use retrieved examples as structural templates:
 
 ### Step 3: Time Expression Handling
 
-Time references require precise interpretation:
+Time references require precise interpretation based on patterns demonstrated in the retrieved examples.
 
-**Relative Time References** (require computed filters, never hardcode):
-- "this year" → `datetime(time,'start of year') = datetime(reference,'start of year','-0 year')`
-- "last year" → `datetime(time,'start of year') = datetime(reference,'start of year','-1 year')`
-- "this month" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month')`
-- "this month/DD" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month') AND strftime('%d',time) = 'DD'`
-- "X years/months/days ago" → `datetime(reference, '-X year/month/day')` as exact rolling window, not truncated to calendar boundaries
-- "since X years ago" → `datetime(time) >= datetime(reference, '-X year/month/day')`
+**Core principle:** If examples demonstrate datetime functions (`datetime()`, `strftime()`), then time-based filtering operations are supported. Study examples to learn the specific SQL patterns this database uses.
 
-**Absolute Time References** (use direct comparison):
-- "in 2100" → `strftime('%Y',time) = '2100'`
-- "in 07/2100" → `strftime('%Y-%m',time) = '2100-07'`
-- "on 05/15/2100" → `strftime('%Y-%m-%d',time) = '2100-05-15'`
+**Relative Time References** (computed dynamically from reference point):
 
-**Visit Context**:
-- "current visit/encounter" → `dischtime IS NULL` (ongoing)
-- "first/last visit" → `dischtime IS NOT NULL` (completed visits only)
+Questions using relative time language require dynamic computation:
+- **Period boundaries** (this year, this month, last year): Filter by normalizing timestamps to period starts. Examples will show functions like `datetime(time, 'start of year')` or similar period boundary operations.
+
+- **Combined period + day** (this month/15, last year/March): Apply period boundary filter AND day/month component filter. Examples will show both boundary functions and component extraction functions like `strftime('%d', time)`.
+
+- **Rolling windows** (X days ago, since X months ago): Calculate exact time offsets from reference point - not calendar boundaries. Examples will show offset syntax like `datetime(reference, '-X unit')` where unit is year/month/day.
+
+- **General pattern**: Relative expressions use datetime arithmetic with reference points. Never hardcode relative references to absolute values.
+
+**Absolute Time References** (direct value comparison):
+
+Questions using specific dates/years compare against fixed values:
+- **Year/month/date filters**: Extract time components and compare to specific values. Examples will show functions like `strftime('%Y', time) = '2100'` or similar component extraction patterns.
+
+- **General pattern**: Absolute expressions extract components and compare to literals.
+
+**Visit/Encounter Status Indicators**:
+
+Questions about "current" vs "completed" visits use status fields:
+- **Ongoing status**: Identified by NULL end/discharge timestamps
+- **Completed status**: Identified by NOT NULL end/discharge timestamps
+- Examples will show NULL checks on discharge/end time fields
 
 **Duration Calculations**:
-- Hours: `(strftime('%s', end) - strftime('%s', start)) / 3600.0` for seconds-based calculation
-- Or: `24 * (strftime('%J', end) - strftime('%J', start))` for Julian-day-based calculation
-- Days: `strftime('%J', end) - strftime('%J', start)`
-- Return raw decimal values without arbitrary rounding unless examples demonstrate rounding
+
+When computing time elapsed between two timestamps:
+- Convert timestamps to common unit (seconds, days, etc.) using timestamp arithmetic
+- Perform subtraction in that unit
+- Convert to requested output unit if needed
+- Examples will show specific conversion formulas - follow those patterns exactly
+- Preserve decimal precision unless examples demonstrate rounding
 
 ### Step 4: Aggregation Decision Logic
 
@@ -347,6 +360,191 @@ Before generating any SQL, complete this checklist:
 - "in March this year" → `datetime(time,'start of year') = datetime(reference,'start of year') AND strftime('%m',time) = '03'`
 - "on the 15th of this month" → `datetime(time,'start of month') = datetime(reference,'start of month') AND strftime('%d',time) = '15'`
 """
+
+
+# sql_generation = """
+# # SQL Query Generation from Natural Language
+
+# Generate a SQL query by adapting retrieved examples to answer the natural language question. Return **"None"** if the question cannot be answered with available information.
+
+# ## Core Task Requirements
+
+# This is a high-stakes evaluation requiring exact, minimal responses. Your SQL must directly and completely answer the question using only information available in the schema and examples. The question is authoritative; examples serve only as structural templates.
+
+# ## Two-Phase Validation Protocol
+
+# Execute these phases sequentially. Failure at any phase requires immediate return of "None".
+
+# ### Phase 1: Question Completeness Verification
+
+# Verify the question provides all concrete information needed:
+
+# - Extract every entity, value, and condition the question references
+# - Confirm each is explicitly specified without ambiguity or placeholders
+# - Relative references like "this month" or "last year" are acceptable
+# - Vague references like "that date", "those patients", or "the procedure" without context are not acceptable
+
+# **Return "None" immediately if**: Any specific information needed to answer is missing or too vague to determine.
+
+# ### Phase 2: Database Feasibility Verification
+
+# For each entity or concept in the question, perform exact column matching:
+
+# 1. **Identify the exact database column** that stores this information
+# 2. **Verify semantic precision**: The column must store the exact concept requested, not a similar or related concept
+# 3. **Document the match**: Column name and table must be cited from schema or examples
+
+# **Critical Matching Rules**:
+
+# - **Exact attribute matching required**: If the question asks for "quality", a column storing "type" is not acceptable even if both relate to the same entity. Example: "specimen quality" cannot map to a column storing "specimen type" - these are different attributes requiring different columns.
+
+# - **Complete entity name matching required**: If the question specifies "or cell saver intake", a column labeled "cell saver" is insufficient. The full entity name must match. Do not use partial string matches or abbreviations when full names are available.
+
+# - **Prefer specific over generic labels**: When multiple columns exist, use the most complete and specific one. Example: prefer "height (cm)" over an abbreviation "height" when both exist, as the former is more precise.
+
+# - **Table-specific columns**: Some concepts exist in multiple tables with different meanings. Lab tests like "oxygen" or "hemoglobin" use labevents table; vital signs like "temperature" or "blood pressure" use chartevents table; inputs use inputevents table; outputs use outputevents table. Verify you're using the correct table for the concept.
+
+# - **Distinguish similar concepts strictly**: The question may introduce subtly different concepts to test precision. You must be extremely strict while judging the feasibility of a concept (i.e., can be mapped to a specific column in the schema). Examples of distinct concepts that are similar, but cannot be mapped to each other and is essentially different:
+#   - "Specimen quality" (impossible) vs. "specimen name/type" (possible) (different attributes of same entity)
+#   - "hospital visits" (impossible) vs. "hospital admission" (possible) (different events)
+#   - "Performing physician" (impossible) vs. "patient" (possible) (different entities)
+#   - Temperature vs. temperature celsius (different measurement units/standards)
+
+# **Return "None" immediately if**:
+# - Any entity or concept has no exact matching column
+# - Semantic mismatch exists (similar but not identical concepts)
+# - Required relationship or join path doesn't exist in schema
+# - Column stores related but different information than requested
+
+# **Only proceed to SQL generation if both phases pass completely.**
+
+# ## SQL Generation Process
+
+# ### Step 1: Classify Query Intent
+
+# Determine what type of answer the question expects:
+
+# - **Existence queries** ("Has there been...", "Is there...", "Does...exist"): Return `SELECT COUNT(*) > 0`
+# - **Temporal queries** ("When did...", "What time..."): Return timestamp values
+# - **Count queries** ("How many..."): Return `COUNT()` aggregation
+# - **Fact queries** ("What is...", "What was..."): Return specific values with careful consideration of aggregation:
+#   - Use aggregation (SUM, MAX, MIN, AVG) only when explicitly stated or clearly implied by context
+#   - Singular form with temporal range often implies aggregation: "What was the total output during March" requires SUM
+#   - Without clear aggregation signal, return individual values or use ordering with LIMIT
+#   - "What was the dosage prescribed" with multiple prescriptions requires clarification from context: if asking for total, use SUM; if asking for a specific instance, use temporal ordering with LIMIT
+
+# ### Step 2: Adapt Example Structure
+
+# Use retrieved examples as structural templates:
+
+# - Examine example questions to find similar query patterns
+# - Replicate the SQL structure, formatting style, and join patterns from examples
+# - Replace placeholders with concrete values from entity mappings
+# - The original question is authoritative - if examples don't perfectly fit, write SQL that directly answers the question rather than forcing an example template
+
+# **Structure Adaptation Rules**:
+# - Include only clauses that directly serve the question's requirements
+# - Every condition in the question must map to exactly one SQL constraint
+# - Do not copy irrelevant filters or clauses from examples
+# - Ensure all aspects of the question are covered in the SQL
+
+# ### Step 3: Time Expression Handling
+
+# Time references require precise interpretation:
+
+# **Relative Time References** (require computed filters, never hardcode):
+# - "this year" → `datetime(time,'start of year') = datetime(reference,'start of year','-0 year')`
+# - "last year" → `datetime(time,'start of year') = datetime(reference,'start of year','-1 year')`
+# - "this month" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month')`
+# - "this month/DD" → `datetime(time,'start of month') = datetime(reference,'start of month','-0 month') AND strftime('%d',time) = 'DD'`
+# - "X years/months/days ago" → `datetime(reference, '-X year/month/day')` as exact rolling window, not truncated to calendar boundaries
+# - "since X years ago" → `datetime(time) >= datetime(reference, '-X year/month/day')`
+
+# **Absolute Time References** (use direct comparison):
+# - "in 2100" → `strftime('%Y',time) = '2100'`
+# - "in 07/2100" → `strftime('%Y-%m',time) = '2100-07'`
+# - "on 05/15/2100" → `strftime('%Y-%m-%d',time) = '2100-05-15'`
+
+# **Visit Context**:
+# - "current visit/encounter" → `dischtime IS NULL` (ongoing)
+# - "first/last visit" → `dischtime IS NOT NULL` (completed visits only)
+
+# **Duration Calculations**:
+# - Hours: `(strftime('%s', end) - strftime('%s', start)) / 3600.0` for seconds-based calculation
+# - Or: `24 * (strftime('%J', end) - strftime('%J', start))` for Julian-day-based calculation
+# - Days: `strftime('%J', end) - strftime('%J', start)`
+# - Return raw decimal values without arbitrary rounding unless examples demonstrate rounding
+
+# ### Step 4: Aggregation Decision Logic
+
+# Apply aggregation functions carefully based on question semantics:
+
+# **Apply aggregation when**:
+# - Explicitly stated: "total", "sum", "average", "maximum", "minimum", "count"
+# - Singular form implying combination: "What was the dosage prescribed" when multiple prescriptions exist typically means total dosage
+# - Temporal range with singular measurement: "the output during March" implies total output across the month
+
+# **Do not apply aggregation when**:
+# - Question asks for specific instance: "first", "last", "most recent" → use ORDER BY with LIMIT
+# - Question asks for individual values: "What are the measurements" (plural)
+# - Question provides sufficient constraints to return single record without aggregation
+
+# **When uncertain**: Examine similar patterns in provided examples for guidance.
+
+# ## Example-Based Learning
+
+# Study the provided examples to understand:
+# - SQL dialect and formatting conventions (capitalization, spacing, no linebreaks)
+# - Join patterns for relating tables
+# - Subquery structures for complex filtering
+# - Time filtering techniques
+# - No arbitrary transformations like ROUND() unless demonstrated in examples
+
+# ## Output Requirements
+
+# **Format**:
+# - If unanswerable: Return exactly the string "None" with no additional text
+# - If answerable: Return exactly one SQL query with no markdown formatting, no comments, no explanations
+# - Follow the exact formatting style of examples: no linebreaks within queries, consistent capitalization, spacing patterns
+
+# **Style Consistency**:
+# - Match example SQL formatting precisely
+# - Do not add arbitrary functions (ROUND, CAST) unless shown in examples
+# - Do not modify datetime formats unless examples demonstrate the pattern
+# - Use same quotation style, comma placement, and indentation as examples
+
+# ## Decision Flowchart
+
+# Before generating any SQL, complete this checklist:
+
+# 1. Does the question provide all concrete information needed? → If No: Return "None"
+# 2. Can each entity/concept map to an exact database column? → If No: Return "None"
+# 3. Are all concepts semantically precise matches (not similar approximations)? → If No: Return "None"
+# 4. Do examples demonstrate the required query pattern or can it be constructed from available schema? → If No: Return "None"
+# 5. All checks pass? → Generate SQL using examples as structural templates
+
+# ## Common Precision Requirements
+
+# **Column Selection Precision**:
+# - When question specifies full measurement name, use full column label, not abbreviations
+# - When multiple similar columns exist, verify which captures the exact concept requested
+# - Lab test measurements and vital sign measurements may share names but live in different tables
+
+# **Concept Distinction Examples** (illustrative, not exhaustive):
+# - Asking for "quality" when only "type" exists → Different attributes, return "None"
+# - Asking for "performing physician" when only patient or procedure data exists → Different entity, return "None"  
+# - Asking for "height measurement" when columns include "height" abbreviation and "height (cm)" full label → Use the complete, specific label
+
+# **Aggregation Context Examples**:
+# - "What was the patient's total output in March?" → Multiple output records expected, use SUM
+# - "What was the patient's first output in March?" → Single record expected, use ORDER BY with LIMIT
+# - "What was the patient's output?" with no temporal or aggregation context → Check examples for similar patterns
+
+# **Time Expression Examples**:
+# - "since 25 months ago" → `datetime(reference, '-25 month')` as exact rolling window
+# - "in March this year" → `datetime(time,'start of year') = datetime(reference,'start of year') AND strftime('%m',time) = '03'`
+# - "on the 15th of this month" → `datetime(time,'start of month') = datetime(reference,'start of month') AND strftime('%d',time) = '15'`
+# """
 
 
 prompt_decomposition = """
