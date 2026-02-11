@@ -37,7 +37,7 @@ def convert_date_function(match):
     return f"datetime({date}, '{sign}{number} {unit}')"
 
 def post_process_sql(query: str | None) -> str:
-    if query is None:
+    if query is None or query == "":
         return "None"
 
     query = re.sub('[ ]+', ' ', query.replace('\n', ' ')).strip()

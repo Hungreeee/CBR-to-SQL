@@ -31,12 +31,13 @@ class LLMConfig:
 @dataclass
 class RAGConfig:
     top_k: int = 5
-    brittle_retrieval: bool = False
+    brittle_retrieval: bool = True
     hybrid_retrieval: bool = False
-    prompt_decomposition: bool = False
+    prompt_extension: bool = False
     return_response: bool = False
     template_construction: bool = True
     source_discovery: bool = True
+    reranker_embedding_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     dataset: Literal["mimicsql", "ehrsql", "ehrsql24"] = "mimicsql"
 
     @classmethod

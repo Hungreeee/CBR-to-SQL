@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-What was the name of the specimen test that patient 10021666 was given for the first time since 03/2100?
+Which was the first procedure that patient 10035185 received during their last hospital encounter?
 """
 
 # %%
@@ -116,7 +116,7 @@ cbr_cdb_retriever.retrieve(
 
 # %%
 sql_db.run(post_process_sql("""
-SELECT DISTINCT microbiologyevents.spec_type_desc FROM microbiologyevents WHERE microbiologyevents.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021666 ) AND strftime('%Y-%m',microbiologyevents.charttime) >= '2100-03' AND microbiologyevents.charttime = ( SELECT DISTINCT microbiologyevents.charttime FROM microbiologyevents WHERE microbiologyevents.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10021666 ) AND strftime('%Y-%m',microbiologyevents.charttime) >= '2100-03' ORDER BY microbiologyevents.charttime ASC LIMIT 1 )
+SELECT T3.spec_type_desc FROM ( SELECT T2.spec_type_desc, DENSE_RANK() OVER ( ORDER BY COUNT(*) DESC ) AS C1 FROM ( SELECT admissions.subject_id, diagnoses_icd.charttime FROM diagnoses_icd JOIN admissions ON diagnoses_icd.hadm_id = admissions.hadm_id WHERE diagnoses_icd.icd_code = ( SELECT d_icd_diagnoses.icd_code FROM d_icd_diagnoses WHERE d_icd_diagnoses.long_title = 'unarmed fight or brawl' ) ) AS T1 JOIN ( SELECT admissions.subject_id, microbiologyevents.spec_type_desc, microbiologyevents.charttime FROM microbiologyevents JOIN admissions ON microbiologyevents.hadm_id = admissions.hadm_id ) AS T2 ON T1.subject_id = T2.subject_id WHERE T1.charttime < T2.charttime AND datetime(T2.charttime) BETWEEN datetime(T1.charttime) AND datetime(T1.charttime,'+2 month') GROUP BY T2.spec_type_desc ) AS T3 WHERE T3.C1 <= 5
 """
 ))
 

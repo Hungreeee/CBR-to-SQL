@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-13")
+RESULTS_DIR = Path("./results/ehrsql24/run-13-rag-cdb-brittle")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -47,7 +47,7 @@ LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 USE_AZURE = True  # Set to False for OpenAI
 
 # Select which pipelines to evaluate
-EVALUATE = ["CBR-CDB"]
+EVALUATE = ["CBR-CDB", "RAG-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -225,44 +225,5 @@ with open(RESULTS_DIR / "metrics.json", "w") as f:
                     for k, metrics in all_metrics.items()}
     json.dump(serializable, f, indent=2)
 print(f"\n✓ Metrics saved to {RESULTS_DIR / 'metrics.json'}")
-
-# %%
-all_results[name]
-
-# %%
-def remap_outputs_to_id_sql(model_outputs, dataset):
-    # Build lookup from question -> id
-    question_to_id = {
-        item["question"]: item["id"]
-        for item in dataset["data"]
-    }
-
-    result = {}
-
-    for entry in model_outputs:
-        question = entry.get("question")
-        sql = entry.get("predicted_sql")
-
-        if question in question_to_id and sql is not None:
-            qid = question_to_id[question]
-            if sql == "None":
-                sql = "null"
-            result[qid] = sql
-
-    return result
-
-# %%
-data = load_json("./data/ehrsql-2024/data/mimic_iv/test/data.json")
-
-data
-
-# %%
-pred = remap_outputs_to_id_sql(all_results[name], data)
-
-import json
-
-with open("prediction.json", "w", encoding="utf-8") as f:
-    json.dump(pred, f)
-
 
 # %%

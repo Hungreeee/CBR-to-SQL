@@ -246,7 +246,7 @@ Critical: Correctness > Lexical similarity. Reject nonsensical mappings.
 * Write SQL minimally, while strictly following the formatting conventions of the retrieved example.
 """
 
-prompt_decomposition = """
+prompt_extension = """
 Your task is to decompose a complex natural language question into 2-3 simpler sub-questions that can help retrieve relevant SQL examples from a case base.
 
 ## **Objective**

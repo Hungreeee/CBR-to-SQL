@@ -59,5 +59,5 @@ class SqlGenerationOptional(BaseModel):
     reasoning: str = Field(description="Very brief explanation: Why is the SQL query written that way. Explain all evidences for every function /condition, etc you wrote.")
 
 
-class PromptDecomposition(BaseModel):
-    decomposed_prompts: List[str] = Field(description="Return the list of decomposed queries here for more nuanced retrieval.")
+class PromptExtension(BaseModel):
+    decomposed_prompts: List[str] = Field(description="Return the list of 3 extended queries for more nuanced retrieval.")
