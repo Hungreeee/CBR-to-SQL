@@ -340,6 +340,8 @@ cbr_idb_pipeline = CBRtoSQL(
     lookup_table=lookup_table,
 )
 
+# %%
+
 # Retain IDB cases (with entity tagging)
 print(f"Retaining {len(idb_dataset)} cases for CBR-IDB...")
 retain_cases_cbr(cbr_idb_pipeline, idb_dataset, desc="CBR-IDB retention")

@@ -16,6 +16,7 @@ def remove_sql_wrapper(sql_query: str | None) -> str | None:
 
 
 def drop_cases(cases, top_k=5, p_top=1.0):
+    random.seed(13)
     def drop_prob(rank):
         if rank > top_k:
             return 0.0

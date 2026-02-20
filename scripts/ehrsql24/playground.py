@@ -67,7 +67,7 @@ lookup_table = QdrantRetriever(collection_name=LOOKUP_COLLECTION)
 # )
 
 # Initialize CBR-CDB pipeline
-cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
+cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_IDB_COLLECTION)
 cbr_cdb_pipeline = CBRtoSQL(
     retriever=cbr_cdb_retriever,
     generator=generator,
@@ -79,7 +79,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-Which was the first procedure that patient 10035185 received during their last hospital encounter?
+What was the name of the drug that patient 10031757 had been prescribed two times in 11/this year?
 """
 
 # %%
@@ -111,12 +111,12 @@ lookup_table.retrieve("lactated ringers intake", top_k=5)
 
 # %%
 cbr_cdb_retriever.retrieve(
-    query="How much is a [D_LABITEMS.LABEL] lab test?"
+    query="what drug was prescribed for patient"
 )
 
 # %%
 sql_db.run(post_process_sql("""
-SELECT T3.spec_type_desc FROM ( SELECT T2.spec_type_desc, DENSE_RANK() OVER ( ORDER BY COUNT(*) DESC ) AS C1 FROM ( SELECT admissions.subject_id, diagnoses_icd.charttime FROM diagnoses_icd JOIN admissions ON diagnoses_icd.hadm_id = admissions.hadm_id WHERE diagnoses_icd.icd_code = ( SELECT d_icd_diagnoses.icd_code FROM d_icd_diagnoses WHERE d_icd_diagnoses.long_title = 'unarmed fight or brawl' ) ) AS T1 JOIN ( SELECT admissions.subject_id, microbiologyevents.spec_type_desc, microbiologyevents.charttime FROM microbiologyevents JOIN admissions ON microbiologyevents.hadm_id = admissions.hadm_id ) AS T2 ON T1.subject_id = T2.subject_id WHERE T1.charttime < T2.charttime AND datetime(T2.charttime) BETWEEN datetime(T1.charttime) AND datetime(T1.charttime,'+2 month') GROUP BY T2.spec_type_desc ) AS T3 WHERE T3.C1 <= 5
+SELECT DISTINCT prescriptions.drug FROM prescriptions WHERE prescriptions.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = 10031757 ) AND datetime(prescriptions.starttime,'start of year') = datetime(current_time,'start of year','-0 year') AND strftime('%m',prescriptions.starttime) = '11' GROUP BY prescriptions.drug HAVING COUNT(prescriptions.drug) = 2
 """
 ))
 

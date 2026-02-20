@@ -1,36 +1,36 @@
 {
   "CBR-IDB": {
     "lf_accuracy": {
-      "total": 0.40531276778063413,
-      "agg_op": 0.9177377892030848,
-      "agg_col": 0.6006855184233076,
-      "table": 0.7206512425021423,
-      "condition_column_operation": 0.47472150814053127,
-      "condition_value": 0.44044558697514996
+      "total": 0.46186803770351326,
+      "agg_op": 0.9314481576692374,
+      "agg_col": 0.6555269922879178,
+      "table": 0.7566409597257926,
+      "condition_column_operation": 0.5364181662382177,
+      "condition_value": 0.493573264781491
     },
     "ex_accuracy": {
-      "exact_execution_accuracy": 0.726649528706084,
-      "standard_execution_accuracy": 0.7300771208226221
+      "exact_execution_accuracy": 0.7514995715509855,
+      "standard_execution_accuracy": 0.7523564695801199
     },
     "rs_accuracy": {
-      "RS(0)": 73.00771208226222,
-      "RS(10)": -69.23736075407027,
-      "RS(N)": -16526.99228791774,
+      "RS(0)": 75.235646958012,
+      "RS(10)": -37.874892887746356,
+      "RS(N)": -13124.764353041988,
       "detailed_stats": {
-        "answerable_correct": 651,
-        "answerable_abstain": 149,
-        "answerable_incorrect": 134,
-        "unanswerable_abstain": 201,
-        "unanswerable_incorrect": 32,
+        "answerable_correct": 656,
+        "answerable_abstain": 157,
+        "answerable_incorrect": 121,
+        "unanswerable_abstain": 222,
+        "unanswerable_incorrect": 11,
         "total_answerable": 934,
         "total_unanswerable": 233
       },
       "detailed_metrics": {
-        "answerable_accuracy": 69.70021413276231,
-        "answerable_abstention_rate": 15.952890792291221,
-        "answerable_error_rate": 14.346895074946467,
-        "unanswerable_detection_rate": 86.26609442060087,
-        "unanswerable_error_rate": 13.733905579399142
+        "answerable_accuracy": 70.2355460385439,
+        "answerable_abstention_rate": 16.809421841541756,
+        "answerable_error_rate": 12.955032119914348,
+        "unanswerable_detection_rate": 95.27896995708154,
+        "unanswerable_error_rate": 4.721030042918455
       }
     }
   }

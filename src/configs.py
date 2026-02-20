@@ -18,8 +18,8 @@ class RetrieverConfig:
 
 @dataclass
 class LLMConfig:
-    # model: str = "gpt-4.1-mini"
-    model: str = "gpt-4o"
+    model: str = "gpt-4.1-mini"
+    # model: str = "gpt-4o"
     temperature: int = 0.
     top_p: int = None
 
@@ -31,7 +31,7 @@ class LLMConfig:
 @dataclass
 class RAGConfig:
     top_k: int = 5
-    brittle_retrieval: bool = True
+    brittle_retrieval: bool = False
     hybrid_retrieval: bool = False
     prompt_extension: bool = False
     return_response: bool = False

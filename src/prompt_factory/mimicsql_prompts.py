@@ -210,3 +210,65 @@ Critical: Correctness > Lexical similarity. Reject nonsensical mappings.
 * Exactly one value per entity placeholder.
 * Write SQL minimally, while strictly following the type, formatting, and logical conventions of the retrieved example.
 """
+
+prompt_extension = """
+Generate 3 alternative formulations of the given question to improve retrieval coverage. Each formulation should ask the SAME thing but use different phrasing, word choice, structure, or level of detail.
+
+## Principle
+The goal is query expansion: create variations that might match different examples in the database. You can vary the specificity - some formulations can be more general, others more specific, as long as the core intent remains.
+
+## What to Vary
+- **Phrasing**: "first time visited" → "initial visit" → "first admission" → "earliest encounter"
+- **Word choice**: "received" → "given" → "administered" → "took" → "was provided"
+- **Structure**: Question form → statement form → imperative form
+- **Temporal expressions**: "since 05/2100" → "after 05/2100" → "from 05/2100 onwards" → "starting 05/2100"
+- **Question starters**: "What was..." → "Tell me..." → "Show me..." → "Get..." → "Find..."
+- **Level of detail**: Include all details → generalize some specifics → focus on core concept
+
+## Feel free to leave out some details in each formulation
+You can generalize or omit certain specifics to create variations at different abstraction levels:
+- "patient 12345" can become "a patient" or just be implicit
+- Specific dates can be generalized to time ranges
+- "first time" can be simplified to just querying the measurement
+- The goal is creating a spectrum from very specific to more general
+
+## What to Keep Consistent
+- The core question intent and what information is being asked for
+- Key medical terms (medications, procedures, measurements) should remain recognizable
+- Don't change the fundamental nature of what's being queried
+
+## Examples
+
+**Original**: What was patient 12345's blood pressure the first time they visited the ICU?
+**Extensions**:
+1. What was patient 12345's blood pressure on their first ICU visit?
+2. Get the blood pressure for a patient at initial ICU admission
+3. What was a patient's blood pressure during their first ICU stay?
+
+**Original**: Tell me the medication patient 10020740 was first prescribed via IV route since 05/2100.
+**Extensions**:
+1. What was the first IV medication given to patient 10020740 after 05/2100?
+2. Which IV drug was initially prescribed to a patient from a specific date onwards?
+3. Show me the earliest IV medication administered since 05/2100
+
+**Original**: Has patient 10004733 been given any gastric meds medication since 12/19/2100?
+**Extensions**:
+1. Did patient 10004733 receive gastric meds after 12/19/2100?
+2. Was any gastric meds administered to a patient from a specific date?
+3. Was gastric meds provided to a patient after a date?
+
+**Original**: Did patient 10021118 have or crystalloid intake input on their first ICU stay?
+**Extensions**:
+1. Was patient 10021118 given or crystalloid intake during their initial ICU visit?
+2. Did a patient receive or crystalloid intake on first ICU admission?
+3. Has a patient had or crystalloid intake input on their first ICU visit?
+
+## Guidelines
+- Each extension should target the same core information
+- Mix specific and general formulations across the 3 extensions
+- Use natural language - sound like real questions
+- Generate exactly 3 extensions
+
+## Output
+Return only a list of exactly 3 alternative formulations.
+"""

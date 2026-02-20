@@ -1,0 +1,16 @@
+{
+  "CBR-CDB": {
+    "lf_accuracy": {
+      "total": 0.863,
+      "agg_op": 0.993,
+      "agg_col": 0.956,
+      "table": 0.985,
+      "condition_column_operation": 0.928,
+      "condition_value": 0.903
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.896,
+      "standard_execution_accuracy": 0.916
+    }
+  }
+}
