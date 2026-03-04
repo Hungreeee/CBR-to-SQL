@@ -13,7 +13,7 @@ load_dotenv()
 
 import json
 import pickle
-from pathlib import Path
+from pathlib import Path 
 from typing import List, Dict
 from tqdm import tqdm
 
@@ -29,7 +29,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-cdb-abl-gpt41")
+RESULTS_DIR = Path("./results/mimicsql/run-1-test")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -45,7 +45,7 @@ LOOKUP_COLLECTION = "lookup_table"
 USE_AZURE = True  
 
 # Select which pipelines to evaluate
-EVALUATE = ["CBR-CDB"]
+EVALUATE = ["RAG-CDB", "CBR-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -63,6 +63,9 @@ def load_jsonl(filepath: str) -> List[Dict]:
 
 testset = load_jsonl("./data/TREQS/mimicsql_data/mimicsql_natural_v2/test.json")
 print(f"✓ Loaded {len(testset)} test examples")
+
+# %%
+testset = testset[:200]
 
 # %%
 # ========== INITIALIZE PIPELINES ==========
@@ -214,5 +217,8 @@ with open(RESULTS_DIR / "metrics.json", "w") as f:
                     for k, metrics in all_metrics.items()}
     json.dump(serializable, f, indent=2)
 print(f"\n✓ Metrics saved to {RESULTS_DIR / 'metrics.json'}")
+
+# %%
+
 
 # %%

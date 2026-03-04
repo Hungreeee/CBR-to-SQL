@@ -1,0 +1,30 @@
+{
+  "RAG-CDB": {
+    "lf_accuracy": {
+      "total": 0.68,
+      "agg_op": 0.995,
+      "agg_col": 0.86,
+      "table": 0.9,
+      "condition_column_operation": 0.84,
+      "condition_value": 0.785
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.725,
+      "standard_execution_accuracy": 0.765
+    }
+  },
+  "CBR-CDB": {
+    "lf_accuracy": {
+      "total": 0.785,
+      "agg_op": 1.0,
+      "agg_col": 0.895,
+      "table": 0.97,
+      "condition_column_operation": 0.895,
+      "condition_value": 0.87
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.86,
+      "standard_execution_accuracy": 0.91
+    }
+  }
+}

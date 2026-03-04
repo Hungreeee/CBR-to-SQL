@@ -1,0 +1,16 @@
+{
+  "RAG-CDB": {
+    "lf_accuracy": {
+      "total": 0.8202368137782562,
+      "agg_op": 0.9978471474703983,
+      "agg_col": 0.9418729817007535,
+      "table": 0.9655543595263725,
+      "condition_column_operation": 0.9009687836383208,
+      "condition_value": 0.8729817007534983
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.8406889128094726,
+      "standard_execution_accuracy": 0.876210979547901
+    }
+  }
+}

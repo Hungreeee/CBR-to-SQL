@@ -203,7 +203,7 @@ def create_idb_environment(
     print(f"  - Noise points (outliers): {num_noise}")
     print(f"  - Total unique patterns: {num_clusters + num_noise}")
     
-    return label_dict
+    return label_dict, hdb, encoded_sql
 
 
 def retain_cases_rag(
@@ -274,7 +274,7 @@ print("✓ CBR-CDB case retention complete!")
 
 # %%
 # Create IDB environment via clustering
-label_dict = create_idb_environment(
+label_dict, hdb, encoded_sql = create_idb_environment(
     trainset,
     min_cluster_size=MIN_CLUSTER_SIZE,
     cluster_epsilon=CLUSTER_EPSILON
@@ -340,8 +340,6 @@ cbr_idb_pipeline = CBRtoSQL(
     lookup_table=lookup_table,
 )
 
-# %%
-
 # Retain IDB cases (with entity tagging)
 print(f"Retaining {len(idb_dataset)} cases for CBR-IDB...")
 retain_cases_cbr(cbr_idb_pipeline, idb_dataset, desc="CBR-IDB retention")
@@ -352,103 +350,42 @@ print("\n" + "="*60)
 print("OPTIONAL: CLUSTER VISUALIZATION")
 print("="*60)
 
-# Ask user if they want to visualize
-visualize = input("Do you want to visualize the clusters? (y/n): ").lower() == 'y'
+labels = hdb.labels_
+encoded_sql_array = np.array(encoded_sql)
+mask = labels != -1
+encoded_filtered = encoded_sql_array[mask]
+labels_filtered = labels[mask]
 
-if visualize:
-    # Use the variables from create_idb_environment
-    labels = hdb.labels_
-    encoded_sql_array = np.array(encoded_sql)
-    mask = labels != -1
-    encoded_filtered = encoded_sql_array[mask]
-    labels_filtered = labels[mask]
-    
-    # Compute cluster means
-    cluster_means = []
-    cluster_sizes = []
-    cluster_ids = []
-    
-    for label in sorted(set(labels_filtered)):
-        cluster_points = encoded_filtered[labels_filtered == label]
-        cluster_mean = np.mean(cluster_points, axis=0)
-        cluster_means.append(cluster_mean)
-        cluster_sizes.append(len(cluster_points))
-        cluster_ids.append(label)
-    
-    cluster_means = np.array(cluster_means)
-    cluster_sizes = np.array(cluster_sizes)
-    
-    # UMAP projection
-    reducer = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="euclidean", random_state=42)
-    cluster_embeddings = reducer.fit_transform(cluster_means)
-    
-    # Normalize sizes
-    sizes = 1000 * (cluster_sizes / cluster_sizes.max())
-    
-    # Plot
-    plt.figure(figsize=(12, 8))
-    palette = sns.color_palette("husl", len(cluster_ids))
-    
-    for i, (x, y) in enumerate(cluster_embeddings):
-        label = cluster_ids[i]
-        plt.scatter(
-            x, y,
-            s=sizes[i],
-            color=palette[i],
-            alpha=0.6,
-            edgecolors='k',
-        )
-        plt.annotate(
-            f"{label}\n({cluster_sizes[i]})",
-            (x, y),
-            fontsize=8,
-            ha='center'
-        )
-    
-    plt.title("HDBSCAN Masked SQL Cluster Summary (IDB Environment)")
-    plt.xlabel("UMAP-1")
-    plt.ylabel("UMAP-2")
-    plt.tight_layout()
-    plt.savefig("idb_clusters.png", dpi=150)
-    print("✓ Visualization saved to 'idb_clusters.png'")
-    plt.show()
+cluster_means = []
+cluster_sizes = []
+cluster_ids = []
 
-# ========== SUMMARY ==========
+for label in sorted(set(labels_filtered)):
+    cluster_points = encoded_filtered[labels_filtered == label]
+    cluster_means.append(np.mean(cluster_points, axis=0))
+    cluster_sizes.append(len(cluster_points))
+    cluster_ids.append(label)
 
-# %%
-print("\n" + "="*60)
-print("CASE RETENTION SUMMARY")
-print("="*60)
-print("\n✓ All pipelines initialized and cases retained!")
-print("\nAvailable pipelines:")
-print(f"  1. RAG-CDB:  {len(trainset)} cases in '{RAG_CDB_COLLECTION}'")
-print(f"  2. RAG-IDB:  {len(idb_dataset)} cases in '{RAG_IDB_COLLECTION}'")
-print(f"  3. CBR-CDB:  {len(trainset)} cases in '{CBR_CDB_COLLECTION}'")
-print(f"  4. CBR-IDB:  {len(idb_dataset)} cases in '{CBR_IDB_COLLECTION}'")
-print("\nNext steps:")
-print("  - Run evaluation script to test these pipelines")
-print("  - Compare CDB vs IDB performance")
-print("  - Compare RAG vs CBR approaches")
-print("="*60)
+cluster_means = np.array(cluster_means)
+cluster_sizes = np.array(cluster_sizes)
 
-# %%
-# Save IDB dataset for reference (optional)
-save_idb = input("\nDo you want to save the IDB dataset to disk? (y/n): ").lower() == 'y'
+reducer = umap.UMAP(n_neighbors=5, min_dist=0.3, metric="euclidean", random_state=42)
+cluster_embeddings = reducer.fit_transform(cluster_means)
 
-if save_idb:
-    with open("idb_dataset.json", "w") as f:
-        json.dump(idb_dataset, f, indent=2)
-    print("✓ IDB dataset saved to 'idb_dataset.json'")
-    
-    with open("cluster_info.json", "w") as f:
-        cluster_info = {
-            str(label): {
-                "size": len(items),
-                "questions": [item["question_refine"] for item in items[:5]]
-            }
-            for label, items in label_dict.items()
-        }
-        json.dump(cluster_info, f, indent=2)
-    print("✓ Cluster info saved to 'cluster_info.json'")
+sizes = 1000 * (cluster_sizes / cluster_sizes.max())
+
+plt.figure(figsize=(8, 5))
+palette = sns.color_palette("husl", len(cluster_ids))
+
+for i, (x, y) in enumerate(cluster_embeddings):
+    plt.scatter(x, y, s=sizes[i], color=palette[i], alpha=0.6, edgecolors='k')
+
+plt.title("HDBSCAN Masked SQL Cluster Summary for EHRSQL")
+plt.xlabel("UMAP-1")
+plt.ylabel("UMAP-2")
+plt.tight_layout()
+plt.savefig("idb_clusters.png", dpi=150)
+print("✓ Visualization saved to 'idb_clusters.png'")
+plt.show()
 
 # %%
