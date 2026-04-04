@@ -2,11 +2,11 @@ import nltk
 from typing import Tuple, List, Dict, Optional
 
 import prompt_factory
-from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_error
+from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_error, rrf_fuse
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-from schema import EntityExtraction, TagAssignment, SqlGeneration, SqlGenerationOptional, PromptExtension
+from schema import EntityExtraction, TagAssignment, PromptExtension
 
 from langchain_core.documents import Document
 from langchain_community.callbacks import get_openai_callback
@@ -27,6 +27,8 @@ class RAGtoSQL:
         self.generator = generator
         self.sql_db = sql_db
         self.config = config
+        if config.doc_reranking:
+            self.reranker = CrossEncoder(config.reranker_embedding_model)
 
     def handle_request(self, question: str) -> Dict:
         with get_openai_callback() as callback:
@@ -46,49 +48,52 @@ class RAGtoSQL:
         }
 
     def generate_sql(self, question: str) -> Tuple[str, List]:
+        top_k_multiplier = 5 if self.config.doc_reranking and \
+            not self.config.prompt_extension else 1
+
         # Retrieve cases from main question
-        retrieved_cases = self.retriever.retrieve(
-            question, 
-            top_k=self.config.top_k, 
-            hybrid=self.config.hybrid_retrieval
+        retrieved_cases: List[Document] = self._retrieve(
+            question, top_k=self.config.top_k * top_k_multiplier
         )
 
         if self.config.prompt_extension:
             subquestions = self._decompose_prompt(question)
-            
-            # Format with subquestion grouping
-            formatted_sections = []
-            for i, subq in enumerate(subquestions, 1):
-                sub_cases = self.retriever.retrieve(
-                    subq, 
-                    top_k=self.config.top_k, 
-                    hybrid=self.config.hybrid_retrieval
-                )
-                retrieved_cases.extend(sub_cases)
-            
-                # Deduplicate retrieved_cases
-                seen = set()
-                unique_cases = []
-                for doc in retrieved_cases:
-                    if doc.page_content not in seen:
-                        seen.add(doc.page_content)
-                        unique_cases.append(doc)
-                retrieved_cases = unique_cases
 
-                if self.config.brittle_retrieval:
-                    retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
-                
-                # Format examples for this subquestion
-                subq_examples = "\n".join([
-                    f"  - Question: {doc.page_content}\n"
-                    f"    SQL: {doc.metadata.get('sql_query', 'N/A')}"
-                    for doc in sub_cases[:3]
-                    if doc.metadata.get('sql_query')
-                ])
-                formatted_sections.append(f"## Sub-question {i}: {subq}\n{subq_examples}")
-            
-            formatted_examples = "\n\n".join(formatted_sections)
+            for subq in subquestions:
+                sub_cases = self._retrieve(subq, top_k=self.config.top_k)
+                retrieved_cases.extend(sub_cases)
+
+            # Deduplicate after all sub-questions are processed
+            seen = set()
+            unique_cases = []
+            for doc in retrieved_cases:
+                if doc.page_content not in seen:
+                    seen.add(doc.page_content)
+                    unique_cases.append(doc)
+            retrieved_cases = unique_cases
+
+            if self.config.doc_reranking:
+                retrieved_cases = self._rerank_documents(
+                    query=question,
+                    documents=retrieved_cases,
+                    top_k=self.config.top_k
+                )
+
+            if self.config.brittle_retrieval:
+                retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
+
+            formatted_examples = "\n\n".join(
+                f"Query: {doc.page_content}\nSQL: {doc.metadata['sql_query']}"
+                for doc in retrieved_cases
+            )
         else:
+            if self.config.doc_reranking:
+                retrieved_cases = self._rerank_documents(
+                    query=question,
+                    documents=retrieved_cases,
+                    top_k=self.config.top_k
+                )
+
             if self.config.brittle_retrieval:
                 retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
 
@@ -108,10 +113,18 @@ class RAGtoSQL:
         sql_query = self.generator.generate(messages) 
         return remove_sql_wrapper(sql_query), retrieved_cases
     
+    def _retrieve(self, query: str, top_k: int) -> List[Document]:
+        """Single-collection retrieval; fuses dense+sparse via RRF when hybrid is enabled."""
+        if self.config.hybrid_retrieval:
+            dense = self.retriever.retrieve(query, top_k=top_k, mode="dense")
+            sparse = self.retriever.retrieve(query, top_k=top_k, mode="sparse")
+            return rrf_fuse(dense, sparse, top_k=top_k)
+        return self.retriever.retrieve(query, top_k=top_k, mode="dense")
+
     def _execute_sql(self, sql_query: str) -> str:
         try:
             return self.sql_db.run(sql_query)
-        except: 
+        except Exception:
             return "EXECUTION FAILED"
     
     def retain_case(self, question: str, sql_query: str) -> None:
@@ -145,14 +158,46 @@ class RAGtoSQL:
             try:
                 args = tool_calls[0].get("args", {})
                 decomposed_prompts = args.get("decomposed_prompts", [])
-                decomposed_prompts.append(question)
                 return decomposed_prompts
 
             except (KeyError, IndexError, TypeError):
                 pass
-        
+
         # Fallback: rejection (parsing failed or invalid response)
-        return [question]
+        return []
+
+    def _rerank_documents(
+        self, 
+        query: str, 
+        documents: List[Document], 
+        top_k: int = 5
+    ) -> List:
+        """
+        Re-rank documents using cross-encoder based on relevance to query
+        
+        Args:
+            query: The original query to rank against
+            documents: List of retrieved documents
+            top_k: Number of top documents to return
+            
+        Returns:
+            Top-k re-ranked documents
+        """
+        if not documents:
+            return []
+        
+        # Create query-document pairs
+        pairs = [[query, doc.page_content] for doc in documents]
+        
+        # Score all pairs with cross-encoder
+        scores = self.reranker.predict(pairs)
+        
+        # Combine documents with scores and sort
+        doc_scores = list(zip(documents, scores))
+        doc_scores.sort(key=lambda x: -x[1])  # Sort by score descending
+        
+        # Return top k documents
+        return [doc for doc, _ in doc_scores[:top_k]]
 
 
 class CBRtoSQL(RAGtoSQL):
@@ -164,12 +209,12 @@ class CBRtoSQL(RAGtoSQL):
         lookup_table: BaseRetriever,
         config: RAGConfig = RAGConfig.default(),
         fallback_generator: Optional[BaseGenerator] = None,
+        rag_retriever: Optional[BaseRetriever] = None,
     ):
         super().__init__(retriever, generator, sql_db, config)
         self.lookup_table = lookup_table
         self.fallback_generator = fallback_generator
-        if config.prompt_extension:
-            self.reranker = CrossEncoder(config.reranker_embedding_model)
+        self.rag_retriever = rag_retriever
 
     def handle_request(self, question: str) -> Dict:
         with get_openai_callback() as callback:
@@ -436,39 +481,6 @@ class CBRtoSQL(RAGtoSQL):
         for entity in sorted(entities, key=lambda x: len(x["original"]), reverse=True):
             masked = masked.replace(entity["original"], f"[{entity['label']}]")
         return masked
-
-    def _rerank_documents(
-        self, 
-        query: str, 
-        documents: List[Document], 
-        top_k: int = 5
-    ) -> List:
-        """
-        Re-rank documents using cross-encoder based on relevance to query
-        
-        Args:
-            query: The original query to rank against
-            documents: List of retrieved documents
-            top_k: Number of top documents to return
-            
-        Returns:
-            Top-k re-ranked documents
-        """
-        if not documents:
-            return []
-        
-        # Create query-document pairs
-        pairs = [[query, doc.page_content] for doc in documents]
-        
-        # Score all pairs with cross-encoder
-        scores = self.reranker.predict(pairs)
-        
-        # Combine documents with scores and sort
-        doc_scores = list(zip(documents, scores))
-        doc_scores.sort(key=lambda x: -x[1])  # Sort by score descending
-        
-        # Return top k documents
-        return [doc for doc, _ in doc_scores[:top_k]]
     
     def _construct_and_fill_sql(
         self, 
@@ -481,24 +493,23 @@ class CBRtoSQL(RAGtoSQL):
         if not self.config.template_construction:
             masked_question = original_question
 
-        retrieved_cases: List[Document] = self.retriever.retrieve(
-            masked_question, 
-            top_k=self.config.top_k, 
-            hybrid=self.config.hybrid_retrieval
+        top_k_multiplier = 5 if self.config.doc_reranking and \
+            not self.config.prompt_extension else 1
+
+        retrieved_cases: List[Document] = self._cbr_retrieve(
+            masked_question, original_question,
+            top_k=self.config.top_k * top_k_multiplier,
         )
-        
+
         if self.config.prompt_extension:
             subquestions = self._decompose_prompt(masked_question)
             # print(f"Decomposed into {len(subquestions)} sub-questions:", subquestions)
-            
-            all_retrieved = list(retrieved_cases) 
-            
+
+            all_retrieved = list(retrieved_cases)
+
             for subq in subquestions:
-                sub_cases = self.retriever.retrieve(
-                    subq, 
-                    top_k=self.config.top_k, 
-                    hybrid=self.config.hybrid_retrieval
-                )
+                # Sub-questions are in masked form — dense only
+                sub_cases = self.retriever.retrieve(subq, top_k=self.config.top_k, mode="dense")
                 all_retrieved.extend(sub_cases)
             
             seen_content = set()
@@ -508,11 +519,14 @@ class CBRtoSQL(RAGtoSQL):
                     seen_content.add(doc.page_content)
                     unique_cases.append(doc)
             
-            retrieved_cases = self._rerank_documents(
-                query=masked_question,
-                documents=unique_cases,
-                top_k=self.config.top_k
-            )
+            if self.config.doc_reranking:
+                retrieved_cases = self._rerank_documents(
+                    query=masked_question,
+                    documents=unique_cases,
+                    top_k=self.config.top_k
+                )
+            else:
+                retrieved_cases = unique_cases[:self.config.top_k]
             # print(f"After re-ranking: kept top {len(retrieved_cases)} documents")
 
             if self.config.brittle_retrieval:
@@ -523,9 +537,16 @@ class CBRtoSQL(RAGtoSQL):
                 f"* Masked question form: {doc.page_content}\n"
                 f"* Example SQL query: {doc.metadata.get('sql_query', 'Unanswerable question!')}" 
                 for doc in retrieved_cases 
-                if doc.metadata.get('case') or doc.metadata.get('sql_query')
+                if doc.metadata.get('case') and doc.metadata.get('sql_query')
             )
         else:
+            if self.config.doc_reranking:
+                retrieved_cases = self._rerank_documents(
+                    query=masked_question,
+                    documents=retrieved_cases,
+                    top_k=self.config.top_k
+                )
+            
             if self.config.brittle_retrieval:
                 retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
 
@@ -534,7 +555,7 @@ class CBRtoSQL(RAGtoSQL):
                 f"* Masked question form: {doc.page_content}\n"
                 f"* Example SQL query: {doc.metadata.get('sql_query', 'Unanswerable question!')}" 
                 for doc in retrieved_cases 
-                if doc.metadata.get('case') or doc.metadata.get('sql_query')
+                if doc.metadata.get('case') and doc.metadata.get('sql_query')
             )
         
         # Format entity mappings
@@ -585,7 +606,20 @@ class CBRtoSQL(RAGtoSQL):
                 raise e
 
         return remove_sql_wrapper(sql_query), retrieved_cases
-    
+
+    def _cbr_retrieve(
+        self, masked_question: str, original_question: str, top_k: int
+    ) -> List[Document]:
+        """CBR retrieval: dense over masked CBR collection; if hybrid, fuse with sparse
+        over the RAG collection (original questions) using the original question."""
+        dense = self.retriever.retrieve(masked_question, top_k=top_k, mode="dense")
+        if self.config.hybrid_retrieval:
+            if self.rag_retriever is None:
+                raise ValueError("hybrid_retrieval=True requires rag_retriever to be set in CBRtoSQL")
+            sparse = self.rag_retriever.retrieve(original_question, top_k=top_k, mode="sparse")
+            return rrf_fuse(dense, sparse, top_k=top_k)
+        return dense
+
     def _decompose_prompt(self, question: str) -> List[str]:
         """Decompose question into sub-questions (excluding original)"""
         llm = self.generator.client.bind_tools([PromptExtension], tool_choice="PromptExtension", strict=True)

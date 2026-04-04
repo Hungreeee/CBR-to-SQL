@@ -59,7 +59,7 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = AzureAIAgent()  # Alternative
+generator = OpenAIAgent()  # Alternative
 
 sql_eval_engine = query("./data/TREQS/evaluation/mimic_db/mimic_all.db")
 
@@ -67,34 +67,34 @@ sql_eval_engine = query("./data/TREQS/evaluation/mimic_db/mimic_all.db")
 lookup_table = QdrantRetriever(collection_name=LOOKUP_COLLECTION)
 
 # %%
-# # Initialize RAG-CDB pipeline
-# rag_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
-# rag_cdb_pipeline = RAGtoSQL(
-#     retriever=rag_cdb_retriever,
-#     generator=generator,
-#     sql_db=sql_db
-# )
-
-# Initialize CBR-CDB pipeline
-cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
-cbr_cdb_pipeline = CBRtoSQL(
-    retriever=cbr_cdb_retriever,
+# Initialize RAG-CDB pipeline
+rag_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
+rag_cdb_pipeline = RAGtoSQL(
+    retriever=rag_cdb_retriever,
     generator=generator,
-    sql_db=sql_db,
-    lookup_table=lookup_table,
-    fallback_generator=fallback_generator
+    sql_db=sql_db
 )
+
+# # Initialize CBR-CDB pipeline
+# cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
+# cbr_cdb_pipeline = CBRtoSQL(
+#     retriever=cbr_cdb_retriever,
+#     generator=generator,
+#     sql_db=sql_db,
+#     lookup_table=lookup_table,
+#     fallback_generator=fallback_generator
+# )
 
 # %%
 # Provide the number of patients that died and had a primary disease of ST elevated myocardial infarction/cardiac cath.
 # how many patients discharged to snf had hypoxia primary disease?
 
 question = """
-What is the number of medicaid patients who have an automatic implantable cardioverter/defibrillator (aicd) check procedure?
+provide the number of private insurance patients who had incision of abdomen artery.
 """
 
 # %%
-cbr_cdb_pipeline.handle_request(
+rag_cdb_pipeline.handle_request(
     question=question,
 )
 

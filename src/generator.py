@@ -14,7 +14,7 @@ load_dotenv()
 
 def update_base_url(request: httpx.Request, model: str):
     model_paths = {
-        "gpt-4o": "/v1/openai/deployments/gpt-4o-2024-08-06/chat/completions",
+        "gpt-4o": "/v1/openai/deployments/gpt-4o-2024-11-20/chat/completions",
         "gpt-4.1": "/v1/openai/deployments/gpt-4.1-2025-04-14/chat/completions",
         "gpt-3.5-turbo": "/v1/chat/gpt-35-turbo-1106",
         "gpt-4-turbo": "/v1/openai/gpt4-turbo/chat/completions",

@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-1-test")
+RESULTS_DIR = Path("./results/ehrsql24/run-16-cbr-cdb-hybrid")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -44,10 +44,10 @@ COLLECTIONS = {
 LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
 # Model selection 
-USE_AZURE = True  # Set to False for OpenAI
+USE_AZURE = False  # Set to False for OpenAI
 
 # Select which pipelines to evaluate
-EVALUATE = ["RAG-CDB", "CBR-CDB"]
+EVALUATE = ["CBR-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -66,9 +66,9 @@ testset = load_json("./data/ehrsql-2024/data/mimic_iv/test/annotated.json")
 print(f"✓ Loaded {len(testset)} test examples")
 
 # %%
-# Stratified sampling for testing
-testset = stratified_sample(testset, p=1/4, label=False)
-len(testset)
+# # Stratified sampling for testing
+# testset = stratified_sample(testset, p=1/4, label=False)
+# len(testset)
 
 # %%
 # ========== INITIALIZE PIPELINES ==========
@@ -94,7 +94,8 @@ for name in EVALUATE:
             sql_db=sql_db,
             lookup_table=lookup_table,
             fallback_generator=fallback_generator,
-            config=RAGConfig(dataset="ehrsql24")
+            config=RAGConfig(dataset="ehrsql24"),
+            rag_retriever=QdrantRetriever(collection_name=COLLECTIONS[name.replace("CBR", "RAG")]),
         )
 
 print(f"✓ Initialized {len(pipelines)} pipelines")

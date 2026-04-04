@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Literal
 
 from qdrant_client import QdrantClient, models
 from qdrant_client.models import SparseVectorParams, SparseIndexParams
@@ -57,21 +57,29 @@ class QdrantRetriever(BaseRetriever):
 
         if self.is_lookup_table:
             self.vectorstore = QdrantVectorStore(
-                client=self.client, 
+                client=self.client,
                 collection_name=self.collection_name,
                 embedding=self.dense_embedder,
             )
-            self.hybrid_vectorstore = None  # Not supported for lookup tables
+            self.sparse_vectorstore = None  # Not supported for lookup tables
+            self._ingest_store = self.vectorstore
         else:
-            # Create both dense and hybrid vectorstores
             self.vectorstore = QdrantVectorStore(
-                client=self.client, 
+                client=self.client,
                 collection_name=self.collection_name,
                 embedding=self.dense_embedder,
-                retrieval_mode=RetrievalMode.DENSE,  # Dense only
+                retrieval_mode=RetrievalMode.DENSE,
             )
-            self.hybrid_vectorstore = QdrantVectorStore(
-                client=self.client, 
+            self.sparse_vectorstore = QdrantVectorStore(
+                client=self.client,
+                collection_name=self.collection_name,
+                embedding=self.dense_embedder,
+                sparse_embedding=self.sparse_embedder,
+                retrieval_mode=RetrievalMode.SPARSE,
+            )
+            # Used only for ingestion (writes both dense + sparse vectors)
+            self._ingest_store = QdrantVectorStore(
+                client=self.client,
                 collection_name=self.collection_name,
                 embedding=self.dense_embedder,
                 sparse_embedding=self.sparse_embedder,
@@ -111,10 +119,7 @@ class QdrantRetriever(BaseRetriever):
                 page_content=doc[indexed_field], 
                 metadata=metadata,
             ))
-        if self.is_lookup_table:
-            self.vectorstore.add_documents(documents_langchain)
-        else:
-            self.hybrid_vectorstore.add_documents(documents_langchain)
+        self._ingest_store.add_documents(documents_langchain)
     
     def delete(self, node_ids: List):
         self.client.delete(
@@ -127,18 +132,18 @@ class QdrantRetriever(BaseRetriever):
         self._ensure_collection_exists()
 
     def retrieve(
-        self, 
-        query: str, 
+        self,
+        query: str,
         top_k: int = 5,
         filter: models.Filter = None,
         score_threshold: float = None,
-        hybrid: bool = False
+        mode: Literal["dense", "sparse"] = "dense",
     ) -> List[Document]:
-        if hybrid and self.hybrid_vectorstore is not None:
-            vectorstore = self.hybrid_vectorstore
+        if mode == "sparse" and self.sparse_vectorstore is not None:
+            vectorstore = self.sparse_vectorstore
         else:
             vectorstore = self.vectorstore
-        
+
         return vectorstore.similarity_search(
             query=query,
             k=top_k,

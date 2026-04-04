@@ -70,6 +70,120 @@ def normalize_row(results):
     return [tuple(sorted(row, key=str)) for row in results]
 
 
+def logic_form_accuracy_(cbr_dataset: List[Dict], rag_dataset: List[Dict], db_model: query):
+    db_head = db_model.db_head
+
+    headerDic = []
+    for tb in db_head:
+        for hd in db_head[tb]:
+            headerDic.append('.'.join([tb, hd]).lower())
+
+    tableDic = []
+    for tb in db_head:
+        tableDic.append(tb.lower())
+
+    def parse_results(result_dataset):
+        outGen = []
+        outTtt = []
+        for line in result_dataset:
+            gold_sql = line['gold_sql']
+            pred_sql = line['predicted_sql']
+
+            if pred_sql is None:
+                pred_sql = "None"
+
+            if gold_sql == "null":
+                if pred_sql == "None":
+                    outGen.append(None)
+                    outTtt.append(None)
+                else:
+                    outGen.append(None)
+                    outTtt.append("null")
+                continue
+
+            if pred_sql.strip() == '' or pred_sql == 'None':
+                pred_sql = 'SELECT TEST."NOTHING" FROM TEST WHERE TEST."NOTHING" = "NONE"'
+
+            gen = re.split('<stop>', pred_sql)[0]
+            sqlG = parse_sql(gen, headerDic, tableDic)
+            outGen.append(sqlG)
+
+            sqlT = parse_sql(gold_sql, headerDic, tableDic)
+            outTtt.append(sqlT)
+
+        return outGen, outTtt
+
+    cbr_gen, cbr_truth = parse_results(cbr_dataset)
+    rag_gen, rag_truth = parse_results(rag_dataset)
+
+    lf_count = {
+        "total": 0,
+        "agg_op": 0,
+        "agg_col": 0,
+        "table": 0,
+        "condition_column_operation": 0,
+        "condition_value": 0,
+    }
+
+    for k in range(len(cbr_gen)):
+        cbr_lf = cbr_gen[k]
+        rag_lf = rag_gen[k]
+        gold_lf = cbr_truth[k]  # gold is the same for both
+
+        cbr_correct = (cbr_lf is None and gold_lf is None) or (cbr_lf == gold_lf)
+        rag_correct = (rag_lf is None and gold_lf is None) or (rag_lf == gold_lf)
+
+        # Print cases where RAG succeeds but CBR fails
+        if rag_correct and not cbr_correct:
+            print("=" * 40)
+            print(f"QUESTION: {cbr_dataset[k]['question']}")
+            print("-" * 40)
+            print("CBR (FAIL):")
+            print(cbr_dataset[k]['predicted_sql'])
+            print(cbr_lf)
+            print("-" * 40)
+            print("RAG (SUCCESS):")
+            print(rag_dataset[k]['predicted_sql'])
+            print(rag_lf)
+            print("-" * 40)
+            print("GOLD:")
+            print(cbr_dataset[k]['gold_sql'])
+            print(gold_lf)
+            print()
+
+        # LF breakdown is computed on CBR predictions (vs gold)
+        if cbr_lf is None and gold_lf is None:
+            lf_count["total"] += 1
+            continue
+
+        if cbr_lf is None or gold_lf is None:
+            continue
+
+        if cbr_lf == gold_lf:
+            lf_count["total"] += 1
+
+        if cbr_lf['sel'] == gold_lf['sel']:
+            lf_count["agg_op"] += 1
+
+        if cbr_lf['agg'] == gold_lf['agg']:
+            lf_count["agg_col"] += 1
+
+        if cbr_lf['tab'] == gold_lf['tab']:
+            lf_count["table"] += 1
+
+        arrG = [wd[:2] for wd in cbr_lf['cond']]
+        arrT = [wd[:2] for wd in gold_lf['cond']]
+        if arrG == arrT:
+            lf_count["condition_column_operation"] += 1
+
+        arrG = [wd[:3] for wd in cbr_lf['cond']]
+        arrT = [wd[:3] for wd in gold_lf['cond']]
+        if arrG == arrT:
+            lf_count["condition_value"] += 1
+
+    return {cat: (cnt / len(cbr_gen)) for (cat, cnt) in lf_count.items()}
+
+
 def logic_form_accuracy(result_dataset: List[Dict], db_model: query):
     db_head = db_model.db_head
 

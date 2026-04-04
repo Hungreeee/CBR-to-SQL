@@ -515,63 +515,55 @@ Before generating any SQL, complete this checklist:
 """
 
 prompt_extension = """
-Generate 3 alternative formulations of the given question to improve retrieval coverage. Each formulation should ask the SAME thing but use different phrasing, word choice, structure, or level of detail.
+Generate 3 alternative formulations of the given question to improve retrieval coverage. Each formulation should ask for the SAME information but differ meaningfully in structure, abstraction, and framing.
 
-## Principle
-The goal is query expansion: create variations that might match different examples in the database. You can vary the specificity - some formulations can be more general, others more specific, as long as the core intent remains.
+## Core Principle
+The 3 formulations should feel like they were written by 3 different people with different communication styles. A reader should notice real differences — not just swapped synonyms.
 
-## What to Vary
-- **Phrasing**: "first time visited" → "initial visit" → "first admission" → "earliest encounter"
-- **Word choice**: "received" → "given" → "administered" → "took" → "was provided"
-- **Structure**: Question form → statement form → imperative form
-- **Temporal expressions**: "since 05/2100" → "after 05/2100" → "from 05/2100 onwards" → "starting 05/2100"
-- **Question starters**: "What was..." → "Tell me..." → "Show me..." → "Get..." → "Find..."
-- **Level of detail**: Include all details → generalize some specifics → focus on core concept
+## Required Variation Strategy
+Each of the 3 formulations must use a DIFFERENT strategy from this list:
 
-## Feel free to leave out some details in each formulation
-You can generalize or omit certain specifics to create variations at different abstraction levels:
-- "patient 12345" can become "a patient" or just be implicit
-- Specific dates can be generalized to time ranges
-- "first time" can be simplified to just querying the measurement
-- The goal is creating a spectrum from very specific to more general
+1. **Implicit/Compressed** — Strip the question to its bare minimum. Drop patient IDs, dates, and qualifiers. Focus only on the core data concept being asked about.
+   - "What was the patient's blood pressure at first ICU admission?" → "First ICU blood pressure"
+   - "What medication was first given via IV after 05/2100?" → "Initial IV medication"
 
-## What to Keep Consistent
-- The core question intent and what information is being asked for
-- Key medical terms (medications, procedures, measurements) should remain recognizable
-- Don't change the fundamental nature of what's being queried
+2. **Narrative/Clinical note style** — Rephrase as something a clinician would write in a note or query a colleague about. More verbose, contextual, clinical tone.
+   - "I need to look up the first blood pressure reading recorded when this patient was initially admitted to the ICU."
+   - "Trying to find out which IV drug was first prescribed to this patient following a specific date in their stay."
+
+3. **Decomposed/Explicit** — Break the question into its constituent parts or conditions. Make every implicit assumption explicit.
+   - "For patient 12345: (1) find all ICU visits, (2) identify the first one, (3) retrieve the blood pressure at that time."
+   - "Filter to IV route only. Among those medications, find the one with the earliest prescription date after 05/2100."
+
+## Patient IDs and Dates
+- **Strategy 1 (Implicit)**: Always drop patient IDs and specific dates — generalize or omit entirely
+- **Strategy 2 (Narrative)**: Keep clinical context but may generalize dates to phrases like "a certain point in their stay"
+- **Strategy 3 (Decomposed)**: Keep all specifics — patient ID, dates, filters
 
 ## Examples
 
 **Original**: What was patient 12345's blood pressure the first time they visited the ICU?
-**Extensions**:
-1. What was patient 12345's blood pressure on their first ICU visit?
-2. Get the blood pressure for a patient at initial ICU admission
-3. What was a patient's blood pressure during their first ICU stay?
+
+1. [Implicit] First ICU admission blood pressure reading
+2. [Narrative] I'm looking for the blood pressure that was documented when this patient first came into the ICU — the very first admission record.
+3. [Decomposed] For patient 12345: identify the earliest ICU admission, then retrieve the blood pressure measurement recorded at that time.
+
+---
 
 **Original**: Tell me the medication patient 10020740 was first prescribed via IV route since 05/2100.
-**Extensions**:
-1. What was the first IV medication given to patient 10020740 after 05/2100?
-2. Which IV drug was initially prescribed to a patient from a specific date onwards?
-3. Show me the earliest IV medication administered since 05/2100
 
-**Original**: Has patient 10004733 been given any gastric meds medication since 12/19/2100?
-**Extensions**:
-1. Did patient 10004733 receive gastric meds after 12/19/2100?
-2. Was any gastric meds administered to a patient from a specific date?
-3. Was gastric meds provided to a patient after a date?
+1. [Implicit] Earliest IV medication after a given date
+2. [Narrative] I want to know which IV drug this patient was started on first, looking only at prescriptions that came in after a specific point in time in 05/2100.
+3. [Decomposed] For patient 10020740: filter all prescriptions to IV route only, restrict to dates on or after 05/2100, return the one with the earliest start date.
 
-**Original**: Did patient 10021118 have or crystalloid intake input on their first ICU stay?
-**Extensions**:
-1. Was patient 10021118 given or crystalloid intake during their initial ICU visit?
-2. Did a patient receive or crystalloid intake on first ICU admission?
-3. Has a patient had or crystalloid intake input on their first ICU visit?
+---
 
-## Guidelines
-- Each extension should target the same core information
-- Mix specific and general formulations across the 3 extensions
-- Use natural language - sound like real questions
-- Generate exactly 3 extensions
+**Original**: Has patient 10004733 been given any gastric meds since 12/19/2100?
+
+1. [Implicit] Gastric medication administration after a date
+2. [Narrative] I need to check whether this patient ever received anything for their stomach — any kind of gastric medication — at any point after mid-December 2100.
+3. [Decomposed] For patient 10004733: search medication records for any entry categorized as gastric meds, with administration date strictly after 12/19/2100. Return yes/no and the relevant record if found.
 
 ## Output
-Return only a list of exactly 3 alternative formulations.
+Return exactly 3 alternative formulations, each clearly using a different strategy. Do not label them — just return the 3 formulations as a plain list.
 """

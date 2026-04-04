@@ -30,11 +30,11 @@ class LLMConfig:
 
 @dataclass
 class RAGConfig:
-    top_k: int = 1
+    top_k: int = 5
     brittle_retrieval: bool = False
-    hybrid_retrieval: bool = False
+    hybrid_retrieval: bool = True
     prompt_extension: bool = False
-    return_response: bool = False
+    doc_reranking: bool = False
     template_construction: bool = True
     source_discovery: bool = True
     reranker_embedding_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"

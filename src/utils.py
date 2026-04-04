@@ -2,6 +2,38 @@ import re
 import sqlite3
 import random
 from collections import defaultdict
+from typing import List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from langchain_core.documents import Document
+
+
+def rrf_fuse(
+    dense: List["Document"],
+    sparse: List["Document"],
+    top_k: int,
+    k: int = 60,
+) -> List["Document"]:
+    """Reciprocal Rank Fusion over dense and sparse result lists."""
+    scores: Dict[str, float] = {}
+    docs: Dict[str, "Document"] = {}
+
+    for rank, doc in enumerate(dense):
+        key = doc.metadata.get("case") or doc.page_content
+        if doc.metadata.get("case") is None:
+            doc.metadata["case"] = doc.page_content
+        scores[key] = scores.get(key, 0.0) + 1.0 / (k + rank + 1)
+        docs[key] = doc
+
+    for rank, doc in enumerate(sparse):
+        key = doc.metadata.get("case") or doc.page_content
+        if doc.metadata.get("case") is None:
+            doc.metadata["case"] = doc.page_content
+        scores[key] = scores.get(key, 0.0) + 1.0 / (k + rank + 1)
+        docs[key] = doc
+
+    ranked = sorted(scores, key=lambda x: scores[x], reverse=True)
+    return [docs[key] for key in ranked[:top_k]]
 
 
 def tokenize(text: str):
@@ -147,6 +179,7 @@ def is_content_filter_error(error: Exception) -> bool:
 
 
 def stratified_sample(data, p=0.3, label=True):
+    random.seed(13)
     strata = defaultdict(list)
     for item in data:
         if label: 

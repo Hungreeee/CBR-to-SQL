@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/EHRSQL/dataset/ehrsql/mimic_iii/mimic_iii.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql/run-14-cbr-cdb")
+RESULTS_DIR = Path("./results/ehrsql/run-14-rag-cdb-hybrid")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -47,7 +47,7 @@ LOOKUP_COLLECTION = "lookup_table_ehrsql"
 USE_AZURE = True  # Set to False for OpenAI
 
 # Select which pipelines to evaluate
-EVALUATE = ["CBR-CDB"]
+EVALUATE = ["RAG-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -94,7 +94,8 @@ for name in EVALUATE:
             sql_db=sql_db,
             lookup_table=lookup_table,
             fallback_generator=fallback_generator,
-            config=RAGConfig(dataset="ehrsql")
+            config=RAGConfig(dataset="ehrsql"),
+            rag_retriever=QdrantRetriever(collection_name=COLLECTIONS[name.replace("CBR", "RAG")]),
         )
 
 print(f"✓ Initialized {len(pipelines)} pipelines")

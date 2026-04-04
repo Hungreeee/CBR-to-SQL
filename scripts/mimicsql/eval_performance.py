@@ -29,7 +29,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-1-test")
+RESULTS_DIR = Path("./results/mimicsql/run-12-cbr-cdb-hybrid")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -42,10 +42,10 @@ COLLECTIONS = {
 LOOKUP_COLLECTION = "lookup_table"
 
 # Set to False for OpenAI
-USE_AZURE = True  
+USE_AZURE = False  
 
 # Select which pipelines to evaluate
-EVALUATE = ["RAG-CDB", "CBR-CDB"]
+EVALUATE = ["CBR-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")
@@ -63,9 +63,6 @@ def load_jsonl(filepath: str) -> List[Dict]:
 
 testset = load_jsonl("./data/TREQS/mimicsql_data/mimicsql_natural_v2/test.json")
 print(f"✓ Loaded {len(testset)} test examples")
-
-# %%
-testset = testset[:200]
 
 # %%
 # ========== INITIALIZE PIPELINES ==========
@@ -90,6 +87,7 @@ for name in EVALUATE:
             sql_db=sql_db,
             lookup_table=lookup_table,
             fallback_generator=fallback_generator,
+            rag_retriever=QdrantRetriever(collection_name=COLLECTIONS[name.replace("CBR", "RAG")]),
         )
 
 print(f"✓ Initialized {len(pipelines)} pipelines")
@@ -217,8 +215,5 @@ with open(RESULTS_DIR / "metrics.json", "w") as f:
                     for k, metrics in all_metrics.items()}
     json.dump(serializable, f, indent=2)
 print(f"\n✓ Metrics saved to {RESULTS_DIR / 'metrics.json'}")
-
-# %%
-
 
 # %%

@@ -51,20 +51,20 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = AzureAIAgent()  # Alternative
+generator = OpenAIAgent()  # Alternative
 sql_eval_model = query(DATABASE_LOCATION)
 
 # Note: Lookup table should already be constructed using the lookup table script
 lookup_table = QdrantRetriever(collection_name=LOOKUP_COLLECTION)
 
 # %%
-# rag_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
-# rag_cdb_pipeline = RAGtoSQL(
-#     retriever=rag_cdb_retriever,
-#     generator=generator,
-#     sql_db=sql_db,
-#     config=RAGConfig(dataset="ehrsql")
-# )
+rag_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
+rag_cdb_pipeline = RAGtoSQL(
+    retriever=rag_cdb_retriever,
+    generator=generator,
+    sql_db=sql_db,
+    config=RAGConfig(dataset="ehrsql24")
+)
 
 # Initialize CBR-CDB pipeline
 cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
@@ -74,16 +74,22 @@ cbr_cdb_pipeline = CBRtoSQL(
     sql_db=sql_db,
     lookup_table=lookup_table,
     fallback_generator=fallback_generator,
-    config=RAGConfig(dataset="ehrsql24")
+    config=RAGConfig(dataset="ehrsql24"),
+    rag_retriever=QdrantRetriever(collection_name=RAG_CDB_COLLECTION),
 )
 
 # %%
 question = """
-What was the name of the drug that patient 10031757 had been prescribed two times in 11/this year?
+How much does the calcium, total lab test typically cost?
 """
 
 # %%
 cbr_cdb_pipeline.handle_request(
+    question=question,
+)
+
+# %%
+rag_cdb_pipeline.handle_request(
     question=question,
 )
 
