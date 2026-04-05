@@ -115,10 +115,10 @@ class AzureAIAgent(BaseGenerator):
 
         self.client = ChatOpenAI(
             default_headers={
-                "Ocp-Apim-Subscription-Key": os.getenv("AALTO_OPENAI_API_KEY")
+                "Ocp-Apim-Subscription-Key": os.getenv("AZURE_OPENAI_API_KEY")
             },
             base_url=base_url,
-            api_key=os.getenv("AALTO_OPENAI_API_KEY"),
+            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
             http_client=httpx.Client(
             event_hooks={
                 "request": [lambda request: update_base_url(request, model=model)],
