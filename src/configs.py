@@ -19,7 +19,7 @@ class RetrieverConfig:
 @dataclass
 class LLMConfig:
     # model: str = "gpt-4.1-mini"
-    model: str = "gpt-4o"
+    model: str = "gpt-4o" # Use "gpt-4o-2024-08-06" for OpenAI models
     temperature: int = 0.
     top_p: int = None
 

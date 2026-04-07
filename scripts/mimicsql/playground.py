@@ -76,25 +76,26 @@ rag_cdb_pipeline = RAGtoSQL(
 )
 
 # # Initialize CBR-CDB pipeline
-# cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
-# cbr_cdb_pipeline = CBRtoSQL(
-#     retriever=cbr_cdb_retriever,
-#     generator=generator,
-#     sql_db=sql_db,
-#     lookup_table=lookup_table,
-#     fallback_generator=fallback_generator
-# )
+cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
+cbr_cdb_pipeline = CBRtoSQL(
+    retriever=cbr_cdb_retriever,
+    generator=generator,
+    sql_db=sql_db,
+    lookup_table=lookup_table,
+    fallback_generator=fallback_generator,
+    rag_retriever=rag_cdb_retriever
+)
 
 # %%
 # Provide the number of patients that died and had a primary disease of ST elevated myocardial infarction/cardiac cath.
 # how many patients discharged to snf had hypoxia primary disease?
 
 question = """
-provide the number of private insurance patients who had incision of abdomen artery.
+how many patients are admitted under emergency and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
 """
 
 # %%
-rag_cdb_pipeline.handle_request(
+cbr_cdb_pipeline.handle_request(
     question=question,
 )
 

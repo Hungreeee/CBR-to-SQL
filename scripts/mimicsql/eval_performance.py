@@ -29,7 +29,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-13-cbr-cdb")
+RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-cdb-3")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
