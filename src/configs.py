@@ -32,7 +32,7 @@ class LLMConfig:
 class RAGConfig:
     top_k: int = 5
     brittle_retrieval: bool = False
-    hybrid_retrieval: bool = True
+    hybrid_retrieval: bool = False
     prompt_extension: bool = False
     doc_reranking: bool = False
     template_construction: bool = True
