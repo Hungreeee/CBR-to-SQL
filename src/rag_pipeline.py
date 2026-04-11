@@ -48,12 +48,11 @@ class RAGtoSQL:
         }
 
     def generate_sql(self, question: str) -> Tuple[str, List]:
-        top_k_multiplier = 5 if self.config.doc_reranking and \
-            not self.config.prompt_extension else 1
-
         # Retrieve cases from main question
         retrieved_cases: List[Document] = self._retrieve(
-            question, top_k=self.config.top_k * top_k_multiplier
+            question, 
+            top_k=self.config.rerank_top_k if self.config.doc_reranking and \
+                not self.config.prompt_extension else self.config.top_k,
         )
 
         if self.config.prompt_extension:
@@ -190,7 +189,7 @@ class RAGtoSQL:
         pairs = [[query, doc.page_content] for doc in documents]
         
         # Score all pairs with cross-encoder
-        scores = self.reranker.predict(pairs)
+        scores = self.reranker.predict(pairs, batch_size=1)
         
         # Combine documents with scores and sort
         doc_scores = list(zip(documents, scores))
@@ -493,12 +492,10 @@ class CBRtoSQL(RAGtoSQL):
         if not self.config.template_construction:
             masked_question = original_question
 
-        top_k_multiplier = 5 if self.config.doc_reranking and \
-            not self.config.prompt_extension else 1
-
         retrieved_cases: List[Document] = self._cbr_retrieve(
             masked_question, original_question,
-            top_k=self.config.top_k * top_k_multiplier,
+            top_k=self.config.rerank_top_k if self.config.doc_reranking and \
+                not self.config.prompt_extension else self.config.top_k,
         )
 
         if self.config.prompt_extension:
@@ -521,7 +518,7 @@ class CBRtoSQL(RAGtoSQL):
             
             if self.config.doc_reranking:
                 retrieved_cases = self._rerank_documents(
-                    query=masked_question,
+                    query=original_question,
                     documents=unique_cases,
                     top_k=self.config.top_k
                 )
@@ -542,7 +539,7 @@ class CBRtoSQL(RAGtoSQL):
         else:
             if self.config.doc_reranking:
                 retrieved_cases = self._rerank_documents(
-                    query=masked_question,
+                    query=original_question,
                     documents=retrieved_cases,
                     top_k=self.config.top_k
                 )
@@ -652,3 +649,36 @@ class CBRtoSQL(RAGtoSQL):
                 pass
         
         return []
+
+    def _rerank_documents(
+        self, 
+        query: str, 
+        documents: List[Document], 
+        top_k: int = 5
+    ) -> List:
+        """
+        Re-rank documents using cross-encoder based on relevance to query
+        
+        Args:
+            query: The original query to rank against
+            documents: List of retrieved documents
+            top_k: Number of top documents to return
+            
+        Returns:
+            Top-k re-ranked documents
+        """
+        if not documents:
+            return []
+        
+        # Create query-document pairs
+        pairs = [[query, doc.metadata.get("case", doc.page_content)] for doc in documents if doc.metadata.get("sql_query") != "null"]
+        
+        # Score all pairs with cross-encoder
+        scores = self.reranker.predict(pairs)
+        
+        # Combine documents with scores and sort
+        doc_scores = list(zip(documents, scores))
+        doc_scores.sort(key=lambda x: -x[1])  # Sort by score descending
+        
+        # Return top k documents
+        return [doc for doc, _ in doc_scores[:top_k]]

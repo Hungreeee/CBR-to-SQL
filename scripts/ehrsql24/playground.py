@@ -51,7 +51,7 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = OpenAIAgent()  # Alternative
+generator = AzureAIAgent()  # Alternative
 sql_eval_model = query(DATABASE_LOCATION)
 
 # Note: Lookup table should already be constructed using the lookup table script
@@ -80,7 +80,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-How much does the calcium, total lab test typically cost?
+Calculate the total hospital cost this year for patients with an address in san diego.
 """
 
 # %%

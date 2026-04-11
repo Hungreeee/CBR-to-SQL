@@ -31,13 +31,14 @@ class LLMConfig:
 @dataclass
 class RAGConfig:
     top_k: int = 5
+    rerank_top_k: int = 50
     brittle_retrieval: bool = False
     hybrid_retrieval: bool = False
     prompt_extension: bool = False
-    doc_reranking: bool = False
+    doc_reranking: bool = True
     template_construction: bool = True
     source_discovery: bool = True
-    reranker_embedding_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_embedding_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2" # Qwen/Qwen3-Reranker-0.6B
     dataset: Literal["mimicsql", "ehrsql", "ehrsql24"] = "mimicsql"
 
     @classmethod
