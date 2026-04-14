@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-rerank")
+RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-3")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -96,7 +96,7 @@ for name in EVALUATE:
             fallback_generator=fallback_generator,
             config=RAGConfig(dataset="ehrsql24"),
             rag_retriever=QdrantRetriever(collection_name=COLLECTIONS[name.replace("CBR", "RAG")]),
-        )
+        )   
 
 print(f"✓ Initialized {len(pipelines)} pipelines")
 
@@ -148,7 +148,7 @@ def evaluate_pipeline(
         except Exception as e:
             if "aalto" in str(e).lower() or "429" in str(e).lower():
                 error_flag = True
-                print("Breaking due to rate limit exceeded.")
+                print(f"Breaking due to rate limit exceeded. {e}")
                 break
             results.append({
                 "question": question,
