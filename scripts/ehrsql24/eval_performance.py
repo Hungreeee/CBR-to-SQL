@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-3")
+RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-abl-source-dist")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names

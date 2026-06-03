@@ -80,7 +80,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-Calculate the total hospital cost this year for patients with an address in san diego.
+Tell me the top three most common diagnoses for patients with age 60 or above in 2100.
 """
 
 # %%

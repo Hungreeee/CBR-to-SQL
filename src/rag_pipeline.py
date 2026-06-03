@@ -530,7 +530,7 @@ class CBRtoSQL(RAGtoSQL):
                 retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
             
             formatted_examples = "\n---\n".join(
-                f"* Example question: {doc.metadata['case']}\n"
+                f"* Example question: {doc.metadata.get('case') or doc.page_content}\n"
                 f"* Masked question form: {doc.page_content}\n"
                 f"* Example SQL query: {doc.metadata.get('sql_query', 'Unanswerable question!')}" 
                 for doc in retrieved_cases 
@@ -548,11 +548,11 @@ class CBRtoSQL(RAGtoSQL):
                 retrieved_cases = drop_cases(retrieved_cases, len(retrieved_cases))
 
             formatted_examples = "\n---\n".join(
-                f"* Example question: {doc.metadata['case']}\n"
+                f"* Example question: {doc.metadata.get('case') or doc.page_content}\n"
                 f"* Masked question form: {doc.page_content}\n"
                 f"* Example SQL query: {doc.metadata.get('sql_query', 'Unanswerable question!')}" 
                 for doc in retrieved_cases 
-                if doc.metadata.get('case') and doc.metadata.get('sql_query')
+                if doc.metadata.get('sql_query')
             )
         
         # Format entity mappings

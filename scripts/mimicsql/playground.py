@@ -76,7 +76,7 @@ rag_cdb_pipeline = RAGtoSQL(
 )
 
 # # Initialize CBR-CDB pipeline
-cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
+cbr_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
 cbr_cdb_pipeline = CBRtoSQL(
     retriever=cbr_cdb_retriever,
     generator=generator,
