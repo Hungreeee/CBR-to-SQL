@@ -15,7 +15,7 @@ from src.rag_pipeline import RAGtoSQL, CBRtoSQL
 from src.retriever import QdrantRetriever
 from src.utils import query
 from src.metrics import parse_sql
-from src.ehrsql_metric import parse_sql_nested, parse_single_query, post_process_sql
+from src.metrics.ehrsql_metrics import parse_sql_nested, parse_single_query, post_process_sql
 
 from langchain_community.utilities.sql_database import SQLDatabase
 

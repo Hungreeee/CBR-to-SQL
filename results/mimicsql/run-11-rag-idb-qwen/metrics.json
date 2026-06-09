@@ -1,0 +1,16 @@
+{
+  "RAG-IDB": {
+    "lf_accuracy": {
+      "total": 0.648,
+      "agg_op": 0.992,
+      "agg_col": 0.909,
+      "table": 0.892,
+      "condition_column_operation": 0.785,
+      "condition_value": 0.723
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.623,
+      "standard_execution_accuracy": 0.645
+    }
+  }
+}

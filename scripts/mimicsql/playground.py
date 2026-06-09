@@ -59,7 +59,8 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = OpenAIAgent()  # Alternative
+# generator = AzureAIAgent()  # Alternative()
+generator = OpenAIAgent()  # Alternative()
 
 sql_eval_engine = query("./data/TREQS/evaluation/mimic_db/mimic_all.db")
 
@@ -76,7 +77,7 @@ rag_cdb_pipeline = RAGtoSQL(
 )
 
 # # Initialize CBR-CDB pipeline
-cbr_cdb_retriever = QdrantRetriever(collection_name=RAG_CDB_COLLECTION)
+cbr_cdb_retriever = QdrantRetriever(collection_name=CBR_CDB_COLLECTION)
 cbr_cdb_pipeline = CBRtoSQL(
     retriever=cbr_cdb_retriever,
     generator=generator,

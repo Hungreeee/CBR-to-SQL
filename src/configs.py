@@ -20,6 +20,7 @@ class RetrieverConfig:
 class LLMConfig:
     # model: str = "gpt-4.1-mini"
     model: str = "gpt-4o" # Use "gpt-4o-2024-08-06" for OpenAI models
+    # model: str = "Qwen/Qwen3-VL-8B-Instruct-FP8:de-c91946d076db1154"
     temperature: int = 0.
     top_p: int = None
 

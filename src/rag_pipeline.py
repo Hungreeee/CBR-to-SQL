@@ -6,7 +6,7 @@ from utils import drop_cases, remove_sql_wrapper, tokenize, is_content_filter_er
 from retriever import BaseRetriever
 from generator import BaseGenerator
 from configs import RAGConfig
-from schema import EntityExtraction, TagAssignment, PromptExtension
+from schema import EntityExtraction, TagAssignment, PromptExtension, SqlGenerationOptional
 
 from langchain_core.documents import Document
 from langchain_community.callbacks import get_openai_callback
@@ -100,6 +100,11 @@ class RAGtoSQL:
                 f"Query: {doc.page_content}\nSQL: {doc.metadata['sql_query']}" 
                 for doc in retrieved_cases
             )
+            
+        # if self.config.dataset == "ehrsql":
+        #     llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
+        # elif self.config.dataset == "ehrsql24":
+        #     llm = self.generator.client.bind_tools([SqlGenerationOptional], tool_choice="SqlGenerationOptional", strict=True)
         
         messages = [
             ("system", self._get_prompt("case_revising")),
@@ -108,8 +113,18 @@ class RAGtoSQL:
             ("user", f"Examples:\n{formatted_examples}"),
             ("user", "SQL Query:"),
         ]
+
+        try: 
+            sql_query = self.generator.generate(messages) 
+            # response = llm.invoke(messages)
+            # print(response)
+            # sql_query = response.tool_calls[0]["args"]["sql_query"]
+        except Exception as e:
+            if is_content_filter_error(e) and self.fallback_generator:
+                sql_query = self.fallback_generator.generate(messages)
+            else:
+                raise e
         
-        sql_query = self.generator.generate(messages) 
         return remove_sql_wrapper(sql_query), retrieved_cases
     
     def _retrieve(self, query: str, top_k: int) -> List[Document]:
@@ -574,11 +589,11 @@ class CBRtoSQL(RAGtoSQL):
         if self.config.template_construction:
             messages = [
                 ("system", self._get_prompt("sql_generation")),
+                ("system", f"# Schema:\n\n{self.sql_db.get_table_info()}"),
                 ("user", f"# Original Question: {original_question}"),
                 ("user", f"# Masked Question (with entity spans extracted): {masked_question}"),
                 ("user", f"# Retrieved Examples:\n\n{formatted_examples}"),
                 ("user", f"# Entity Mappings:\n\n{entity_info}"),
-                ("user", f"# Schema:\n\n{self.sql_db.get_table_info()}"),
                 ("user", "# Adapted SQL query:"),
             ]
         else:

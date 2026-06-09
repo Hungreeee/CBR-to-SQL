@@ -51,7 +51,7 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = AzureAIAgent()  # Alternative
+generator = OpenAIAgent()  # Alternative
 sql_eval_model = query(DATABASE_LOCATION)
 
 # Note: Lookup table should already be constructed using the lookup table script
@@ -80,7 +80,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 
 # %%
 question = """
-Tell me the top three most common diagnoses for patients with age 60 or above in 2100.
+When patient 10021312 had the first void output since 09/16/2100?
 """
 
 # %%
@@ -88,7 +88,7 @@ cbr_cdb_pipeline.handle_request(
     question=question,
 )
 
-# %%
+ # %%
 rag_cdb_pipeline.handle_request(
     question=question,
 )
@@ -117,7 +117,7 @@ lookup_table.retrieve("lactated ringers intake", top_k=5)
 
 # %%
 cbr_cdb_retriever.retrieve(
-    query="what drug was prescribed for patient"
+    query="or urine output"
 )
 
 # %%
