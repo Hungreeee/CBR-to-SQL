@@ -347,6 +347,105 @@ def parse_sql(sql, headerDic, tableDic):
     return sqlForm
 
 
+def normalize_val(v):
+    """Lowercase, strip quotes/spaces, collapse whitespace — mirror parse_sql's value handling."""
+    if v is None:
+        return ""
+    v = re.split(r'\"|\s|\'', str(v))
+    return ' '.join(filter(None, v)).lower()
+
+def _clean(s):
+    return (s or '').replace('"', '').replace("'", '').strip().lower()
+
+def gold_entities_from_sql(gold_lf):
+    gold = []
+    for cond in gold_lf['cond']:
+        if len(cond) < 3:
+            continue
+        col_full = _clean(cond[0])          # 'demographic."diagnosis"' -> 'demographic.diagnosis'
+        val = normalize_val(cond[2])
+        if '.' in col_full:
+            tab, col = col_full.split('.', 1)
+        else:
+            tab, col = '', col_full
+        gold.append((tab.strip(), col.strip(), val))
+    return gold
+
+def pred_entities_from_lookup(entity_list):
+    preds = []
+    for e in entity_list:
+        if not e.get('match_found', False):
+            continue
+        tab = _clean(e.get('table'))
+        col = _clean(e.get('column'))       # '"DIAGNOSIS"' -> 'diagnosis'
+        val = normalize_val(e.get('best_match'))
+        preds.append((tab, col, val))
+    return preds
+
+
+def entity_resolution_accuracy(result_dataset, db_model,
+                               entities_field='entities',
+                               covered_columns=None):
+    """
+    covered_columns: set of (table, column) lowercased pairs that the lookup
+    table actually indexes. Gold conditions on columns OUTSIDE this set are
+    excluded, since the lookup is by design not responsible for them
+    (numeric/ID/temporal fields filtered out during construction).
+    If None, falls back to the set of (table,column) the lookup ever predicts.
+    """
+    db_head = db_model.db_head
+    headerDic, tableDic = [], []
+    for tb in db_head:
+        for hd in db_head[tb]:
+            headerDic.append('.'.join([tb, hd]).lower())
+        tableDic.append(tb.lower())
+
+    # Fallback: infer covered columns from predictions
+    if covered_columns is None:
+        covered_columns = set()
+        for line in result_dataset:
+            for e in line.get(entities_field, []):
+                if e.get('match_found', False):
+                    covered_columns.add((_clean(e.get('table')),
+                                         _clean(e.get('column'))))
+
+    q_total = q_t = q_c = q_v = 0
+    e_total = e_t = e_c = e_v = 0
+
+    for line in result_dataset:
+        if line['gold_sql'] == 'null':
+            continue
+        gold_lf = parse_sql(line['gold_sql'], headerDic, tableDic)
+        gold = gold_entities_from_sql(gold_lf)
+        # keep only conditions on columns the lookup is responsible for
+        gold = [(t, c, v) for (t, c, v) in gold if (t, c) in covered_columns]
+        if not gold:
+            continue
+
+        preds = pred_entities_from_lookup(line.get(entities_field, []))
+        pred_tables = {p[0] for p in preds}
+        pred_cols   = {(p[0], p[1]) for p in preds}
+        pred_full   = {(p[0], p[1], p[2]) for p in preds}
+
+        q_total += 1
+        all_t = all_c = all_v = True
+        for (gt, gc, gv) in gold:
+            e_total += 1
+            t_ok = gt in pred_tables
+            c_ok = (gt, gc) in pred_cols
+            v_ok = (gt, gc, gv) in pred_full
+            e_t += t_ok; e_c += c_ok; e_v += v_ok
+            all_t &= t_ok; all_c &= c_ok; all_v &= v_ok
+        q_t += all_t; q_c += all_c; q_v += all_v
+
+    return {
+        'per_query': {'table': q_t/q_total, 'table_column': q_c/q_total,
+                      'table_column_val': q_v/q_total, 'n_queries': q_total},
+        'per_entity': {'table': e_t/e_total, 'table_column': e_c/e_total,
+                       'table_column_val': e_v/e_total, 'n_entities': e_total},
+    }
+
+
 def compute_reliability_score(
     results_dataset: List[Dict],
     sql_db: query,  # Your database connection/executor object

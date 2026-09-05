@@ -307,53 +307,52 @@ class CBRtoSQL(RAGtoSQL):
         # PHASE 2: Lookup and refined tagging for semantic entities
         tagged_entities = entities_no_discovery.copy()
         
-        if self.config.source_discovery:
-            for entity_info in entities_needing_discovery:
-                entity_text = entity_info["text"]
-                
-                # STEP 1: Schema linking via k-NN search
-                linked_entities = self._lookup(entity_text)
-                
-                if not linked_entities:
-                    # No matches found - use original text with temporary tag
-                    tagged_entities.append({
-                        "original": entity_text,
-                        "label": entity_info["temp_label"],
-                        "best_match": entity_text,
-                        "table": None,
-                        "column": None,
-                        "source_discovery": True,
-                        "match_found": False
-                    })
-                    continue
-                
-                # STEP 2: Refined tag assignment (select best match)
-                tag_result = self._assign_tag(question, entity_text, linked_entities)
-                
-                # Check if match was rejected (best_match_index = -1)
-                if tag_result is None or tag_result.get("label") == "NO_MATCH":
-                    # Rejected - use original text with temporary tag
-                    tagged_entities.append({
-                        "original": entity_text,
-                        "label": entity_info["temp_label"],  # Keep original temp tag
-                        "best_match": entity_text,
-                        "table": None,
-                        "column": None,
-                        "source_discovery": True,
-                        "match_found": False
-                    })
-                else:
-                    # Accepted - use matched result
-                    tagged_entities.append({
-                        "original": entity_text,
-                        "label": tag_result["label"],  # Use refined tag
-                        "best_match": tag_result["best_match"],
-                        "table": tag_result.get("table"),
-                        "column": tag_result.get("column"),
-                        "source_discovery": True,
-                        "match_found": True
-                    })
-        
+        for entity_info in entities_needing_discovery:
+            entity_text = entity_info["text"]
+
+            # STEP 1: Schema linking via k-NN search
+            linked_entities = self._lookup(entity_text)
+
+            if not linked_entities:
+                # No matches found - use original text with temporary tag
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": entity_info["temp_label"],
+                    "best_match": entity_text,
+                    "table": None,
+                    "column": None,
+                    "source_discovery": True,
+                    "match_found": False
+                })
+                continue
+
+            # STEP 2: Refined tag assignment (select best match)
+            tag_result = self._assign_tag(question, entity_text, linked_entities)
+
+            # Check if match was rejected (best_match_index = -1)
+            if tag_result is None or tag_result.get("label") == "NO_MATCH":
+                # Rejected - use original text with temporary tag
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": entity_info["temp_label"],  # Keep original temp tag
+                    "best_match": entity_text,
+                    "table": None,
+                    "column": None,
+                    "source_discovery": True,
+                    "match_found": False
+                })
+            else:
+                # Accepted - use matched result
+                tagged_entities.append({
+                    "original": entity_text,
+                    "label": tag_result["label"],  # Use refined tag
+                    "best_match": tag_result["best_match"],
+                    "table": tag_result.get("table"),
+                    "column": tag_result.get("column"),
+                    "source_discovery": True,
+                    "match_found": True
+                })
+
         # PHASE 3: Generate masked question from all tagged entities
         masked_question = self._mask_question(question, tagged_entities)
         
@@ -571,12 +570,15 @@ class CBRtoSQL(RAGtoSQL):
             )
         
         # Format entity mappings
-        entity_info = "\n---\n".join([
-            f"[{e['label']}] -> '{e['best_match']}'" + 
-            (f" (Table: {e.get('table')}, Column: {e.get('column')})" if e.get('table') else "")
-            for e in entities
-            if e.get('table') and e.get('column')
-        ]) if entities else "No entities to replace"
+        if self.config.source_discovery:
+            entity_info = "\n---\n".join([
+                f"[{e['label']}] -> '{e['best_match']}'" +
+                (f" (Table: {e.get('table')}, Column: {e.get('column')})" if e.get('table') else "")
+                for e in entities
+                if e.get('table') and e.get('column')
+            ]) if entities else "No entities to replace"
+        else:
+            entity_info = "No entity mappings provided"
 
         # # Bind tool call structure 
         # if self.config.dataset == "ehrsql":

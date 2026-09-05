@@ -31,7 +31,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-15-cbr-cdb-abl-qwen2")
+RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-abl-source-dist")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -44,7 +44,7 @@ COLLECTIONS = {
 LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
 # Model selection 
-USE_AZURE = False  # Set to False for OpenAI
+USE_AZURE = True  # Set to False for OpenAI
 
 # Select which pipelines to evaluate
 EVALUATE = ["CBR-CDB"]
@@ -66,9 +66,9 @@ testset = load_json("./data/ehrsql-2024/data/mimic_iv/test/annotated.json")
 print(f"✓ Loaded {len(testset)} test examples")
 
 # %%
-# Stratified sampling for testing
-testset = stratified_sample(testset, p=1/4, label=False)
-len(testset)
+# # Stratified sampling for testing
+# testset = stratified_sample(testset, p=1/4, label=False)
+# len(testset)
 
 # %%
 # ========== INITIALIZE PIPELINES ==========

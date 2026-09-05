@@ -21,7 +21,7 @@ from src.utils import query
 from src.generator import AzureAIAgent, OpenAIAgent
 from src.rag_pipeline import RAGtoSQL, CBRtoSQL
 from src.retriever import QdrantRetriever
-from src.metrics.mimicsql_metrics import logic_form_accuracy, execution_accuracy
+from src.metrics.mimicsql_metrics import logic_form_accuracy, execution_accuracy, entity_resolution_accuracy
 
 from langchain_community.utilities.sql_database import SQLDatabase
 
@@ -29,7 +29,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-idb-qwen")
+RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-idb-3")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -42,7 +42,7 @@ COLLECTIONS = {
 LOOKUP_COLLECTION = "lookup_table"
 
 # Set to False for OpenAI
-USE_AZURE = False
+USE_AZURE = True
 
 # Select which pipelines to evaluate
 EVALUATE = ["CBR-IDB"]
@@ -190,6 +190,39 @@ for name in EVALUATE:
 
 print(f"\n✓ Total result sets ready: {len(all_results)}")
 
+# %%
+print("\n" + "="*60)
+print("COMPUTING METRICS")
+print("="*60)
+
+covered_columns = {
+    ('demographic', 'name'),
+    ('demographic', 'marital_status'),
+    ('demographic', 'language'),
+    ('demographic', 'religion'),
+    ('demographic', 'admission_type'),
+    ('demographic', 'insurance'),
+    ('demographic', 'ethnicity'),
+    ('demographic', 'admission_location'),
+    ('demographic', 'discharge_location'),
+    ('demographic', 'diagnosis'),
+    ('diagnoses', 'short_title'),
+    ('diagnoses', 'long_title'),
+    ('lab', 'label'),
+    ('lab', 'fluid'),
+    ('lab', 'category'),
+    ('prescriptions', 'drug_type'),
+    ('prescriptions', 'drug'),
+    ('procedures', 'short_title'),
+    ('procedures', 'long_title'),
+}
+
+all_metrics = {}
+for name, results in all_results.items():
+    print(f"\n--- {name} ---")
+    lf_acc = entity_resolution_accuracy(results, sql_eval_model, "entities", covered_columns)
+    print(f"Entity Resolution Accuracy: {lf_acc}\n\n==========\n\n")
+    
 # %%
 # ========== COMPUTE METRICS ==========
 print("\n" + "="*60)
