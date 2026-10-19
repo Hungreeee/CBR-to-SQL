@@ -29,7 +29,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # ========== CONFIGURATION ==========
 DATABASE_LOCATION = "./data/TREQS/evaluation/mimic_db/mimic_all.db"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-idb-3")
+RESULTS_DIR = Path("./results/mimicsql/run-11-cbr-cdb-abl-sem-ret")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Collection names
@@ -45,7 +45,7 @@ LOOKUP_COLLECTION = "lookup_table"
 USE_AZURE = True
 
 # Select which pipelines to evaluate
-EVALUATE = ["CBR-IDB"]
+EVALUATE = ["CBR-CDB"]
 # EVALUATE = ["RAG-CDB", "RAG-IDB", "CBR-CDB", "CBR-IDB"]  # All
 
 print(f"Results will be saved to: {RESULTS_DIR}")

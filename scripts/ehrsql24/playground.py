@@ -25,10 +25,10 @@ DATABASE_URI = "sqlite:///./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 
 # Collection names
-RAG_CDB_COLLECTION = "rag_complete_ehrsql24"      # RAG with all data
-RAG_IDB_COLLECTION = "rag_incomplete_ehrsql24"    # RAG with clustered data
-CBR_CDB_COLLECTION = "cbr_complete_ehrsql24"      # CBR with all data
-CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql24"    # CBR with clustered data
+RAG_CDB_COLLECTION = "rag_complete_ehrsql24_v11"      # RAG with all data
+RAG_IDB_COLLECTION = "rag_incomplete_ehrsql24_v11"    # RAG with clustered data
+CBR_CDB_COLLECTION = "cbr_complete_ehrsql24_v11"      # CBR with all data
+CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql24_v11"    # CBR with clustered data
 
 LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
@@ -51,7 +51,7 @@ print(f"✓ Loaded {len(testset)} test examples")
 # %%
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
-generator = OpenAIAgent()  # Alternative
+generator = AzureAIAgent()  # Alternative
 sql_eval_model = query(DATABASE_LOCATION)
 
 # Note: Lookup table should already be constructed using the lookup table script

@@ -60,7 +60,7 @@ print(f"✓ Loaded {len(testset)} test examples")
 sql_db = SQLDatabase.from_uri(DATABASE_URI)
 fallback_generator = OpenAIAgent()
 # generator = AzureAIAgent()  # Alternative()
-generator = OpenAIAgent()  # Alternative()
+generator = AzureAIAgent()  # Alternative()
 
 sql_eval_engine = query("./data/TREQS/evaluation/mimic_db/mimic_all.db")
 
@@ -92,7 +92,7 @@ cbr_cdb_pipeline = CBRtoSQL(
 # how many patients discharged to snf had hypoxia primary disease?
 
 question = """
-how many patients are admitted under emergency and diagnosed with primary disease coronary artery disease or coronary artery bypass graft with mvr maze?
+How many patients born before the year 2109 were primarily diagnosed for guillain barre syndrome?
 """
 
 # %%
@@ -123,9 +123,8 @@ res_final
 
 # %%
 cbr_cdb_retriever.retrieve(
-    query="how many patients were born before the year 2060?",
-    top_k=5,
-    hybrid=True
+    query="How many patients with [DEMOGRAPHIC.DIAGNOSIS] primary disease were born before [YEAR]?",
+    top_k=5
 )
 
 # %%

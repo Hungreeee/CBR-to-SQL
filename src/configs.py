@@ -19,7 +19,7 @@ class RetrieverConfig:
 @dataclass
 class LLMConfig:
     # model: str = "gpt-4.1-mini"
-    model: str = "gpt-4o" # Use "gpt-4o-2024-08-06" for OpenAI models
+    model: str = "gpt-4o" # Azure maps this to the gpt-4o-2024-08-06 deployment; use the dated name only for direct OpenAI
     # model: str = "Qwen/Qwen3-VL-8B-Instruct-FP8:de-c91946d076db1154"
     temperature: int = 0.
     top_p: int = None
@@ -39,6 +39,7 @@ class RAGConfig:
     doc_reranking: bool = False
     template_construction: bool = True
     source_discovery: bool = True
+    refined_tagging: bool = True # False: mask with the generic semantic tags; the lookup table still resolves best_match/table/column
     reranker_embedding_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2" # Qwen/Qwen3-Reranker-0.6B
     dataset: Literal["mimicsql", "ehrsql", "ehrsql24"] = "mimicsql"
 

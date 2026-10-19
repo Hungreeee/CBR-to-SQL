@@ -15,17 +15,17 @@ from qdrant_client import models
 # %%
 # Collection names to migrate
 COLLECTIONS_TO_MIGRATE = [
-    # "rag_complete_ehrsql24",
-    # "rag_incomplete_ehrsql24",
-    # "cbr_complete_ehrsql24",
-    "cbr_incomplete_ehrsql24",
+    # "rag_complete_ehrsql24_v11",
+    # "rag_incomplete_ehrsql24_v11",
+    # "cbr_complete_ehrsql24_v11",
+    "cbr_incomplete_ehrsql24_v11",
 ]
 
 INDEXED_FIELDS = {
-    # "rag_complete_ehrsql24": "case",
-    # "rag_incomplete_ehrsql24": "case",
-    # "cbr_complete_ehrsql24": "masked_case",
-    "cbr_incomplete_ehrsql24": "masked_case",
+    # "rag_complete_ehrsql24_v11": "case",
+    # "rag_incomplete_ehrsql24_v11": "case",
+    # "cbr_complete_ehrsql24_v11": "masked_case",
+    "cbr_incomplete_ehrsql24_v11": "masked_case",
 }
 
 # %%

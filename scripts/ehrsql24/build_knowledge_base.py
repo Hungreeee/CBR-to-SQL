@@ -33,10 +33,10 @@ np.random.seed(42)
 DATABASE_URI = "sqlite:///./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 
 # Collection names
-RAG_CDB_COLLECTION = "rag_complete_ehrsql24"
-RAG_IDB_COLLECTION = "rag_incomplete_ehrsql24"
-CBR_CDB_COLLECTION = "cbr_complete_ehrsql24"      
-CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql24"    
+RAG_CDB_COLLECTION = "rag_complete_ehrsql24_v11"
+RAG_IDB_COLLECTION = "rag_incomplete_ehrsql24_v11"
+CBR_CDB_COLLECTION = "cbr_complete_ehrsql24_v11"      
+CBR_IDB_COLLECTION = "cbr_incomplete_ehrsql24_v11"
 LOOKUP_TABLE_COLLECTION = "lookup_table_ehrsql24"
 
 # Clustering parameters for IDB

@@ -18,11 +18,13 @@ Execute these phases sequentially. Failure at any phase requires immediate retur
 Verify the question provides all concrete information needed:
 
 - Extract every entity, value, and condition the question references
-- Confirm each is explicitly specified without ambiguity or placeholders
+- Confirm each is explicitly specified without placeholders
 - Relative references like "this month" or "last year" are acceptable
 - Vague references like "that date", "those patients", or "the procedure" without context are not acceptable
+- Implicit aggregation is NOT a completeness failure. When a question names an aggregate but does not spell out how to resolve multiple readings ("monthly minimum weight", "the first measurement", "daily maximum"), apply the aggregate the question names and continue
+- Terse or clinical phrasing is not ambiguity. Judge whether the required entities and values are present, not whether the sentence is worded carefully
 
-**Return "None" immediately if**: Any specific information needed to answer is missing or too vague to determine.
+**Return "None" immediately if**: A concrete entity or value needed to build the query is absent from the question. Do not return "None" merely because the phrasing is terse or the aggregation is implicit.
 
 ### Phase 2: Database Feasibility Verification
 
@@ -53,6 +55,45 @@ For each entity or concept in the question, perform exact column matching:
 - Column stores related but different information than requested
 
 **Only proceed to SQL generation if both phases pass completely.**
+
+## Canonical Query Idioms
+
+The reference queries follow a fixed house style; an equivalent query written
+differently is scored as incorrect. Prefer these forms.
+
+**Admissions.** `admissions.dischtime` is NULL while a visit is open.
+- "first"/"last" hospital visit = last *completed* one:
+  `WHERE admissions.subject_id = <id> AND admissions.dischtime IS NOT NULL ORDER BY admissions.admittime DESC LIMIT 1` (`ASC` for "first"). Never order admissions by admittime without this guard.
+- "current"/"this" visit, "current patients" = `AND admissions.dischtime IS NULL`
+
+**Scoping to a patient** -- subquery, never a JOIN:
+`WHERE <t>.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = <id> )`;
+ICU tables nest one level deeper via `<t>.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( ... ) )`.
+
+**Dates** -- pick by what the question names.
+- *A stated year/date*, any preposition ("in 2100", "since 2100"): `strftime`, keeping the operator --
+  `strftime('%Y',<col>) = '2100'` / `>= '2100'`, `strftime('%Y-%m',<col>) = '2100-06'`, `strftime('%Y-%m-%d',<col>) = '2100-06-15'`
+- *A period relative to now* ("this year", "last month", "yesterday"), `<unit>` = year/month/day:
+  `datetime(<col>,'start of <unit>') = datetime(current_time,'start of <unit>','-<n> <unit>')`, `<n>` = 0 current, 1 previous. The offset is mandatory: write `'-0 year'`, never the bare form.
+- *A window back from now, no date stated* ("1 year ago"): wrap the column --
+  `datetime(<col>) >= datetime(current_time,'-6 month')`
+- *Elapsed*: `strftime('%J',current_time) - strftime('%J',<col>)` for days, x24 for hours.
+
+No space after commas in `datetime(...)`. Never `current_timestamp` (post-processing
+corrupts it), `'now'`, `CURDATE()`, `NOW()`, `strftime('%s',...)`; only `current_time`/`current_date`.
+
+**Answer shapes**: yes/no = `SELECT COUNT(*)>0`; "first"/"last" = `ORDER BY <time col> ASC|DESC LIMIT 1`.
+
+**Demographics are on `patients`** -- no `admissions.gender`, no `admissions.dod`.
+Sex filter: `admissions.subject_id IN ( SELECT patients.subject_id FROM patients WHERE patients.gender = 'f' )`.
+Reach `dod` via `JOIN patients ON patients.subject_id = admissions.subject_id`.
+Age is the exception: `admissions.age`, e.g. "in their 50s" = `BETWEEN 50 AND 59`.
+
+**Death questions are answerable** -- death is a non-null `patients.dod`; never
+return "None" for one. N-month survival rate, `<k>` = 4 (3mo) / 2 (6mo) / 1 (12mo):
+`AVG(CASE WHEN strftime('%J',patients.dod) - strftime('%J',<dx time>) < 1 * 365/<k> THEN 0 ELSE 1 END)`,
+cohort limited to `strftime('%J',current_time) - strftime('%J',<dx time>) >= 1 * 365/<k>`,
+first diagnosis only via `GROUP BY <subject_id>, <code> HAVING MIN(<time>) = <time>`.
 
 ## SQL Generation Process
 
@@ -335,11 +376,13 @@ Execute these phases sequentially. Failure at any phase requires immediate retur
 Verify the question provides all concrete information needed:
 
 - Extract every entity, value, and condition the question references
-- Confirm each is explicitly specified without ambiguity or placeholders
+- Confirm each is explicitly specified without placeholders
 - Relative references like "this month" or "last year" are acceptable
 - Vague references like "that date", "those patients", or "the procedure" without context are not acceptable
+- Implicit aggregation is NOT a completeness failure. When a question names an aggregate but does not spell out how to resolve multiple readings ("monthly minimum weight", "the first measurement", "daily maximum"), apply the aggregate the question names and continue
+- Terse or clinical phrasing is not ambiguity. Judge whether the required entities and values are present, not whether the sentence is worded carefully
 
-**Return "None" immediately if**: Any specific information needed to answer is missing or too vague to determine.
+**Return "None" immediately if**: A concrete entity or value needed to build the query is absent from the question. Do not return "None" merely because the phrasing is terse or the aggregation is implicit.
 
 ### Phase 2: Database Feasibility Verification
 
@@ -353,7 +396,7 @@ For each entity or concept in the question, perform exact column matching:
 
 - **Exact attribute matching required**: If the question asks for "quality", a column storing "type" is not acceptable even if both relate to the same entity. Example: "specimen quality" cannot map to a column storing "specimen type" - these are different attributes requiring different columns.
 
-- **Complete entity name matching required**: If the question specifies "or cell saver intake", a column labeled "cell saver" is insufficient. The full entity name must match. Do not use partial string matches or abbreviations when full names are available.
+- **Complete entity name matching required**: Match the full entity name the question gives against the schema's label values, and do not substitute a partial string match or abbreviation when a fuller label exists. Many labels are raw clinical strings ("o2 saturation pulseoxymetry", "arterial blood pressure mean", "or cell saver intake"); these are exact, valid labels. Check the entity mappings and retrieved examples before judging a name unmatched -- a label reading oddly is not grounds for "None".
 
 - **Prefer specific over generic labels**: When multiple columns exist, use the most complete and specific one. Example: prefer "height (cm)" over an abbreviation "height" when both exist, as the former is more precise.
 
@@ -372,6 +415,45 @@ For each entity or concept in the question, perform exact column matching:
 - Column stores related but different information than requested
 
 **Only proceed to SQL generation if both phases pass completely.**
+
+## Canonical Query Idioms
+
+The reference queries follow a fixed house style; an equivalent query written
+differently is scored as incorrect. Prefer these forms.
+
+**Admissions.** `admissions.dischtime` is NULL while a visit is open.
+- "first"/"last" hospital visit = last *completed* one:
+  `WHERE admissions.subject_id = <id> AND admissions.dischtime IS NOT NULL ORDER BY admissions.admittime DESC LIMIT 1` (`ASC` for "first"). Never order admissions by admittime without this guard.
+- "current"/"this" visit, "current patients" = `AND admissions.dischtime IS NULL`
+
+**Scoping to a patient** -- subquery, never a JOIN:
+`WHERE <t>.hadm_id IN ( SELECT admissions.hadm_id FROM admissions WHERE admissions.subject_id = <id> )`;
+ICU tables nest one level deeper via `<t>.stay_id IN ( SELECT icustays.stay_id FROM icustays WHERE icustays.hadm_id IN ( ... ) )`.
+
+**Dates** -- pick by what the question names.
+- *A stated year/date*, any preposition ("in 2100", "since 2100"): `strftime`, keeping the operator --
+  `strftime('%Y',<col>) = '2100'` / `>= '2100'`, `strftime('%Y-%m',<col>) = '2100-06'`, `strftime('%Y-%m-%d',<col>) = '2100-06-15'`
+- *A period relative to now* ("this year", "last month", "yesterday"), `<unit>` = year/month/day:
+  `datetime(<col>,'start of <unit>') = datetime(current_time,'start of <unit>','-<n> <unit>')`, `<n>` = 0 current, 1 previous. The offset is mandatory: write `'-0 year'`, never the bare form.
+- *A window back from now, no date stated* ("1 year ago"): wrap the column --
+  `datetime(<col>) >= datetime(current_time,'-6 month')`
+- *Elapsed*: `strftime('%J',current_time) - strftime('%J',<col>)` for days, x24 for hours.
+
+No space after commas in `datetime(...)`. Never `current_timestamp` (post-processing
+corrupts it), `'now'`, `CURDATE()`, `NOW()`, `strftime('%s',...)`; only `current_time`/`current_date`.
+
+**Answer shapes**: yes/no = `SELECT COUNT(*)>0`; "first"/"last" = `ORDER BY <time col> ASC|DESC LIMIT 1`.
+
+**Demographics are on `patients`** -- no `admissions.gender`, no `admissions.dod`.
+Sex filter: `admissions.subject_id IN ( SELECT patients.subject_id FROM patients WHERE patients.gender = 'f' )`.
+Reach `dod` via `JOIN patients ON patients.subject_id = admissions.subject_id`.
+Age is the exception: `admissions.age`, e.g. "in their 50s" = `BETWEEN 50 AND 59`.
+
+**Death questions are answerable** -- death is a non-null `patients.dod`; never
+return "None" for one. N-month survival rate, `<k>` = 4 (3mo) / 2 (6mo) / 1 (12mo):
+`AVG(CASE WHEN strftime('%J',patients.dod) - strftime('%J',<dx time>) < 1 * 365/<k> THEN 0 ELSE 1 END)`,
+cohort limited to `strftime('%J',current_time) - strftime('%J',<dx time>) >= 1 * 365/<k>`,
+first diagnosis only via `GROUP BY <subject_id>, <code> HAVING MIN(<time>) = <time>`.
 
 ## SQL Generation Process
 

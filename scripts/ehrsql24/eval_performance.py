@@ -31,20 +31,25 @@ from langchain_community.utilities.sql_database import SQLDatabase
 # %%
 DATABASE_LOCATION = "./data/ehrsql-2024/data/mimic_iv/mimic_iv.sqlite"
 DATABASE_URI = f"sqlite:///{DATABASE_LOCATION}"
-RESULTS_DIR = Path("./results/ehrsql24/run-13-cbr-cdb-abl-source-dist")
+RESULTS_DIR = Path("./results/ehrsql24/run-20-cbr-cdb-abl-sem-ret")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Collection names
+# Collection names.
+# The `_v11` collections are built against the mimic_iv_demo_1.1 release; the
+# unsuffixed ones are the older build and are kept intact as a fallback. Only
+# compare results that came from the same set.
 COLLECTIONS = {
-    "RAG-CDB": "rag_complete_ehrsql24",
-    "RAG-IDB": "rag_incomplete_ehrsql24",
-    "CBR-CDB": "cbr_complete_ehrsql24",
-    "CBR-IDB": "cbr_incomplete_ehrsql24",
+    "RAG-CDB": "rag_complete_ehrsql24_v11",
+    "RAG-IDB": "rag_incomplete_ehrsql24_v11",
+    "CBR-CDB": "cbr_complete_ehrsql24_v11",
+    "CBR-IDB": "cbr_incomplete_ehrsql24_v11",
 }
 LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 
-# Model selection 
-USE_AZURE = True  # Set to False for OpenAI
+# Model selection.
+# The knowledge base was rebuilt with OpenAIAgent, so keep this False to run the
+# whole pipeline on one generator configuration.
+USE_AZURE = True  # Set to True for Azure/Aalto
 
 # Select which pipelines to evaluate
 EVALUATE = ["CBR-CDB"]
@@ -56,14 +61,37 @@ print(f"Evaluating: {EVALUATE}")
 # %%
 # ========== LOAD DATA ==========
 def load_json(filepath: str) -> List[Dict]:
-    """Load JSONL file"""
+    """Load a JSON file"""
     data = []
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         data = json.loads(f.read())
     return data
 
-testset = load_json("./data/ehrsql-2024/data/mimic_iv/test/annotated.json")
+
+def load_split(split_dir: str) -> List[Dict]:
+    """Load a split as [{id, question, query}].
+
+    `annotated.json` carried the question and gold query together, but the plain
+    releases ship them separately -- questions in `data.json`, gold queries in
+    `label.json` -- so join them when no annotated file is present.
+    """
+    annotated = Path(split_dir) / "annotated.json"
+    if annotated.exists():
+        return load_json(str(annotated))
+
+    data = load_json(str(Path(split_dir) / "data.json"))
+    rows = data["data"] if isinstance(data, dict) and "data" in data else data
+    labels = load_json(str(Path(split_dir) / "label.json"))
+    return [
+        {"id": r["id"], "question": r["question"], "query": labels[r["id"]]}
+        for r in rows
+    ]
+
+
+TEST_DIR = "./data/ehrsql-2024/data/mimic_iv/test"
+testset = load_split(TEST_DIR)
 print(f"✓ Loaded {len(testset)} test examples")
+print(f"  unanswerable: {sum(1 for d in testset if str(d['query']).strip() == 'null')}")
 
 # %%
 # # Stratified sampling for testing
@@ -137,6 +165,7 @@ def evaluate_pipeline(
         try:
             response = pipeline.handle_request(question)
             results.append({
+                "id": data.get("id"),
                 "question": question,
                 "predicted_sql": response["sql_query"],
                 "gold_sql": gold_sql,
@@ -151,6 +180,7 @@ def evaluate_pipeline(
                 print(f"Breaking due to rate limit exceeded. {e}")
                 break
             results.append({
+                "id": data.get("id"),
                 "question": question,
                 "predicted_sql": "",
                 "gold_sql": gold_sql,

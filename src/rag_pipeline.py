@@ -342,10 +342,11 @@ class CBRtoSQL(RAGtoSQL):
                     "match_found": False
                 })
             else:
-                # Accepted - use matched result
+                # Accepted - use matched result. The semantic-tagging ablation keeps the
+                # generic tag for masking/retrieval but still uses the matched location.
                 tagged_entities.append({
                     "original": entity_text,
-                    "label": tag_result["label"],  # Use refined tag
+                    "label": tag_result["label"] if self.config.refined_tagging else entity_info["temp_label"],
                     "best_match": tag_result["best_match"],
                     "table": tag_result.get("table"),
                     "column": tag_result.get("column"),
@@ -686,16 +687,25 @@ class CBRtoSQL(RAGtoSQL):
         """
         if not documents:
             return []
-        
+
+        # Filter once and score that same list. Filtering only the pairs used to
+        # misalign the zip below: every document after an unanswerable case got
+        # its neighbour's score, and the tail of the list was silently dropped.
+        candidates = [doc for doc in documents if doc.metadata.get("sql_query") != "null"]
+        if not candidates:
+            # Every candidate is unanswerable; keep them rather than sending the
+            # generator an empty example set.
+            return documents[:top_k]
+
         # Create query-document pairs
-        pairs = [[query, doc.metadata.get("case", doc.page_content)] for doc in documents if doc.metadata.get("sql_query") != "null"]
-        
+        pairs = [[query, doc.metadata.get("case", doc.page_content)] for doc in candidates]
+
         # Score all pairs with cross-encoder
         scores = self.reranker.predict(pairs)
-        
+
         # Combine documents with scores and sort
-        doc_scores = list(zip(documents, scores))
+        doc_scores = list(zip(candidates, scores))
         doc_scores.sort(key=lambda x: -x[1])  # Sort by score descending
-        
+
         # Return top k documents
         return [doc for doc, _ in doc_scores[:top_k]]

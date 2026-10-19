@@ -1,0 +1,17 @@
+{
+  "CBR-CDB": {
+    "accuracy0": 86.54670094258783,
+    "accuracy5": 39.84575835475578,
+    "accuracy10": -6.8551842330762645,
+    "accuracyN": -10813.453299057412,
+    "stats": {
+      "answerable_correct": 807,
+      "answerable_abstain": 48,
+      "answerable_incorrect": 79,
+      "unanswerable_abstain": 203,
+      "unanswerable_incorrect": 30,
+      "total_answerable": 934,
+      "total_unanswerable": 233
+    }
+  }
+}

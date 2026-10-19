@@ -1,0 +1,37 @@
+{
+  "RAG-IDB": {
+    "lf_accuracy": {
+      "total": 0.7017994858611826,
+      "agg_op": 0.9434447300771208,
+      "agg_col": 0.7892030848329049,
+      "table": 0.8303341902313625,
+      "condition_column_operation": 0.7523564695801199,
+      "condition_value": 0.7309340188517567
+    },
+    "ex_accuracy": {
+      "exact_execution_accuracy": 0.8097686375321337,
+      "standard_execution_accuracy": 0.8097686375321337
+    },
+    "rs_accuracy": {
+      "RS(0)": 80.97686375321337,
+      "RS(10)": -2.999143101970865,
+      "RS(N)": -9719.023136246788,
+      "detailed_stats": {
+        "answerable_correct": 723,
+        "answerable_abstain": 124,
+        "answerable_incorrect": 87,
+        "unanswerable_abstain": 222,
+        "unanswerable_incorrect": 11,
+        "total_answerable": 934,
+        "total_unanswerable": 233
+      },
+      "detailed_metrics": {
+        "answerable_accuracy": 77.40899357601712,
+        "answerable_abstention_rate": 13.276231263383298,
+        "answerable_error_rate": 9.314775160599572,
+        "unanswerable_detection_rate": 95.27896995708154,
+        "unanswerable_error_rate": 4.721030042918455
+      }
+    }
+  }
+}

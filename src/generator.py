@@ -134,17 +134,25 @@ class OpenAIAgent(BaseGenerator):
     def __init__(
         self, 
         config: LLMConfig = LLMConfig.default(),
-        base_url: str = "https://api.novita.ai/dedicated/v1/openai" 
+        base_url: str = "https://api.openai.com/v1",
         # base_url: str = "https://api.novita.ai/openai"
+        # base_url: str = "https://api.novita.ai/dedicated/v1/openai"
     ):
         super().__init__(config)
 
+        # `chat_template_kwargs` is a vLLM/Novita extension; OpenAI rejects
+        # unknown body fields, so only send it to the self-hosted endpoints.
+        extra_body = (
+            {} if "openai.com" in base_url
+            else {"chat_template_kwargs": {"enable_thinking": False}}
+        )
+
         self.client = ChatOpenAI(
-            model=self.config.model, 
+            model=self.config.model,
             base_url=base_url,
-            api_key=os.getenv("OPENAI_API_KEY"), 
+            api_key=os.getenv("OPENAI_API_KEY"),
             temperature=self.config.temperature,
-            extra_body={"chat_template_kwargs": {"enable_thinking": False}}
+            extra_body=extra_body
         )
 
 

@@ -1,0 +1,17 @@
+{
+  "RAG-CDB": {
+    "accuracy0": 79.17737789203085,
+    "accuracy5": 41.90231362467866,
+    "accuracy10": 4.627249357326478,
+    "accuracyN": -8620.82262210797,
+    "stats": {
+      "answerable_correct": 698,
+      "answerable_abstain": 156,
+      "answerable_incorrect": 80,
+      "unanswerable_abstain": 226,
+      "unanswerable_incorrect": 7,
+      "total_answerable": 934,
+      "total_unanswerable": 233
+    }
+  }
+}

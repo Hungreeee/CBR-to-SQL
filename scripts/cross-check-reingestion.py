@@ -8,7 +8,7 @@ from tqdm import tqdm
 import json
 
 # Configuration
-CBR_COLLECTION = "cbr_incomplete_ehrsql24"
+CBR_COLLECTION = "cbr_incomplete_ehrsql24_v11"
 NEW_COLLECTION = CBR_COLLECTION
 BATCH_SIZE = 50
 QDRANT_URL = "http://localhost:6333"
