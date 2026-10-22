@@ -106,7 +106,7 @@ class AzureAIAgent(BaseGenerator):
     def __init__(
         self, 
         config: LLMConfig = LLMConfig.default(),
-        base_url: str = "https://aalto-openai-apigw.azure-api.net",
+        base_url: str = os.getenv("AZURE_OPENAI_ENDPOINT"),
     ):
         super().__init__(config)
         model = self.config.model

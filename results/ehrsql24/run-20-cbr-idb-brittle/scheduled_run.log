@@ -1,6 +1,6 @@
 ==== scheduled run started Thu 09/17/2026  3:01:01.01 ==== 
-[batch] running E:\Personal folder\CBR-to-SQL\scripts\ehrsql24\eval_performance.py (2 magic lines stripped)
-[batch] cwd e:\Personal folder\CBR-to-SQL
+[batch] running .\scripts\ehrsql24\eval_performance.py (2 magic lines stripped)
+[batch] cwd .\
 Results will be saved to: results\ehrsql24\run-20-cbr-idb-brittle
 Evaluating: ['CBR-IDB']
 ✓ Loaded 1167 test examples

@@ -49,7 +49,7 @@ LOOKUP_COLLECTION = "lookup_table_ehrsql24"
 # Model selection.
 # The knowledge base was rebuilt with OpenAIAgent, so keep this False to run the
 # whole pipeline on one generator configuration.
-USE_AZURE = True  # Set to True for Azure/Aalto
+USE_AZURE = True  # Set to True for Azure
 
 # Select which pipelines to evaluate
 EVALUATE = ["CBR-CDB"]
@@ -175,7 +175,7 @@ def evaluate_pipeline(
                 "token_usage": response["token_usage"],
             })
         except Exception as e:
-            if "aalto" in str(e).lower() or "429" in str(e).lower():
+            if "quota" in str(e).lower() or "429" in str(e).lower():
                 error_flag = True
                 print(f"Breaking due to rate limit exceeded. {e}")
                 break

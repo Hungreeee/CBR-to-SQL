@@ -1,6 +1,6 @@
 ==== scheduled run started Fri 09/18/2026  3:01:00.97 ==== 
-[batch] running E:\Personal folder\CBR-to-SQL\scripts\ehrsql24\eval_performance.py (2 magic lines stripped)
-[batch] cwd e:\Personal folder\CBR-to-SQL
+[batch] running .\scripts\ehrsql24\eval_performance.py (2 magic lines stripped)
+[batch] cwd .\
 Results will be saved to: results\ehrsql24\run-20-rag-cdb-3
 Evaluating: ['RAG-CDB']
 ✓ Loaded 1167 test examples

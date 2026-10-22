@@ -314,7 +314,7 @@ def _results_progress(results_dir: Path) -> int:
 def _quota_wait_seconds(log_path: Path) -> Optional[int]:
     """If the last eval attempt stopped on an exhausted quota, how long until it is back.
 
-    The Aalto gateway answers with "Quota will be replenished in HH:MM:SS".
+    The Azure gateway answers with "Quota will be replenished in HH:MM:SS".
     """
     text = log_path.read_text(encoding="utf-8", errors="replace")
     last_attempt = text[text.rfind("=" * 70):]
